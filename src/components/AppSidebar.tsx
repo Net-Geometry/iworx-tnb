@@ -63,6 +63,11 @@ const moduleItems = [
     icon: Wrench,
   },
   {
+    title: "Job Plans",
+    url: "/job-plans",
+    icon: FileSpreadsheet,
+  },
+  {
     title: "Preventive Maintenance",
     url: "/preventive-maintenance",
     icon: Calendar,

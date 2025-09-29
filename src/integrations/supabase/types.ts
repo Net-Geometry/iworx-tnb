@@ -975,6 +975,281 @@ export type Database = {
           },
         ]
       }
+      job_plan_documents: {
+        Row: {
+          created_at: string
+          document_name: string
+          document_type: Database["public"]["Enums"]["document_type"] | null
+          file_path: string | null
+          file_size: number | null
+          id: string
+          is_required: boolean | null
+          job_plan_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_name: string
+          document_type?: Database["public"]["Enums"]["document_type"] | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          is_required?: boolean | null
+          job_plan_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_name?: string
+          document_type?: Database["public"]["Enums"]["document_type"] | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          is_required?: boolean | null
+          job_plan_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_plan_documents_job_plan_id_fkey"
+            columns: ["job_plan_id"]
+            isOneToOne: false
+            referencedRelation: "job_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_plan_parts: {
+        Row: {
+          alternative_part_ids: string[] | null
+          created_at: string
+          id: string
+          inventory_item_id: string | null
+          is_critical_part: boolean | null
+          job_plan_id: string
+          notes: string | null
+          part_name: string
+          part_number: string | null
+          quantity_required: number
+          updated_at: string
+        }
+        Insert: {
+          alternative_part_ids?: string[] | null
+          created_at?: string
+          id?: string
+          inventory_item_id?: string | null
+          is_critical_part?: boolean | null
+          job_plan_id: string
+          notes?: string | null
+          part_name: string
+          part_number?: string | null
+          quantity_required?: number
+          updated_at?: string
+        }
+        Update: {
+          alternative_part_ids?: string[] | null
+          created_at?: string
+          id?: string
+          inventory_item_id?: string | null
+          is_critical_part?: boolean | null
+          job_plan_id?: string
+          notes?: string | null
+          part_name?: string
+          part_number?: string | null
+          quantity_required?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_plan_parts_job_plan_id_fkey"
+            columns: ["job_plan_id"]
+            isOneToOne: false
+            referencedRelation: "job_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_plan_tasks: {
+        Row: {
+          completion_criteria: string | null
+          created_at: string
+          estimated_duration_minutes: number | null
+          id: string
+          is_critical_step: boolean | null
+          job_plan_id: string
+          notes: string | null
+          safety_precaution_ids: string[] | null
+          skill_required: string | null
+          task_description: string | null
+          task_sequence: number
+          task_title: string
+          updated_at: string
+        }
+        Insert: {
+          completion_criteria?: string | null
+          created_at?: string
+          estimated_duration_minutes?: number | null
+          id?: string
+          is_critical_step?: boolean | null
+          job_plan_id: string
+          notes?: string | null
+          safety_precaution_ids?: string[] | null
+          skill_required?: string | null
+          task_description?: string | null
+          task_sequence: number
+          task_title: string
+          updated_at?: string
+        }
+        Update: {
+          completion_criteria?: string | null
+          created_at?: string
+          estimated_duration_minutes?: number | null
+          id?: string
+          is_critical_step?: boolean | null
+          job_plan_id?: string
+          notes?: string | null
+          safety_precaution_ids?: string[] | null
+          skill_required?: string | null
+          task_description?: string | null
+          task_sequence?: number
+          task_title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_plan_tasks_job_plan_id_fkey"
+            columns: ["job_plan_id"]
+            isOneToOne: false
+            referencedRelation: "job_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_plan_tools: {
+        Row: {
+          created_at: string
+          id: string
+          is_specialized_tool: boolean | null
+          job_plan_id: string
+          notes: string | null
+          quantity_required: number | null
+          tool_description: string | null
+          tool_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_specialized_tool?: boolean | null
+          job_plan_id: string
+          notes?: string | null
+          quantity_required?: number | null
+          tool_description?: string | null
+          tool_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_specialized_tool?: boolean | null
+          job_plan_id?: string
+          notes?: string | null
+          quantity_required?: number | null
+          tool_description?: string | null
+          tool_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_plan_tools_job_plan_id_fkey"
+            columns: ["job_plan_id"]
+            isOneToOne: false
+            referencedRelation: "job_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_plans: {
+        Row: {
+          applicable_asset_types: string[] | null
+          approved_at: string | null
+          approved_by: string | null
+          category: string | null
+          cost_estimate: number | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          estimated_duration_hours: number | null
+          frequency_interval: number | null
+          frequency_type: Database["public"]["Enums"]["frequency_type"] | null
+          id: string
+          job_plan_number: string
+          job_type: Database["public"]["Enums"]["job_type"] | null
+          priority: string | null
+          skill_level_required:
+            | Database["public"]["Enums"]["skill_level"]
+            | null
+          status: Database["public"]["Enums"]["job_plan_status"] | null
+          subcategory: string | null
+          title: string
+          updated_at: string
+          usage_count: number | null
+          version: string | null
+        }
+        Insert: {
+          applicable_asset_types?: string[] | null
+          approved_at?: string | null
+          approved_by?: string | null
+          category?: string | null
+          cost_estimate?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_duration_hours?: number | null
+          frequency_interval?: number | null
+          frequency_type?: Database["public"]["Enums"]["frequency_type"] | null
+          id?: string
+          job_plan_number: string
+          job_type?: Database["public"]["Enums"]["job_type"] | null
+          priority?: string | null
+          skill_level_required?:
+            | Database["public"]["Enums"]["skill_level"]
+            | null
+          status?: Database["public"]["Enums"]["job_plan_status"] | null
+          subcategory?: string | null
+          title: string
+          updated_at?: string
+          usage_count?: number | null
+          version?: string | null
+        }
+        Update: {
+          applicable_asset_types?: string[] | null
+          approved_at?: string | null
+          approved_by?: string | null
+          category?: string | null
+          cost_estimate?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_duration_hours?: number | null
+          frequency_interval?: number | null
+          frequency_type?: Database["public"]["Enums"]["frequency_type"] | null
+          id?: string
+          job_plan_number?: string
+          job_type?: Database["public"]["Enums"]["job_type"] | null
+          priority?: string | null
+          skill_level_required?:
+            | Database["public"]["Enums"]["skill_level"]
+            | null
+          status?: Database["public"]["Enums"]["job_plan_status"] | null
+          subcategory?: string | null
+          title?: string
+          updated_at?: string
+          usage_count?: number | null
+          version?: string | null
+        }
+        Relationships: []
+      }
       loto_procedures: {
         Row: {
           approval_required: boolean | null
@@ -1571,12 +1846,22 @@ export type Database = {
       bom_status: "active" | "inactive" | "draft" | "archived"
       bom_type: "manufacturing" | "maintenance" | "spare_parts"
       capa_status: "open" | "in_progress" | "completed" | "overdue" | "closed"
+      document_type: "manual" | "schematic" | "checklist" | "image" | "video"
+      frequency_type: "time_based" | "usage_based" | "condition_based"
       incident_severity: "low" | "medium" | "high" | "critical"
       incident_status: "reported" | "investigating" | "resolved" | "closed"
+      job_plan_status: "draft" | "active" | "under_review" | "archived"
+      job_type:
+        | "preventive"
+        | "corrective"
+        | "predictive"
+        | "emergency"
+        | "shutdown"
       loto_status: "draft" | "approved" | "active" | "expired" | "archived"
       precaution_severity: "critical" | "high" | "medium" | "low"
       precaution_status: "active" | "under_review" | "archived"
       risk_level: "very_low" | "low" | "medium" | "high" | "very_high"
+      skill_level: "basic" | "intermediate" | "advanced" | "specialist"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1708,12 +1993,23 @@ export const Constants = {
       bom_status: ["active", "inactive", "draft", "archived"],
       bom_type: ["manufacturing", "maintenance", "spare_parts"],
       capa_status: ["open", "in_progress", "completed", "overdue", "closed"],
+      document_type: ["manual", "schematic", "checklist", "image", "video"],
+      frequency_type: ["time_based", "usage_based", "condition_based"],
       incident_severity: ["low", "medium", "high", "critical"],
       incident_status: ["reported", "investigating", "resolved", "closed"],
+      job_plan_status: ["draft", "active", "under_review", "archived"],
+      job_type: [
+        "preventive",
+        "corrective",
+        "predictive",
+        "emergency",
+        "shutdown",
+      ],
       loto_status: ["draft", "approved", "active", "expired", "archived"],
       precaution_severity: ["critical", "high", "medium", "low"],
       precaution_status: ["active", "under_review", "archived"],
       risk_level: ["very_low", "low", "medium", "high", "very_high"],
+      skill_level: ["basic", "intermediate", "advanced", "specialist"],
     },
   },
 } as const

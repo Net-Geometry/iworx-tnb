@@ -16,6 +16,7 @@ import AssetsPage from "./pages/AssetsPage";
 import AssetDetailPage from "./pages/AssetDetailPage";
 import CreateAssetPage from "./pages/CreateAssetPage";
 import WorkOrdersPage from "./pages/WorkOrdersPage";
+import JobPlansPage from "./pages/JobPlansPage";
 import PreventiveMaintenancePage from "./pages/PreventiveMaintenancePage";
 import InventoryOverviewPage from "./pages/inventory/InventoryOverviewPage";
 import ItemsStockPage from "./pages/inventory/ItemsStockPage";
@@ -83,6 +84,13 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <WorkOrdersPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/job-plans" element={
+              <AuthGuard>
+                <Layout>
+                  <JobPlansPage />
                 </Layout>
               </AuthGuard>
             } />
