@@ -35,28 +35,92 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
-            <Route path="/*" element={
+            <Route path="/" element={
               <AuthGuard>
                 <Layout>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/assets" element={<AssetsPage />} />
-                    <Route path="/assets/create" element={<CreateAssetPage />} />
-                    <Route path="/work-orders" element={<WorkOrdersPage />} />
-                    <Route path="/preventive-maintenance" element={<PreventiveMaintenancePage />} />
-                    <Route path="/inventory" element={<InventoryPage />} />
-                    <Route path="/analytics" element={<AnalyticsPage />} />
-                    <Route path="/mobile-operations" element={<MobileOperationsPage />} />
-                    <Route path="/integrations" element={<IntegrationsPage />} />
-                    <Route path="/safety" element={<SafetyPage />} />
-                    <Route path="/spatial" element={<SpatialPage />} />
-                    <Route path="/reports" element={<ReportsPage />} />
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
+                  <Index />
                 </Layout>
               </AuthGuard>
             } />
+            <Route path="/assets" element={
+              <AuthGuard>
+                <Layout>
+                  <AssetsPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/assets/create" element={
+              <AuthGuard>
+                <Layout>
+                  <CreateAssetPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/work-orders" element={
+              <AuthGuard>
+                <Layout>
+                  <WorkOrdersPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/preventive-maintenance" element={
+              <AuthGuard>
+                <Layout>
+                  <PreventiveMaintenancePage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/inventory" element={
+              <AuthGuard>
+                <Layout>
+                  <InventoryPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/analytics" element={
+              <AuthGuard>
+                <Layout>
+                  <AnalyticsPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/mobile-operations" element={
+              <AuthGuard>
+                <Layout>
+                  <MobileOperationsPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/integrations" element={
+              <AuthGuard>
+                <Layout>
+                  <IntegrationsPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/safety" element={
+              <AuthGuard>
+                <Layout>
+                  <SafetyPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/spatial" element={
+              <AuthGuard>
+                <Layout>
+                  <SpatialPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/reports" element={
+              <AuthGuard>
+                <Layout>
+                  <ReportsPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
