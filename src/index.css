@@ -6,81 +6,75 @@
 
 @layer base {
   :root {
-    /* Core Enterprise Colors */
-    --background: 210 25% 98%;
-    --foreground: 215 25% 15%;
+    /* Core Dark Professional Colors */
+    --background: 222 47% 11%;
+    --foreground: 213 31% 91%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card: 224 38% 13%;
+    --card-foreground: 213 31% 91%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover: 224 38% 13%;
+    --popover-foreground: 213 31% 91%;
 
-    /* Primary Brand - Enterprise Blue */
-    --primary: 205 90% 25%;
-    --primary-foreground: 210 40% 98%;
-    --primary-light: 205 85% 35%;
-    --primary-dark: 205 95% 18%;
+    /* Primary Brand - Bright Blue */
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+    --primary-light: 217 91% 70%;
+    --primary-dark: 217 91% 50%;
 
-    /* Secondary - Utility Teal */
-    --secondary: 180 25% 96%;
-    --secondary-foreground: 180 85% 15%;
-    --secondary-accent: 180 65% 45%;
+    /* Secondary - Dark Slate */
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 213 31% 91%;
+    --secondary-accent: 217 91% 60%;
 
     /* Muted/Neutral */
-    --muted: 215 20% 96%;
-    --muted-foreground: 215 15% 50%;
+    --muted: 215 28% 17%;
+    --muted-foreground: 218 11% 65%;
 
     /* Accent - Success Green */
-    --accent: 142 76% 96%;
-    --accent-foreground: 142 85% 15%;
+    --accent: 215 28% 17%;
+    --accent-foreground: 213 31% 91%;
     --accent-success: 142 76% 36%;
 
     /* Status Colors */
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 213 31% 91%;
     --warning: 38 92% 50%;
-    --warning-foreground: 48 96% 89%;
-    --info: 199 89% 48%;
-    --info-foreground: 210 40% 98%;
+    --warning-foreground: 222 47% 11%;
+    --info: 217 91% 60%;
+    --info-foreground: 213 31% 91%;
 
     /* UI Elements */
-    --border: 215 20% 92%;
-    --input: 215 20% 96%;
-    --ring: 205 90% 25%;
+    --border: 215 28% 20%;
+    --input: 215 28% 17%;
+    --ring: 217 91% 60%;
 
-    /* Enterprise Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(205, 90%, 25%), hsl(205, 85%, 35%));
-    --gradient-secondary: linear-gradient(135deg, hsl(180, 65%, 45%), hsl(180, 75%, 55%));
+    /* Professional Dark Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217, 91%, 60%), hsl(217, 91%, 70%));
+    --gradient-secondary: linear-gradient(135deg, hsl(215, 28%, 17%), hsl(215, 28%, 20%));
     --gradient-success: linear-gradient(135deg, hsl(142, 76%, 36%), hsl(142, 76%, 46%));
-    --gradient-dashboard: linear-gradient(145deg, hsl(210, 25%, 98%), hsl(215, 20%, 96%));
-    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%), hsl(215, 20%, 98%));
+    --gradient-dashboard: linear-gradient(145deg, hsl(222, 47%, 11%), hsl(215, 28%, 13%));
+    --gradient-card: linear-gradient(145deg, hsl(224, 38%, 13%), hsl(215, 28%, 15%));
 
-    /* Shadows */
-    --shadow-enterprise: 0 4px 20px -2px hsl(205, 90%, 25% / 0.1);
-    --shadow-card: 0 2px 12px -4px hsl(215, 25%, 15% / 0.08);
-    --shadow-hover: 0 8px 30px -8px hsl(205, 90%, 25% / 0.15);
+    /* Dark Shadows */
+    --shadow-enterprise: 0 4px 20px -2px hsl(0, 0%, 0% / 0.3);
+    --shadow-card: 0 2px 12px -4px hsl(0, 0%, 0% / 0.2);
+    --shadow-hover: 0 8px 30px -8px hsl(217, 91%, 60% / 0.2);
 
     /* Typography */
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Dark Sidebar */
+    --sidebar-background: 215 28% 17%;
+    --sidebar-foreground: 213 31% 91%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 215 28% 20%;
+    --sidebar-accent-foreground: 213 31% 91%;
+    --sidebar-border: 215 28% 20%;
+    --sidebar-ring: 217 91% 60%;
   }
 
   .dark {
@@ -129,5 +123,10 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Force dark theme */
+  html {
+    color-scheme: dark;
   }
 }
