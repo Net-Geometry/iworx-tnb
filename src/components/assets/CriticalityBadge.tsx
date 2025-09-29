@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-export type AssetCriticality = "high" | "medium" | "low";
+export type AssetCriticality = "low" | "medium" | "high" | "critical";
 
 interface CriticalityBadgeProps {
   criticality: AssetCriticality;
@@ -9,17 +9,23 @@ interface CriticalityBadgeProps {
 }
 
 const criticalityConfig = {
+  critical: {
+    label: "C",
+    fullLabel: "Critical",
+    className: "bg-red-500/10 text-red-500 border-red-500/20",
+    dotColor: "bg-red-500"
+  },
   high: {
     label: "H",
     fullLabel: "High",
-    className: "bg-red-500/10 text-red-500 border-red-500/20",
-    dotColor: "bg-red-500"
+    className: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+    dotColor: "bg-orange-500"
   },
   medium: {
     label: "M", 
     fullLabel: "Medium",
-    className: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-    dotColor: "bg-orange-500"
+    className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+    dotColor: "bg-yellow-500"
   },
   low: {
     label: "L",

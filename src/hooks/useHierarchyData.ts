@@ -116,15 +116,24 @@ export function useHierarchyNodes() {
 
   const fetchNodes = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error: fetchError } = await supabase
         .from('hierarchy_nodes')
         .select(`
           *,
-          level_info:hierarchy_levels(*)
+          hierarchy_levels!hierarchy_level_id (
+            id,
+            name,
+            level_order,
+            icon_name,
+            color_code
+          ),
+          assets!hierarchy_node_id (
+            id
+          )
         `)
         .order('name');
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
       
       // Build tree structure
       const nodeMap = new Map<string, HierarchyNode>();
@@ -134,6 +143,7 @@ export function useHierarchyNodes() {
       (data || []).forEach(node => {
         const hierarchyNode: HierarchyNode = {
           ...node,
+          asset_count: node.assets?.length || 0, // Use actual asset count from database
           properties: typeof node.properties === 'string' 
             ? JSON.parse(node.properties) 
             : node.properties || {},

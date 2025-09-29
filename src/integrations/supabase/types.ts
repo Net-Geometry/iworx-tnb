@@ -14,6 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      assets: {
+        Row: {
+          asset_number: string | null
+          created_at: string
+          criticality: string | null
+          description: string | null
+          health_score: number | null
+          hierarchy_node_id: string | null
+          id: string
+          last_maintenance_date: string | null
+          manufacturer: string | null
+          model: string | null
+          name: string
+          next_maintenance_date: string | null
+          purchase_date: string | null
+          serial_number: string | null
+          status: string | null
+          type: string | null
+          updated_at: string
+        }
+        Insert: {
+          asset_number?: string | null
+          created_at?: string
+          criticality?: string | null
+          description?: string | null
+          health_score?: number | null
+          hierarchy_node_id?: string | null
+          id?: string
+          last_maintenance_date?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name: string
+          next_maintenance_date?: string | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          asset_number?: string | null
+          created_at?: string
+          criticality?: string | null
+          description?: string | null
+          health_score?: number | null
+          hierarchy_node_id?: string | null
+          id?: string
+          last_maintenance_date?: string | null
+          manufacturer?: string | null
+          model?: string | null
+          name?: string
+          next_maintenance_date?: string | null
+          purchase_date?: string | null
+          serial_number?: string | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_hierarchy_node_id_fkey"
+            columns: ["hierarchy_node_id"]
+            isOneToOne: false
+            referencedRelation: "hierarchy_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hierarchy_levels: {
         Row: {
           color_code: string

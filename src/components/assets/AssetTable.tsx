@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ChevronDown, MoreHorizontal, Eye, Edit, Calendar, QrCode } from "lucide-react";
+import React, { useState } from "react";
+import { MoreHorizontal, Eye, Edit, Archive, Copy, FileText, Plus } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -8,142 +8,97 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { StatusBadge, AssetStatus } from "./StatusBadge";
+import { StatusBadge } from "./StatusBadge";
 import { HealthIndicator } from "./HealthIndicator";
-import { CriticalityBadge, AssetCriticality } from "./CriticalityBadge";
-
-interface Asset {
-  id: string;
-  name: string;
-  assetNumber: string;
-  type: string;
-  location: string;
-  status: AssetStatus;
-  healthScore: number;
-  criticality: AssetCriticality;
-  lastMaintenance: string;
-  nextDue: string;
-  imageUrl?: string;
-}
-
-const mockAssets: Asset[] = [
-  {
-    id: "1",
-    name: "Conveyor Belt System A1",
-    assetNumber: "CVB-001",
-    type: "Conveyor",
-    location: "Plant 1 > Production > Line A",
-    status: "operational",
-    healthScore: 94,
-    criticality: "high",
-    lastMaintenance: "2024-01-15",
-    nextDue: "2024-04-15",
-  },
-  {
-    id: "2", 
-    name: "Hydraulic Press HP-200",
-    assetNumber: "HP-200",
-    type: "Press",
-    location: "Plant 1 > Production > Line B",
-    status: "warning",
-    healthScore: 72,
-    criticality: "high",
-    lastMaintenance: "2024-01-10",
-    nextDue: "2024-04-10",
-  },
-  {
-    id: "3",
-    name: "Air Compressor AC-50",
-    assetNumber: "AC-050",
-    type: "Compressor", 
-    location: "Plant 1 > Utilities",
-    status: "critical",
-    healthScore: 45,
-    criticality: "medium",
-    lastMaintenance: "2023-12-20",
-    nextDue: "2024-03-20",
-  },
-  {
-    id: "4",
-    name: "Packaging Robot PR-300",
-    assetNumber: "PR-300",
-    type: "Robot",
-    location: "Plant 1 > Packaging",
-    status: "operational",
-    healthScore: 88,
-    criticality: "medium",
-    lastMaintenance: "2024-01-20",
-    nextDue: "2024-04-20",
-  },
-  {
-    id: "5",
-    name: "Cooling Tower CT-100",
-    assetNumber: "CT-100", 
-    type: "Cooling",
-    location: "Plant 1 > HVAC",
-    status: "offline",
-    healthScore: 0,
-    criticality: "low",
-    lastMaintenance: "2023-11-15",
-    nextDue: "2024-02-15",
-  }
-];
+import { CriticalityBadge } from "./CriticalityBadge";
+import { useAssets, Asset } from "@/hooks/useAssets";
+import AssetManagementForm from "./AssetManagementForm";
 
 interface AssetTableProps {
   onAssetSelect?: (asset: Asset) => void;
 }
 
-export function AssetTable({ onAssetSelect }: AssetTableProps) {
-  const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set());
+export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect }) => {
+  const { assets, loading, error, deleteAsset } = useAssets();
+  const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
+  const [showAssetForm, setShowAssetForm] = useState(false);
+  const [editingAsset, setEditingAsset] = useState<string | undefined>();
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedAssets(new Set(mockAssets.map(asset => asset.id)));
+      setSelectedAssets(assets.map(asset => asset.id));
     } else {
-      setSelectedAssets(new Set());
+      setSelectedAssets([]);
     }
   };
 
   const handleSelectAsset = (assetId: string, checked: boolean) => {
-    const newSelected = new Set(selectedAssets);
     if (checked) {
-      newSelected.add(assetId);
+      setSelectedAssets(prev => [...prev, assetId]);
     } else {
-      newSelected.delete(assetId);
+      setSelectedAssets(prev => prev.filter(id => id !== assetId));
     }
-    setSelectedAssets(newSelected);
   };
 
-  const formatDate = (dateString: string) => {
+  const handleDeleteAsset = async (assetId: string) => {
+    if (confirm('Are you sure you want to delete this asset?')) {
+      await deleteAsset(assetId);
+    }
+  };
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
   };
 
-  const getRelativeTime = (dateString: string) => {
+  const getRelativeTime = (dateString: string | undefined) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     const now = new Date();
-    const diffTime = date.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffInDays = Math.floor((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return `${Math.abs(diffDays)} days overdue`;
-    if (diffDays === 0) return "Due today";
-    if (diffDays <= 7) return `${diffDays} days`;
-    return formatDate(dateString);
+    if (diffInDays < 0) {
+      return `${Math.abs(diffInDays)} days ago`;
+    } else if (diffInDays === 0) {
+      return "Today";
+    } else {
+      return `In ${diffInDays} days`;
+    }
   };
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading assets...</div>;
+  }
+
+  if (error) {
+    return <div className="p-8 text-center text-red-500">Error loading assets: {error}</div>;
+  }
 
   return (
     <div className="space-y-4">
-      {selectedAssets.size > 0 && (
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-muted-foreground">
+          {assets.length} assets found
+        </div>
+        <Button onClick={() => setShowAssetForm(true)} size="sm">
+          <Plus className="mr-2 h-4 w-4" />
+          Add Asset
+        </Button>
+      </div>
+
+      {selectedAssets.length > 0 && (
         <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg border border-border/50">
           <span className="text-sm text-muted-foreground">
-            {selectedAssets.size} assets selected
+            {selectedAssets.length} assets selected
           </span>
           <Button variant="outline" size="sm">
             Schedule Maintenance
@@ -163,7 +118,7 @@ export function AssetTable({ onAssetSelect }: AssetTableProps) {
             <TableRow className="border-border/50">
               <TableHead className="w-12">
                 <Checkbox
-                  checked={selectedAssets.size === mockAssets.length}
+                  checked={selectedAssets.length === assets.length && assets.length > 0}
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
@@ -179,92 +134,123 @@ export function AssetTable({ onAssetSelect }: AssetTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockAssets.map((asset) => (
-              <TableRow 
-                key={asset.id}
-                className="border-border/50 hover:bg-muted/30 cursor-pointer"
-                onClick={() => onAssetSelect?.(asset)}
-              >
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <Checkbox
-                    checked={selectedAssets.has(asset.id)}
-                    onCheckedChange={(checked) => handleSelectAsset(asset.id, checked as boolean)}
-                  />
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-                      <span className="text-xs font-medium text-primary-foreground">
-                        {asset.type.slice(0, 2).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="font-medium text-foreground">{asset.name}</div>
-                      <div className="text-sm text-muted-foreground">{asset.assetNumber}</div>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm text-foreground">{asset.type}</span>
-                </TableCell>
-                <TableCell>
-                  <div className="text-sm text-muted-foreground max-w-48 truncate" title={asset.location}>
-                    {asset.location}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={asset.status} />
-                </TableCell>
-                <TableCell>
-                  <HealthIndicator score={asset.healthScore} className="w-24" />
-                </TableCell>
-                <TableCell className="text-center">
-                  <CriticalityBadge criticality={asset.criticality} />
-                </TableCell>
-                <TableCell>
-                  <div className="text-sm text-foreground">{formatDate(asset.lastMaintenance)}</div>
-                </TableCell>
-                <TableCell>
-                  <div className={`text-sm font-medium ${
-                    new Date(asset.nextDue) < new Date() ? 'text-red-500' :
-                    new Date(asset.nextDue).getTime() - new Date().getTime() <= 7 * 24 * 60 * 60 * 1000 ? 'text-orange-500' :
-                    'text-foreground'
-                  }`}>
-                    {getRelativeTime(asset.nextDue)}
-                  </div>
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-background border-border">
-                      <DropdownMenuItem>
-                        <Eye className="mr-2 h-4 w-4" />
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit Asset
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Calendar className="mr-2 h-4 w-4" />
-                        Schedule Maintenance
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <QrCode className="mr-2 h-4 w-4" />
-                        Generate QR Code
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {assets.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                  No assets found. Click "Add Asset" to create your first asset.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              assets.map((asset) => (
+                <TableRow 
+                  key={asset.id}
+                  className="border-border/50 hover:bg-muted/30 cursor-pointer"
+                  onClick={() => onAssetSelect?.(asset)}
+                >
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={selectedAssets.includes(asset.id)}
+                      onCheckedChange={(checked) => handleSelectAsset(asset.id, checked as boolean)}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
+                        <span className="text-xs font-medium text-primary-foreground">
+                          {(asset.type || 'AS').slice(0, 2).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-medium text-foreground">{asset.name}</div>
+                        {asset.asset_number && (
+                          <div className="text-sm text-muted-foreground">{asset.asset_number}</div>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-foreground">{asset.type || 'N/A'}</span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm text-muted-foreground max-w-48 truncate" title={asset.location}>
+                      {asset.location}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={asset.status} />
+                  </TableCell>
+                  <TableCell>
+                    <HealthIndicator score={asset.health_score} className="w-24" />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <CriticalityBadge criticality={asset.criticality} />
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm text-foreground">{formatDate(asset.last_maintenance_date)}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className={`text-sm font-medium ${
+                      asset.next_maintenance_date && new Date(asset.next_maintenance_date) < new Date() ? 'text-red-500' :
+                      asset.next_maintenance_date && new Date(asset.next_maintenance_date).getTime() - new Date().getTime() <= 7 * 24 * 60 * 60 * 1000 ? 'text-orange-500' :
+                      'text-foreground'
+                    }`}>
+                      {getRelativeTime(asset.next_maintenance_date)}
+                    </div>
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-background border-border">
+                        <DropdownMenuItem onClick={() => onAssetSelect?.(asset)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setEditingAsset(asset.id);
+                          setShowAssetForm(true);
+                        }}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit Asset
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Copy className="mr-2 h-4 w-4" />
+                          Duplicate
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <FileText className="mr-2 h-4 w-4" />
+                          Generate Report
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => handleDeleteAsset(asset.id)}
+                        >
+                          <Archive className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
+
+      {showAssetForm && (
+        <AssetManagementForm
+          assetId={editingAsset}
+          onClose={() => {
+            setShowAssetForm(false);
+            setEditingAsset(undefined);
+          }}
+        />
+      )}
     </div>
   );
-}
+};
