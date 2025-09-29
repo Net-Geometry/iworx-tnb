@@ -44,6 +44,7 @@ const itemSchema = z.object({
   is_serialized: z.boolean().default(false),
   is_active: z.boolean().default(true),
   lead_time_days: z.string().optional(),
+  item_image_url: z.string().optional(),
 });
 
 type ItemFormData = z.infer<typeof itemSchema>;
@@ -81,6 +82,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({
       is_serialized: false,
       is_active: true,
       lead_time_days: "0",
+      item_image_url: "",
     },
   });
 
@@ -104,6 +106,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({
         supplier_id: data.supplier_id || undefined,
         is_serialized: data.is_serialized,
         is_active: data.is_active,
+        item_image_url: data.item_image_url || undefined,
       };
 
       await createItemMutation.mutateAsync(itemData);
@@ -290,6 +293,20 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({
 
               <FormField
                 control={form.control}
+                name="reorder_quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Reorder Quantity</FormLabel>
+                    <FormControl>
+                      <Input type="number" min="0" placeholder="0" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="safety_stock"
                 render={({ field }) => (
                   <FormItem>
@@ -301,21 +318,21 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="max_stock_level"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Max Stock Level</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" placeholder="Optional" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
+
+            <FormField
+              control={form.control}
+              name="max_stock_level"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Max Stock Level</FormLabel>
+                  <FormControl>
+                    <Input type="number" min="0" placeholder="Optional" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -372,6 +389,24 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({
                   <FormLabel>Lead Time (Days)</FormLabel>
                   <FormControl>
                     <Input type="number" min="0" placeholder="0" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="item_image_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Item Image URL</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="url"
+                      placeholder="https://example.com/image.jpg" 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
