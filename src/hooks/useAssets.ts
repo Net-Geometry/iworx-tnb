@@ -20,6 +20,14 @@ export interface Asset {
   next_maintenance_date?: string;
   created_at: string;
   updated_at: string;
+  // New comprehensive fields
+  category?: string;
+  subcategory?: string;
+  parent_asset_id?: string;
+  purchase_cost?: number;
+  warranty_expiry_date?: string;
+  asset_image_url?: string;
+  qr_code_data?: string;
   // Joined data from hierarchy
   hierarchy_path?: string;
   location?: string;

@@ -14,9 +14,52 @@ export type Database = {
   }
   public: {
     Tables: {
+      asset_documents: {
+        Row: {
+          asset_id: string | null
+          created_at: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_documents_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assets: {
         Row: {
+          asset_image_url: string | null
           asset_number: string | null
+          category: string | null
           created_at: string
           criticality: string | null
           description: string | null
@@ -28,14 +71,21 @@ export type Database = {
           model: string | null
           name: string
           next_maintenance_date: string | null
+          parent_asset_id: string | null
+          purchase_cost: number | null
           purchase_date: string | null
+          qr_code_data: string | null
           serial_number: string | null
           status: string | null
+          subcategory: string | null
           type: string | null
           updated_at: string
+          warranty_expiry_date: string | null
         }
         Insert: {
+          asset_image_url?: string | null
           asset_number?: string | null
+          category?: string | null
           created_at?: string
           criticality?: string | null
           description?: string | null
@@ -47,14 +97,21 @@ export type Database = {
           model?: string | null
           name: string
           next_maintenance_date?: string | null
+          parent_asset_id?: string | null
+          purchase_cost?: number | null
           purchase_date?: string | null
+          qr_code_data?: string | null
           serial_number?: string | null
           status?: string | null
+          subcategory?: string | null
           type?: string | null
           updated_at?: string
+          warranty_expiry_date?: string | null
         }
         Update: {
+          asset_image_url?: string | null
           asset_number?: string | null
+          category?: string | null
           created_at?: string
           criticality?: string | null
           description?: string | null
@@ -66,11 +123,16 @@ export type Database = {
           model?: string | null
           name?: string
           next_maintenance_date?: string | null
+          parent_asset_id?: string | null
+          purchase_cost?: number | null
           purchase_date?: string | null
+          qr_code_data?: string | null
           serial_number?: string | null
           status?: string | null
+          subcategory?: string | null
           type?: string | null
           updated_at?: string
+          warranty_expiry_date?: string | null
         }
         Relationships: [
           {
@@ -78,6 +140,13 @@ export type Database = {
             columns: ["hierarchy_node_id"]
             isOneToOne: false
             referencedRelation: "hierarchy_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_parent_asset_id_fkey"
+            columns: ["parent_asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
             referencedColumns: ["id"]
           },
         ]
