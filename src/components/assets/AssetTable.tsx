@@ -85,14 +85,8 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-muted-foreground">
-          {assets.length} assets found
-        </div>
-        <Button onClick={() => setShowAssetForm(true)} size="sm">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Asset
-        </Button>
+      <div className="text-sm text-muted-foreground">
+        {assets.length} assets found
       </div>
 
       {selectedAssets.length > 0 && (

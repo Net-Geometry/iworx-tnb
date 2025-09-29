@@ -14,9 +14,9 @@ interface Asset {
   assetNumber: string;
   type: string;
   location: string;
-  status: "operational" | "warning" | "critical" | "offline";
+  status: "operational" | "maintenance" | "out_of_service" | "decommissioned";
   healthScore: number;
-  criticality: "high" | "medium" | "low";
+  criticality: "low" | "medium" | "high" | "critical";
   lastMaintenance: string;
   nextDue: string;
   manufacturer?: string;
