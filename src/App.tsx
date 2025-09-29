@@ -5,8 +5,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/Layout";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import AuthPage from "./pages/AuthPage";
 
 // Module Pages
 import AssetsPage from "./pages/AssetsPage";
@@ -29,24 +32,33 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Layout>
+        <AuthProvider>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/assets" element={<AssetsPage />} />
-            <Route path="/assets/create" element={<CreateAssetPage />} />
-            <Route path="/work-orders" element={<WorkOrdersPage />} />
-            <Route path="/preventive-maintenance" element={<PreventiveMaintenancePage />} />
-            <Route path="/inventory" element={<InventoryPage />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/mobile-operations" element={<MobileOperationsPage />} />
-            <Route path="/integrations" element={<IntegrationsPage />} />
-            <Route path="/safety" element={<SafetyPage />} />
-            <Route path="/spatial" element={<SpatialPage />} />
-            <Route path="/reports" element={<ReportsPage />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/*" element={
+              <AuthGuard>
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/assets" element={<AssetsPage />} />
+                    <Route path="/assets/create" element={<CreateAssetPage />} />
+                    <Route path="/work-orders" element={<WorkOrdersPage />} />
+                    <Route path="/preventive-maintenance" element={<PreventiveMaintenancePage />} />
+                    <Route path="/inventory" element={<InventoryPage />} />
+                    <Route path="/analytics" element={<AnalyticsPage />} />
+                    <Route path="/mobile-operations" element={<MobileOperationsPage />} />
+                    <Route path="/integrations" element={<IntegrationsPage />} />
+                    <Route path="/safety" element={<SafetyPage />} />
+                    <Route path="/spatial" element={<SpatialPage />} />
+                    <Route path="/reports" element={<ReportsPage />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Layout>
+              </AuthGuard>
+            } />
           </Routes>
-        </Layout>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
