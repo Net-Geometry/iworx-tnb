@@ -36,8 +36,6 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
     model: '',
     serial_number: '',
     purchase_date: '',
-    last_maintenance_date: '',
-    next_maintenance_date: '',
     // New comprehensive fields
     category: '',
     subcategory: '',
@@ -84,8 +82,6 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
         model: existingAsset.model || '',
         serial_number: existingAsset.serial_number || '',
         purchase_date: existingAsset.purchase_date || '',
-        last_maintenance_date: existingAsset.last_maintenance_date || '',
-        next_maintenance_date: existingAsset.next_maintenance_date || '',
         category: existingAsset.category || '',
         subcategory: existingAsset.subcategory || '',
         parent_asset_id: existingAsset.parent_asset_id || '',
@@ -126,8 +122,8 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
         model: formData.model || null,
         serial_number: formData.serial_number || null,
         purchase_date: formData.purchase_date || null,
-        last_maintenance_date: formData.last_maintenance_date || null,
-        next_maintenance_date: formData.next_maintenance_date || null,
+        last_maintenance_date: null,
+        next_maintenance_date: null,
         category: formData.category || null,
         subcategory: formData.subcategory || null,
         parent_asset_id: formData.parent_asset_id || null,
@@ -350,7 +346,7 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
           <Card>
             <CardHeader>
               <CardTitle>Financial & Warranty</CardTitle>
-              <CardDescription>Purchase information and maintenance dates</CardDescription>
+              <CardDescription>Purchase information and warranty details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -387,27 +383,6 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="last_maintenance_date">Last Maintenance</Label>
-                  <Input
-                    id="last_maintenance_date"
-                    type="date"
-                    value={formData.last_maintenance_date}
-                    onChange={(e) => setFormData(prev => ({ ...prev, last_maintenance_date: e.target.value }))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="next_maintenance_date">Next Maintenance</Label>
-                  <Input
-                    id="next_maintenance_date"
-                    type="date"
-                    value={formData.next_maintenance_date}
-                    onChange={(e) => setFormData(prev => ({ ...prev, next_maintenance_date: e.target.value }))}
-                  />
-                </div>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
