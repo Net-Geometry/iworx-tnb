@@ -1,138 +1,33 @@
 import { useState } from "react";
-import { ChevronRight, ChevronDown, Building2, MapPin, Cog, Component, Search, Zap, Activity, Navigation } from "lucide-react";
+import { ChevronRight, ChevronDown, Search, Plus, Settings, Map, Building2, Zap, Activity, Navigation, Component, Folder, MapPin, Building, Factory, Home, Users, Box, Package, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { StatusBadge } from "./StatusBadge";
 import { cn } from "@/lib/utils";
+import { useHierarchyNodes, useHierarchyLevels, HierarchyNode } from "@/hooks/useHierarchyData";
+import { HierarchyManagerModal } from "./HierarchyManagerModal";
 
-interface HierarchyNode {
-  id: string;
-  name: string;
-  type: "state" | "station" | "substation" | "voltage" | "location" | "asset";
-  status?: "operational" | "warning" | "critical" | "offline";
-  children?: HierarchyNode[];
-  assetCount?: number;
-  voltageLevel?: string;
-}
-
-const mockHierarchy: HierarchyNode[] = [
-  {
-    id: "state-1",
-    name: "California",
-    type: "state",
-    status: "operational",
-    assetCount: 450,
-    children: [
-      {
-        id: "station-1", 
-        name: "Central Power Station",
-        type: "station",
-        status: "operational",
-        assetCount: 180,
-        children: [
-          {
-            id: "substation-1",
-            name: "Distribution Sub A",
-            type: "substation", 
-            status: "warning",
-            assetCount: 85,
-            children: [
-              {
-                id: "voltage-1",
-                name: "110kV Bay",
-                type: "voltage",
-                status: "operational",
-                assetCount: 25,
-                voltageLevel: "110kV",
-                children: [
-                  {
-                    id: "location-1",
-                    name: "Bay 1 Control Room",
-                    type: "location",
-                    status: "operational",
-                    assetCount: 12,
-                    children: [
-                      { id: "asset-1", name: "Transformer T1-110", type: "asset", status: "operational" },
-                      { id: "asset-2", name: "Circuit Breaker CB-101", type: "asset", status: "warning" },
-                    ]
-                  }
-                ]
-              },
-              {
-                id: "voltage-2",
-                name: "220kV Bay",
-                type: "voltage",
-                status: "critical",
-                assetCount: 35,
-                voltageLevel: "220kV",
-                children: [
-                  {
-                    id: "location-2",
-                    name: "Bay 2 Switchyard",
-                    type: "location",
-                    status: "critical",
-                    assetCount: 18,
-                    children: [
-                      { id: "asset-3", name: "Power Transformer PT-220", type: "asset", status: "critical" },
-                      { id: "asset-4", name: "Disconnect Switch DS-201", type: "asset", status: "operational" },
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        id: "station-2",
-        name: "North Grid Station", 
-        type: "station",
-        status: "warning",
-        assetCount: 120,
-        children: [
-          {
-            id: "substation-2",
-            name: "Transmission Sub B",
-            type: "substation",
-            status: "operational", 
-            assetCount: 65,
-            children: [
-              {
-                id: "voltage-3",
-                name: "500kV Bay",
-                type: "voltage",
-                status: "operational",
-                assetCount: 15,
-                voltageLevel: "500kV",
-                children: [
-                  {
-                    id: "location-3",
-                    name: "Main Control Building",
-                    type: "location",
-                    status: "operational",
-                    assetCount: 8,
-                    children: [
-                      { id: "asset-5", name: "Auto Transformer AT-500", type: "asset", status: "operational" },
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-];
-
-const typeIcons = {
-  state: MapPin,
-  station: Building2,
-  substation: Zap,
-  voltage: Activity,
-  location: Navigation,
-  asset: Component,
+// Dynamic icon mapping based on hierarchy levels
+const getIconComponent = (iconName: string) => {
+  const iconMap: Record<string, any> = {
+    map: Map,
+    building2: Building2,
+    zap: Zap,
+    activity: Activity,
+    navigation: Navigation,
+    component: Component,
+    folder: Folder,
+    'map-pin': MapPin,
+    building: Building,
+    factory: Factory,
+    home: Home,
+    settings: Settings,
+    users: Users,
+    box: Box,
+    package: Package,
+    wrench: Wrench,
+  };
+  return iconMap[iconName] || Folder;
 };
 
 interface AssetHierarchyProps {
@@ -140,9 +35,12 @@ interface AssetHierarchyProps {
 }
 
 export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["state-1", "station-1", "substation-1"]));
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  const { nodes, loading, error, refetch } = useHierarchyNodes();
+  const { levels } = useHierarchyLevels();
 
   const toggleNode = (nodeId: string) => {
     const newExpanded = new Set(expandedNodes);
@@ -160,7 +58,7 @@ export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
   };
 
   const renderNode = (node: HierarchyNode, level = 0): React.ReactNode => {
-    const Icon = typeIcons[node.type];
+    const IconComponent = getIconComponent(node.level_info?.icon_name || 'folder');
     const hasChildren = node.children && node.children.length > 0;
     const isExpanded = expandedNodes.has(node.id);
     const isSelected = selectedNode === node.id;
@@ -171,11 +69,15 @@ export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
 
     if (!matchesSearch && level === 0) return null;
 
+    // Get voltage level from properties if it exists
+    const voltageLevel = node.properties?.voltage_level;
+    const levelColor = node.level_info?.color_code || '#6b7280';
+
     return (
       <div key={node.id}>
         <div
           className={cn(
-            "flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors",
+            "flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors group",
             isSelected && "bg-muted text-primary",
             level > 0 && "ml-4"
           )}
@@ -202,29 +104,27 @@ export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
             <div className="w-4" />
           )}
           
-          <Icon className={cn(
-            "h-4 w-4",
-            node.type === "state" && "text-blue-500",
-            node.type === "station" && "text-green-500", 
-            node.type === "substation" && "text-orange-500",
-            node.type === "voltage" && "text-purple-500",
-            node.type === "location" && "text-teal-500",
-            node.type === "asset" && "text-red-500"
-          )} />
+          <IconComponent 
+            className="h-4 w-4" 
+            style={{ color: levelColor }}
+          />
           
           <span className="text-sm font-medium flex-1 truncate">
             {node.name}
-            {node.voltageLevel && (
-              <span className="ml-2 text-xs bg-purple-500/10 text-purple-500 px-2 py-0.5 rounded-full">
-                {node.voltageLevel}
+            {voltageLevel && (
+              <span className="ml-2 text-xs px-2 py-0.5 rounded-full" style={{ 
+                backgroundColor: levelColor + '20', 
+                color: levelColor 
+              }}>
+                {voltageLevel}
               </span>
             )}
           </span>
           
           <div className="flex items-center gap-2">
-            {node.assetCount && (
+            {node.asset_count > 0 && (
               <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
-                {node.assetCount}
+                {node.asset_count}
               </span>
             )}
             {node.status && (
@@ -235,6 +135,17 @@ export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
                 'bg-gray-500'
               }`} />
             )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                // This will be handled by the HierarchyManagerModal
+              }}
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
           </div>
         </div>
         
@@ -247,14 +158,41 @@ export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center">
+        <div className="text-muted-foreground">Loading hierarchy...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center">
+        <div className="text-destructive mb-2">Error loading hierarchy</div>
+        <Button variant="outline" onClick={refetch}>
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 border-b border-border/50">
-        <h3 className="font-semibold text-foreground mb-3">Asset Hierarchy</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-foreground">Asset Hierarchy</h3>
+          <HierarchyManagerModal>
+            <Button variant="outline" size="sm">
+              <Settings className="w-4 h-4 mr-2" />
+              Manage
+            </Button>
+          </HierarchyManagerModal>
+        </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search power grid..."
+            placeholder="Search hierarchy..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 bg-muted/50 border-border/50"
@@ -264,7 +202,19 @@ export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
       
       <ScrollArea className="flex-1 p-2">
         <div className="space-y-1">
-          {mockHierarchy.map(node => renderNode(node))}
+          {nodes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-8 text-muted-foreground">
+              <div className="mb-2">No hierarchy nodes found</div>
+              <HierarchyManagerModal>
+                <Button variant="outline">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add First Node
+                </Button>
+              </HierarchyManagerModal>
+            </div>
+          ) : (
+            nodes.map(node => renderNode(node))
+          )}
         </div>
       </ScrollArea>
     </div>
