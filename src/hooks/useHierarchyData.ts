@@ -180,22 +180,29 @@ export function useHierarchyNodes() {
 
   const addNode = async (nodeData: Omit<HierarchyNode, 'id' | 'children' | 'level_info'>) => {
     try {
+      console.log('Adding new node:', nodeData);
       const { data, error } = await supabase
         .from('hierarchy_nodes')
         .insert([nodeData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw error;
+      }
+      console.log('Insert successful:', data);
       await fetchNodes(); // Refresh the list
       return data;
     } catch (err) {
+      console.error('Add node error:', err);
       throw new Error(err instanceof Error ? err.message : 'Failed to add hierarchy node');
     }
   };
 
   const updateNode = async (id: string, updates: Partial<HierarchyNode>) => {
     try {
+      console.log('Updating node with ID:', id, 'Updates:', updates);
       const { data, error } = await supabase
         .from('hierarchy_nodes')
         .update(updates)
@@ -203,10 +210,15 @@ export function useHierarchyNodes() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
+      console.log('Update successful:', data);
       await fetchNodes(); // Refresh the list
       return data;
     } catch (err) {
+      console.error('Update node error:', err);
       throw new Error(err instanceof Error ? err.message : 'Failed to update hierarchy node');
     }
   };

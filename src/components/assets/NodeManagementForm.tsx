@@ -101,11 +101,13 @@ export function NodeManagementForm({ nodeId, onClose }: NodeManagementFormProps)
       const nodeData = {
         name: formData.name,
         hierarchy_level_id: formData.hierarchy_level_id,
-        parent_id: formData.parent_id || null,
+        parent_id: formData.parent_id === "none" ? null : formData.parent_id,
         status: formData.status,
         asset_count: formData.asset_count,
         properties
       };
+
+      console.log('Submitting node data:', nodeData);
 
       if (isEditing) {
         await updateNode(nodeId, nodeData);
@@ -160,7 +162,7 @@ export function NodeManagementForm({ nodeId, onClose }: NodeManagementFormProps)
               onValueChange={(value) => setFormData(prev => ({ 
                 ...prev, 
                 hierarchy_level_id: value,
-                parent_id: '' // Reset parent when level changes
+                parent_id: 'none' // Reset parent when level changes
               }))}
               required
             >
@@ -183,7 +185,7 @@ export function NodeManagementForm({ nodeId, onClose }: NodeManagementFormProps)
             <Label htmlFor="parent_id">Parent Node</Label>
             <Select
               value={formData.parent_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, parent_id: value === "none" ? "" : value }))}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, parent_id: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select parent node" />
