@@ -3,6 +3,7 @@ import {
   Wrench,
   Calendar,
   Package,
+  FileSpreadsheet,
   Brain,
   Smartphone,
   Link,
@@ -59,6 +60,11 @@ const moduleItems = [
     title: "Inventory & Procurement",
     url: "/inventory",
     icon: Package,
+  },
+  {
+    title: "Bill of Materials",
+    url: "/bom",
+    icon: FileSpreadsheet,
   },
   {
     title: "Advanced Analytics & AI",

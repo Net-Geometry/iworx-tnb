@@ -14,6 +14,55 @@ export type Database = {
   }
   public: {
     Tables: {
+      asset_boms: {
+        Row: {
+          asset_id: string
+          assigned_by: string | null
+          assigned_date: string | null
+          bom_id: string
+          id: string
+          is_primary: boolean | null
+        }
+        Insert: {
+          asset_id: string
+          assigned_by?: string | null
+          assigned_date?: string | null
+          bom_id: string
+          id?: string
+          is_primary?: boolean | null
+        }
+        Update: {
+          asset_id?: string
+          assigned_by?: string | null
+          assigned_date?: string | null
+          bom_id?: string
+          id?: string
+          is_primary?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_boms_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_boms_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_boms_bom_id_fkey"
+            columns: ["bom_id"]
+            isOneToOne: false
+            referencedRelation: "bill_of_materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_documents: {
         Row: {
           asset_id: string | null
@@ -147,6 +196,135 @@ export type Database = {
             columns: ["parent_asset_id"]
             isOneToOne: false
             referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bill_of_materials: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          bom_type: Database["public"]["Enums"]["bom_type"] | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          status: Database["public"]["Enums"]["bom_status"] | null
+          updated_at: string
+          version: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          bom_type?: Database["public"]["Enums"]["bom_type"] | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          status?: Database["public"]["Enums"]["bom_status"] | null
+          updated_at?: string
+          version?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          bom_type?: Database["public"]["Enums"]["bom_type"] | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          status?: Database["public"]["Enums"]["bom_status"] | null
+          updated_at?: string
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_of_materials_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bill_of_materials_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bom_items: {
+        Row: {
+          bom_id: string
+          cost_per_unit: number | null
+          created_at: string
+          description: string | null
+          id: string
+          item_name: string
+          item_number: string | null
+          item_type: Database["public"]["Enums"]["bom_item_type"] | null
+          lead_time_days: number | null
+          level: number | null
+          notes: string | null
+          parent_item_id: string | null
+          quantity: number
+          supplier: string | null
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          bom_id: string
+          cost_per_unit?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_name: string
+          item_number?: string | null
+          item_type?: Database["public"]["Enums"]["bom_item_type"] | null
+          lead_time_days?: number | null
+          level?: number | null
+          notes?: string | null
+          parent_item_id?: string | null
+          quantity?: number
+          supplier?: string | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bom_id?: string
+          cost_per_unit?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_name?: string
+          item_number?: string | null
+          item_type?: Database["public"]["Enums"]["bom_item_type"] | null
+          lead_time_days?: number | null
+          level?: number | null
+          notes?: string | null
+          parent_item_id?: string | null
+          quantity?: number
+          supplier?: string | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bom_items_bom_id_fkey"
+            columns: ["bom_id"]
+            isOneToOne: false
+            referencedRelation: "bill_of_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bom_items_parent_item_id_fkey"
+            columns: ["parent_item_id"]
+            isOneToOne: false
+            referencedRelation: "bom_items"
             referencedColumns: ["id"]
           },
         ]
@@ -380,7 +558,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      bom_item_type: "part" | "material" | "tool" | "consumable"
+      bom_status: "active" | "inactive" | "draft" | "archived"
+      bom_type: "manufacturing" | "maintenance" | "spare_parts"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -507,6 +687,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      bom_item_type: ["part", "material", "tool", "consumable"],
+      bom_status: ["active", "inactive", "draft", "archived"],
+      bom_type: ["manufacturing", "maintenance", "spare_parts"],
+    },
   },
 } as const

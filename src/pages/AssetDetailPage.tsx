@@ -1,3 +1,4 @@
+import { AssetBOMTab } from '@/components/bom/AssetBOMTab';
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAssets } from '@/hooks/useAssets';
@@ -242,9 +243,10 @@ const AssetDetailPage: React.FC = () => {
 
       {/* Detailed Information Tabs */}
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+          <TabsTrigger value="bom">Bill of Materials</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="financials">Financials</TabsTrigger>
           <TabsTrigger value="location">Location</TabsTrigger>
@@ -390,6 +392,11 @@ const AssetDetailPage: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* BOM Tab */}
+        <TabsContent value="bom" className="mt-6">
+          <AssetBOMTab assetId={id!} />
         </TabsContent>
 
         {/* Documents Tab */}
