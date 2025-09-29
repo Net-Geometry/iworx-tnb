@@ -22,6 +22,7 @@ import {
   AlertCircle,
   Lock,
   CheckCircle,
+  BookOpen,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -109,6 +110,7 @@ const safetySubModules = [
   { title: "Incident Management", url: "/safety/incidents", icon: AlertTriangle },
   { title: "Hazard & Risk Register", url: "/safety/hazards", icon: AlertCircle },
   { title: "LOTO Procedures", url: "/safety/loto", icon: Lock },
+  { title: "Precaution Library", url: "/safety/precautions", icon: BookOpen },
   { title: "CAPA Management", url: "/safety/capa", icon: CheckCircle },
   { title: "Safety Reports", url: "/safety/reports", icon: BarChart3 },
 ];

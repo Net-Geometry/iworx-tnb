@@ -36,6 +36,7 @@ import BOMDetailPage from "./pages/BOMDetailPage";
 import SafetyIncidentsPage from "./pages/safety/SafetyIncidentsPage";
 import SafetyHazardsPage from "./pages/safety/SafetyHazardsPage";
 import LOTOProceduresPage from "./pages/safety/LOTOProceduresPage";
+import PrecautionLibraryPage from "./pages/safety/PrecautionLibraryPage";
 import CAPAManagementPage from "./pages/safety/CAPAManagementPage";
 import SafetyReportsPage from "./pages/safety/SafetyReportsPage";
 
@@ -206,41 +207,48 @@ const App = () => (
             } />
             
             {/* Safety & HSE Routes */}
-            <Route path="/safety/incidents" element={
-              <AuthGuard>
-                <Layout>
-                  <SafetyIncidentsPage />
-                </Layout>
-              </AuthGuard>
-            } />
-            <Route path="/safety/hazards" element={
-              <AuthGuard>
-                <Layout>
-                  <SafetyHazardsPage />
-                </Layout>
-              </AuthGuard>
-            } />
-            <Route path="/safety/loto" element={
-              <AuthGuard>
-                <Layout>
-                  <LOTOProceduresPage />
-                </Layout>
-              </AuthGuard>
-            } />
-            <Route path="/safety/capa" element={
-              <AuthGuard>
-                <Layout>
-                  <CAPAManagementPage />
-                </Layout>
-              </AuthGuard>
-            } />
-            <Route path="/safety/reports" element={
-              <AuthGuard>
-                <Layout>
-                  <SafetyReportsPage />
-                </Layout>
-              </AuthGuard>
-            } />
+                <Route path="/safety/incidents" element={
+                  <AuthGuard>
+                    <Layout>
+                      <SafetyIncidentsPage />
+                    </Layout>
+                  </AuthGuard>
+                } />
+                <Route path="/safety/hazards" element={
+                  <AuthGuard>
+                    <Layout>
+                      <SafetyHazardsPage />
+                    </Layout>
+                  </AuthGuard>
+                } />
+                <Route path="/safety/loto" element={
+                  <AuthGuard>
+                    <Layout>
+                      <LOTOProceduresPage />
+                    </Layout>
+                  </AuthGuard>
+                } />
+                <Route path="/safety/precautions" element={
+                  <AuthGuard>
+                    <Layout>
+                      <PrecautionLibraryPage />
+                    </Layout>
+                  </AuthGuard>
+                } />
+                <Route path="/safety/capa" element={
+                  <AuthGuard>
+                    <Layout>
+                      <CAPAManagementPage />
+                    </Layout>
+                  </AuthGuard>
+                } />
+                <Route path="/safety/reports" element={
+                  <AuthGuard>
+                    <Layout>
+                      <SafetyReportsPage />
+                    </Layout>
+                  </AuthGuard>
+                } />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -1397,6 +1397,66 @@ export type Database = {
         }
         Relationships: []
       }
+      safety_precautions: {
+        Row: {
+          applicable_scenarios: Json | null
+          associated_hazards: string[] | null
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          precaution_code: string
+          regulatory_references: string[] | null
+          required_actions: string[] | null
+          severity_level: Database["public"]["Enums"]["precaution_severity"]
+          status: Database["public"]["Enums"]["precaution_status"]
+          subcategory: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          applicable_scenarios?: Json | null
+          associated_hazards?: string[] | null
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          precaution_code: string
+          regulatory_references?: string[] | null
+          required_actions?: string[] | null
+          severity_level?: Database["public"]["Enums"]["precaution_severity"]
+          status?: Database["public"]["Enums"]["precaution_status"]
+          subcategory?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          applicable_scenarios?: Json | null
+          associated_hazards?: string[] | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          precaution_code?: string
+          regulatory_references?: string[] | null
+          required_actions?: string[] | null
+          severity_level?: Database["public"]["Enums"]["precaution_severity"]
+          status?: Database["public"]["Enums"]["precaution_status"]
+          subcategory?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       suppliers: {
         Row: {
           address: string | null
@@ -1514,6 +1574,8 @@ export type Database = {
       incident_severity: "low" | "medium" | "high" | "critical"
       incident_status: "reported" | "investigating" | "resolved" | "closed"
       loto_status: "draft" | "approved" | "active" | "expired" | "archived"
+      precaution_severity: "critical" | "high" | "medium" | "low"
+      precaution_status: "active" | "under_review" | "archived"
       risk_level: "very_low" | "low" | "medium" | "high" | "very_high"
     }
     CompositeTypes: {
@@ -1649,6 +1711,8 @@ export const Constants = {
       incident_severity: ["low", "medium", "high", "critical"],
       incident_status: ["reported", "investigating", "resolved", "closed"],
       loto_status: ["draft", "approved", "active", "expired", "archived"],
+      precaution_severity: ["critical", "high", "medium", "low"],
+      precaution_status: ["active", "under_review", "archived"],
       risk_level: ["very_low", "low", "medium", "high", "very_high"],
     },
   },
