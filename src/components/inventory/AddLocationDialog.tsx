@@ -38,8 +38,8 @@ const locationSchema = z.object({
   code: z.string().optional(),
   location_type: z.string().default("warehouse"),
   address: z.string().optional(),
-  capacity_limit: z.coerce.number().min(0).optional(),
-  parent_location_id: z.string().uuid().optional().or(z.literal("")),
+  capacity_limit: z.string().optional(),
+  parent_location_id: z.string().optional(),
 });
 
 type LocationFormData = z.infer<typeof locationSchema>;
@@ -60,8 +60,8 @@ export function AddLocationDialog({ onLocationAdded }: AddLocationDialogProps) {
       code: "",
       location_type: "warehouse",
       address: "",
-      capacity_limit: undefined,
-      parent_location_id: null,
+      capacity_limit: "",
+      parent_location_id: "",
     },
   });
 
@@ -73,7 +73,7 @@ export function AddLocationDialog({ onLocationAdded }: AddLocationDialogProps) {
         code: data.code || null,
         location_type: data.location_type,
         address: data.address || null,
-        capacity_limit: data.capacity_limit || null,
+        capacity_limit: data.capacity_limit ? Number(data.capacity_limit) : null,
         parent_location_id: data.parent_location_id || null,
       };
 
