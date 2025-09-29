@@ -1,68 +1,83 @@
 import { TrendingUp, AlertTriangle, Activity, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useAssetKPIs } from "@/hooks/useAssetKPIs";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const kpiData = [
+const kpiConfig = [
   {
+    key: "totalAssets" as const,
     title: "Total Assets",
-    value: "1,247",
-    trend: "+12%",
-    trendUp: true,
     icon: Activity,
     bgColor: "bg-gradient-to-br from-blue-500/10 to-blue-600/5",
-    iconColor: "text-blue-500"
+    iconColor: "text-blue-500",
+    format: (value: number) => value.toLocaleString()
   },
   {
+    key: "criticalAssets" as const,
     title: "Critical Assets",
-    value: "23",
-    trend: "-5%",
-    trendUp: false,
     icon: AlertTriangle,
     bgColor: "bg-gradient-to-br from-red-500/10 to-red-600/5",
-    iconColor: "text-red-500"
+    iconColor: "text-red-500",
+    format: (value: number) => value.toLocaleString()
   },
   {
+    key: "healthScore" as const,
     title: "Health Score",
-    value: "94.2%",
-    trend: "+2.1%",
-    trendUp: true,
     icon: TrendingUp,
     bgColor: "bg-gradient-to-br from-green-500/10 to-green-600/5",
-    iconColor: "text-green-500"
+    iconColor: "text-green-500",
+    format: (value: number) => `${value}%`
   },
   {
+    key: "maintenanceDue" as const,
     title: "Maintenance Due",
-    value: "156",
-    trend: "+8%",
-    trendUp: true,
     icon: Calendar,
     bgColor: "bg-gradient-to-br from-orange-500/10 to-orange-600/5",
-    iconColor: "text-orange-500"
+    iconColor: "text-orange-500",
+    format: (value: number) => value.toLocaleString()
   }
 ];
 
 export function AssetKPICards() {
+  const { kpis, loading, error } = useAssetKPIs();
+
+  if (error) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {kpiConfig.map((config) => (
+          <Card key={config.title} className="p-6 border-border/50 border-destructive/20">
+            <div className="flex items-center justify-center h-20">
+              <p className="text-sm text-destructive">Failed to load {config.title.toLowerCase()}</p>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {kpiData.map((kpi) => {
-        const Icon = kpi.icon;
+      {kpiConfig.map((config) => {
+        const Icon = config.icon;
+        const value = kpis[config.key];
+        
         return (
-          <Card key={kpi.title} className={`p-6 border-border/50 ${kpi.bgColor}`}>
+          <Card key={config.title} className={`p-6 border-border/50 ${config.bgColor}`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">{kpi.title}</p>
+                <p className="text-sm font-medium text-muted-foreground">{config.title}</p>
                 <div className="flex items-center gap-2 mt-2">
-                  <h3 className="text-2xl font-bold text-foreground">{kpi.value}</h3>
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    kpi.trendUp 
-                      ? 'bg-green-500/10 text-green-500' 
-                      : 'bg-red-500/10 text-red-500'
-                  }`}>
-                    {kpi.trend}
-                  </span>
+                  {loading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <h3 className="text-2xl font-bold text-foreground">
+                      {config.format(value)}
+                    </h3>
+                  )}
                 </div>
               </div>
-              <div className={`p-3 rounded-xl ${kpi.bgColor}`}>
-                <Icon className={`h-6 w-6 ${kpi.iconColor}`} />
+              <div className={`p-3 rounded-xl ${config.bgColor}`}>
+                <Icon className={`h-6 w-6 ${config.iconColor}`} />
               </div>
             </div>
           </Card>
