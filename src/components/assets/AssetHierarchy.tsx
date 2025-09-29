@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronRight, ChevronDown, Building2, MapPin, Cog, Component, Search } from "lucide-react";
+import { ChevronRight, ChevronDown, Building2, MapPin, Cog, Component, Search, Zap, Activity, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,85 +9,115 @@ import { cn } from "@/lib/utils";
 interface HierarchyNode {
   id: string;
   name: string;
-  type: "site" | "area" | "system" | "component";
+  type: "state" | "station" | "substation" | "voltage" | "location" | "asset";
   status?: "operational" | "warning" | "critical" | "offline";
   children?: HierarchyNode[];
   assetCount?: number;
+  voltageLevel?: string;
 }
 
 const mockHierarchy: HierarchyNode[] = [
   {
-    id: "site-1",
-    name: "Manufacturing Plant 1",
-    type: "site",
+    id: "state-1",
+    name: "California",
+    type: "state",
     status: "operational",
-    assetCount: 45,
+    assetCount: 450,
     children: [
       {
-        id: "area-1", 
-        name: "Production Floor",
-        type: "area",
-        status: "warning",
-        assetCount: 25,
-        children: [
-          {
-            id: "system-1",
-            name: "Line A",
-            type: "system", 
-            status: "operational",
-            assetCount: 8,
-            children: [
-              { id: "comp-1", name: "Conveyor Belt A1", type: "component", status: "operational" },
-              { id: "comp-2", name: "Conveyor Belt A2", type: "component", status: "warning" },
-            ]
-          },
-          {
-            id: "system-2",
-            name: "Line B", 
-            type: "system",
-            status: "warning",
-            assetCount: 12,
-            children: [
-              { id: "comp-3", name: "Hydraulic Press HP-200", type: "component", status: "warning" },
-              { id: "comp-4", name: "Robotic Arm RA-150", type: "component", status: "operational" },
-            ]
-          }
-        ]
-      },
-      {
-        id: "area-2",
-        name: "Utilities", 
-        type: "area",
-        status: "critical",
-        assetCount: 12,
-        children: [
-          {
-            id: "system-3",
-            name: "Compressed Air",
-            type: "system",
-            status: "critical", 
-            assetCount: 5,
-            children: [
-              { id: "comp-5", name: "Air Compressor AC-50", type: "component", status: "critical" },
-            ]
-          }
-        ]
-      },
-      {
-        id: "area-3",
-        name: "Packaging",
-        type: "area", 
+        id: "station-1", 
+        name: "Central Power Station",
+        type: "station",
         status: "operational",
-        assetCount: 8,
+        assetCount: 180,
         children: [
           {
-            id: "system-4",
-            name: "Packaging Line",
-            type: "system",
-            status: "operational",
-            assetCount: 8,
+            id: "substation-1",
+            name: "Distribution Sub A",
+            type: "substation", 
+            status: "warning",
+            assetCount: 85,
             children: [
-              { id: "comp-6", name: "Packaging Robot PR-300", type: "component", status: "operational" },
+              {
+                id: "voltage-1",
+                name: "110kV Bay",
+                type: "voltage",
+                status: "operational",
+                assetCount: 25,
+                voltageLevel: "110kV",
+                children: [
+                  {
+                    id: "location-1",
+                    name: "Bay 1 Control Room",
+                    type: "location",
+                    status: "operational",
+                    assetCount: 12,
+                    children: [
+                      { id: "asset-1", name: "Transformer T1-110", type: "asset", status: "operational" },
+                      { id: "asset-2", name: "Circuit Breaker CB-101", type: "asset", status: "warning" },
+                    ]
+                  }
+                ]
+              },
+              {
+                id: "voltage-2",
+                name: "220kV Bay",
+                type: "voltage",
+                status: "critical",
+                assetCount: 35,
+                voltageLevel: "220kV",
+                children: [
+                  {
+                    id: "location-2",
+                    name: "Bay 2 Switchyard",
+                    type: "location",
+                    status: "critical",
+                    assetCount: 18,
+                    children: [
+                      { id: "asset-3", name: "Power Transformer PT-220", type: "asset", status: "critical" },
+                      { id: "asset-4", name: "Disconnect Switch DS-201", type: "asset", status: "operational" },
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: "station-2",
+        name: "North Grid Station", 
+        type: "station",
+        status: "warning",
+        assetCount: 120,
+        children: [
+          {
+            id: "substation-2",
+            name: "Transmission Sub B",
+            type: "substation",
+            status: "operational", 
+            assetCount: 65,
+            children: [
+              {
+                id: "voltage-3",
+                name: "500kV Bay",
+                type: "voltage",
+                status: "operational",
+                assetCount: 15,
+                voltageLevel: "500kV",
+                children: [
+                  {
+                    id: "location-3",
+                    name: "Main Control Building",
+                    type: "location",
+                    status: "operational",
+                    assetCount: 8,
+                    children: [
+                      { id: "asset-5", name: "Auto Transformer AT-500", type: "asset", status: "operational" },
+                    ]
+                  }
+                ]
+              }
             ]
           }
         ]
@@ -97,10 +127,12 @@ const mockHierarchy: HierarchyNode[] = [
 ];
 
 const typeIcons = {
-  site: Building2,
-  area: MapPin,
-  system: Cog,
-  component: Component,
+  state: MapPin,
+  station: Building2,
+  substation: Zap,
+  voltage: Activity,
+  location: Navigation,
+  asset: Component,
 };
 
 interface AssetHierarchyProps {
@@ -108,7 +140,7 @@ interface AssetHierarchyProps {
 }
 
 export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["site-1", "area-1"]));
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["state-1", "station-1", "substation-1"]));
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -172,13 +204,22 @@ export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
           
           <Icon className={cn(
             "h-4 w-4",
-            node.type === "site" && "text-blue-500",
-            node.type === "area" && "text-green-500", 
-            node.type === "system" && "text-orange-500",
-            node.type === "component" && "text-purple-500"
+            node.type === "state" && "text-blue-500",
+            node.type === "station" && "text-green-500", 
+            node.type === "substation" && "text-orange-500",
+            node.type === "voltage" && "text-purple-500",
+            node.type === "location" && "text-teal-500",
+            node.type === "asset" && "text-red-500"
           )} />
           
-          <span className="text-sm font-medium flex-1 truncate">{node.name}</span>
+          <span className="text-sm font-medium flex-1 truncate">
+            {node.name}
+            {node.voltageLevel && (
+              <span className="ml-2 text-xs bg-purple-500/10 text-purple-500 px-2 py-0.5 rounded-full">
+                {node.voltageLevel}
+              </span>
+            )}
+          </span>
           
           <div className="flex items-center gap-2">
             {node.assetCount && (
@@ -213,7 +254,7 @@ export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search locations..."
+            placeholder="Search power grid..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 bg-muted/50 border-border/50"
