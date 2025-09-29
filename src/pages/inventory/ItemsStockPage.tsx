@@ -6,11 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useMemo } from "react";
-import { useInventoryItems } from "@/hooks/useInventoryItems";
+import { useInventoryItems, type InventoryItem } from "@/hooks/useInventoryItems";
 import { AddItemDialog } from "@/components/inventory/AddItemDialog";
+import { EditItemDialog } from "@/components/inventory/EditItemDialog";
 
 const ItemsStockPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -54,6 +57,7 @@ const ItemsStockPage = () => {
         }
         
         return {
+          ...item, // Include the full item data for editing
           id: item.id,
           itemNumber: item.item_number || "N/A",
           name: item.name,
@@ -82,6 +86,11 @@ const ItemsStockPage = () => {
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  const handleEditItem = (item: any) => {
+    setSelectedItem(item);
+    setIsEditDialogOpen(true);
   };
 
   return (
@@ -227,7 +236,13 @@ const ItemsStockPage = () => {
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm">Edit</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEditItem(item)}
+                          >
+                            Edit
+                          </Button>
                           <Button variant="outline" size="sm">Adjust Stock</Button>
                         </div>
                       </TableCell>
@@ -278,6 +293,12 @@ const ItemsStockPage = () => {
       <AddItemDialog
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
+      />
+      
+      <EditItemDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        item={selectedItem}
       />
     </div>
   );

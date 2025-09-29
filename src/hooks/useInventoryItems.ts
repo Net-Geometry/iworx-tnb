@@ -79,6 +79,27 @@ export const useInventoryItems = () => {
   });
 };
 
+export interface UpdateInventoryItemData {
+  item_number?: string;
+  name?: string;
+  description?: string;
+  category?: string;
+  subcategory?: string;
+  unit_of_measure?: string;
+  barcode?: string;
+  current_stock?: number;
+  reorder_point?: number;
+  reorder_quantity?: number;
+  safety_stock?: number;
+  max_stock_level?: number;
+  unit_cost?: number;
+  supplier_id?: string;
+  is_serialized?: boolean;
+  is_active?: boolean;
+  lead_time_days?: number;
+  item_image_url?: string;
+}
+
 export const useCreateInventoryItem = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -113,6 +134,44 @@ export const useCreateInventoryItem = () => {
       toast({
         title: "Error",
         description: "Failed to create inventory item. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useUpdateInventoryItem = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, itemData }: { id: string; itemData: UpdateInventoryItemData }) => {
+      const { data, error } = await supabase
+        .from("inventory_items")
+        .update(itemData)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating inventory item:", error);
+        throw error;
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+      toast({
+        title: "Success",
+        description: "Inventory item updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Failed to update inventory item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update inventory item. Please try again.",
         variant: "destructive",
       });
     },
