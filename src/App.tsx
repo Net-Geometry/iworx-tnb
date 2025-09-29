@@ -25,6 +25,7 @@ import SafetyPage from "./pages/SafetyPage";
 import SpatialPage from "./pages/SpatialPage";
 import ReportsPage from "./pages/ReportsPage";
 import BOMPage from "./pages/BOMPage";
+import BOMDetailPage from "./pages/BOMDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -132,6 +133,13 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <BOMPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/bom/:id" element={
+              <AuthGuard>
+                <Layout>
+                  <BOMDetailPage />
                 </Layout>
               </AuthGuard>
             } />

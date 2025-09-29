@@ -225,7 +225,7 @@ export const BOMList = () => {
                 </TableRow>
               ) : (
                 filteredAndSortedBOMs.map((bom) => (
-                  <TableRow key={bom.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableRow key={bom.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/bom/${bom.id}`)}>
                     <TableCell className="font-medium">{bom.name}</TableCell>
                     <TableCell>{bom.version}</TableCell>
                     <TableCell>
