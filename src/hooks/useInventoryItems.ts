@@ -89,7 +89,6 @@ export const useCreateInventoryItem = () => {
         .from("inventory_items")
         .insert([{
           ...itemData,
-          available_stock: itemData.current_stock || 0,
           reserved_stock: 0,
         }])
         .select()
