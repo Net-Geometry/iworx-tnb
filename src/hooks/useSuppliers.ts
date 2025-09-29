@@ -27,7 +27,6 @@ export interface CreateSupplierData {
   website?: string | null;
   tax_id?: string | null;
   payment_terms?: number;
-  rating?: number;
   is_active: boolean;
   notes?: string | null;
 }

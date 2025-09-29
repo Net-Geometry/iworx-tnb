@@ -21,7 +21,6 @@ const supplierSchema = z.object({
   website: z.string().url('Invalid website URL').max(255, 'Website must be less than 255 characters').optional().or(z.literal('')),
   tax_id: z.string().max(50, 'Tax ID must be less than 50 characters').optional().or(z.literal('')),
   payment_terms: z.number().min(0, 'Payment terms must be positive').max(365, 'Payment terms must be less than 365 days').optional(),
-  rating: z.number().min(1, 'Rating must be at least 1').max(5, 'Rating must be at most 5').optional(),
   notes: z.string().max(1000, 'Notes must be less than 1000 characters').optional().or(z.literal(''))
 });
 
@@ -47,7 +46,6 @@ export function AddSupplierDialog({ children }: AddSupplierDialogProps) {
       website: '',
       tax_id: '',
       payment_terms: 30,
-      rating: undefined,
       notes: ''
     }
   });
@@ -64,7 +62,6 @@ export function AddSupplierDialog({ children }: AddSupplierDialogProps) {
         website: data.website || null,
         tax_id: data.tax_id || null,
         payment_terms: data.payment_terms,
-        rating: data.rating,
         notes: data.notes || null,
         is_active: true
       };
@@ -190,27 +187,6 @@ export function AddSupplierDialog({ children }: AddSupplierDialogProps) {
               )}
             </div>
 
-            <div>
-              <Label htmlFor="rating">Rating</Label>
-              <Select
-                value={form.watch('rating')?.toString() || ''}
-                onValueChange={(value) => form.setValue('rating', value ? parseInt(value) : undefined)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select rating" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 Star</SelectItem>
-                  <SelectItem value="2">2 Stars</SelectItem>
-                  <SelectItem value="3">3 Stars</SelectItem>
-                  <SelectItem value="4">4 Stars</SelectItem>
-                  <SelectItem value="5">5 Stars</SelectItem>
-                </SelectContent>
-              </Select>
-              {form.formState.errors.rating && (
-                <p className="text-sm text-destructive mt-1">{form.formState.errors.rating.message}</p>
-              )}
-            </div>
 
             <div className="col-span-2">
               <Label htmlFor="address">Address</Label>
