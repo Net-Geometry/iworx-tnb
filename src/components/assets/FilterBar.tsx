@@ -184,7 +184,7 @@ export function FilterBar({ onFiltersChange }: FilterBarProps) {
                 value={filters.type[0] || ""}
                 onValueChange={(value) => 
                   updateFilters({ 
-                    type: value ? [value] : [] 
+                    type: value === "all" ? [] : [value] 
                   })
                 }
               >
@@ -192,7 +192,7 @@ export function FilterBar({ onFiltersChange }: FilterBarProps) {
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border-border">
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   {typeOptions.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}
@@ -209,13 +209,13 @@ export function FilterBar({ onFiltersChange }: FilterBarProps) {
               </label>
               <Select
                 value={filters.location}
-                onValueChange={(value) => updateFilters({ location: value })}
+                onValueChange={(value) => updateFilters({ location: value === "all" ? "" : value })}
               >
                 <SelectTrigger className="bg-background border-border/50">
                   <SelectValue placeholder="All Locations" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border-border">
-                  <SelectItem value="">All Locations</SelectItem>
+                  <SelectItem value="all">All Locations</SelectItem>
                   <SelectItem value="plant1">Plant 1</SelectItem>
                   <SelectItem value="production">Production Floor</SelectItem>
                   <SelectItem value="utilities">Utilities</SelectItem>

@@ -62,7 +62,7 @@ export function NodeManagementForm({ nodeId, onClose }: NodeManagementFormProps)
       setFormData({
         name: existingNode.name,
         hierarchy_level_id: existingNode.hierarchy_level_id,
-        parent_id: existingNode.parent_id || '',
+        parent_id: existingNode.parent_id || "none",
         status: existingNode.status,
         asset_count: existingNode.asset_count,
         properties: JSON.stringify(existingNode.properties, null, 2)
@@ -183,13 +183,13 @@ export function NodeManagementForm({ nodeId, onClose }: NodeManagementFormProps)
             <Label htmlFor="parent_id">Parent Node</Label>
             <Select
               value={formData.parent_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, parent_id: value }))}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, parent_id: value === "none" ? "" : value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select parent node" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No Parent (Root Level)</SelectItem>
+                <SelectItem value="none">No Parent (Root Level)</SelectItem>
                 {getPotentialParents().map((node) => (
                   <SelectItem key={node.id} value={node.id}>
                     {node.name} ({node.level_info?.name})

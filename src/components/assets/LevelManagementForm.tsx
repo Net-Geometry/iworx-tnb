@@ -73,7 +73,7 @@ export function LevelManagementForm({ levelId, onClose }: LevelManagementFormPro
         level_order: existingLevel.level_order,
         icon_name: existingLevel.icon_name,
         color_code: existingLevel.color_code,
-        parent_level_id: existingLevel.parent_level_id || '',
+        parent_level_id: existingLevel.parent_level_id || "none",
         is_active: existingLevel.is_active
       });
     }
@@ -188,13 +188,13 @@ export function LevelManagementForm({ levelId, onClose }: LevelManagementFormPro
             <Label htmlFor="parent_level">Parent Level (Optional)</Label>
             <Select
               value={formData.parent_level_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, parent_level_id: value }))}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, parent_level_id: value === "none" ? "" : value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select parent level" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No Parent</SelectItem>
+                <SelectItem value="none">No Parent</SelectItem>
                 {levels
                   .filter(l => l.id !== levelId) // Don't show self as parent
                   .sort((a, b) => a.level_order - b.level_order)
