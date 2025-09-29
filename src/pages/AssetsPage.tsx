@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Settings, Plus, Download, Upload, LayoutGrid, List, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,7 @@ import { AssetDetailsPanel } from "@/components/assets/AssetDetailsPanel";
 import { FilterBar } from "@/components/assets/FilterBar";
 
 const AssetsPage = () => {
+  const navigate = useNavigate();
   const [selectedAsset, setSelectedAsset] = useState<any>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
@@ -57,7 +59,7 @@ const AssetsPage = () => {
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => navigate('/assets/create')}>
             <Plus className="mr-2 h-4 w-4" />
             Create Asset
           </Button>

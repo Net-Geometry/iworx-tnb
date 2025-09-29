@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 
 // Module Pages
 import AssetsPage from "./pages/AssetsPage";
+import CreateAssetPage from "./pages/CreateAssetPage";
 import WorkOrdersPage from "./pages/WorkOrdersPage";
 import PreventiveMaintenancePage from "./pages/PreventiveMaintenancePage";
 import InventoryPage from "./pages/InventoryPage";
@@ -32,6 +33,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/assets" element={<AssetsPage />} />
+            <Route path="/assets/create" element={<CreateAssetPage />} />
             <Route path="/work-orders" element={<WorkOrdersPage />} />
             <Route path="/preventive-maintenance" element={<PreventiveMaintenancePage />} />
             <Route path="/inventory" element={<InventoryPage />} />
