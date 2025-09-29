@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,9 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAssets, Asset } from '@/hooks/useAssets';
 import { useHierarchyNodes } from '@/hooks/useHierarchyData';
-import { FileUpload } from './FileUpload';
-import { QRCodePreview } from './QRCodePreview';
-import { ParentAssetSelect } from './ParentAssetSelect';
+import AssetFormContent from './AssetFormContent';
 
 interface AssetManagementFormProps {
   assetId?: string;
@@ -48,8 +46,8 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
 
   const [uploadedDocuments, setUploadedDocuments] = useState<Array<{name: string, url: string}>>([]);
 
-  // Flatten nodes for selection
-  const flattenNodes = (nodeList: any[]): any[] => {
+  // Flatten nodes for selection - optimized with useCallback
+  const flattenNodes = useCallback((nodeList: any[]): any[] => {
     const flattened: any[] = [];
     
     const addNode = (node: any, depth = 0) => {
@@ -61,15 +59,15 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
     
     nodeList.forEach(node => addNode(node));
     return flattened;
-  };
+  }, []);
 
-  const flatNodes = flattenNodes(nodes);
+  const flatNodes = useMemo(() => flattenNodes(nodes), [nodes, flattenNodes]);
 
-  // Load existing asset data if editing
-  const existingAsset = assets.find(asset => asset.id === assetId);
+  // Load existing asset data if editing - optimized to only run when assetId changes
+  const existingAsset = useMemo(() => assets.find(asset => asset.id === assetId), [assets, assetId]);
 
   useEffect(() => {
-    if (existingAsset) {
+    if (existingAsset && assetId) {
       setFormData({
         name: existingAsset.name,
         asset_number: existingAsset.asset_number || '',
@@ -91,21 +89,35 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
         qr_code_data: existingAsset.qr_code_data || ''
       });
     }
-  }, [existingAsset]);
+  }, [existingAsset, assetId]);
 
-  // Generate QR code data when asset name or number changes
+  // Generate QR code data when asset name or number changes - optimized with debouncing effect
   useEffect(() => {
     if (formData.name && !assetId) {
-      const qrData = JSON.stringify({
-        name: formData.name,
-        tag: formData.asset_number,
-        id: 'will-be-generated'
-      });
-      setFormData(prev => ({ ...prev, qr_code_data: qrData }));
+      const timeout = setTimeout(() => {
+        const qrData = JSON.stringify({
+          name: formData.name,
+          tag: formData.asset_number,
+          id: 'will-be-generated'
+        });
+        setFormData(prev => ({ ...prev, qr_code_data: qrData }));
+      }, 300); // Debounce to prevent excessive updates
+
+      return () => clearTimeout(timeout);
     }
   }, [formData.name, formData.asset_number, assetId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Optimized form data change handler
+  const handleFormDataChange = useCallback((field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  // Optimized documents change handler
+  const handleUploadedDocumentsChange = useCallback((docs: Array<{name: string, url: string}>) => {
+    setUploadedDocuments(docs);
+  }, []);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
@@ -145,332 +157,22 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
     } finally {
       setLoading(false);
     }
-  };
-
-  const FormContent = () => (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="basic">Basic Info</TabsTrigger>
-          <TabsTrigger value="technical">Technical</TabsTrigger>
-          <TabsTrigger value="financial">Financial</TabsTrigger>
-          <TabsTrigger value="media">Media & QR</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="basic" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>Essential asset details and identification</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Asset Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="asset_number">Asset Tag/Number</Label>
-                  <Input
-                    id="asset_number"
-                    value={formData.asset_number}
-                    onChange={(e) => setFormData(prev => ({ ...prev, asset_number: e.target.value }))}
-                    placeholder="e.g., AST-001"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  rows={3}
-                  placeholder="Detailed description of the asset..."
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="machinery">Machinery</SelectItem>
-                      <SelectItem value="equipment">Equipment</SelectItem>
-                      <SelectItem value="vehicle">Vehicle</SelectItem>
-                      <SelectItem value="tool">Tool</SelectItem>
-                      <SelectItem value="furniture">Furniture</SelectItem>
-                      <SelectItem value="it">IT Equipment</SelectItem>
-                      <SelectItem value="infrastructure">Infrastructure</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="subcategory">Subcategory</Label>
-                  <Input
-                    id="subcategory"
-                    value={formData.subcategory}
-                    onChange={(e) => setFormData(prev => ({ ...prev, subcategory: e.target.value }))}
-                    placeholder="e.g., Laptop, Printer, etc."
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="hierarchy_node">Asset Hierarchy Location</Label>
-                  <Select
-                    value={formData.hierarchy_node_id}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, hierarchy_node_id: value === "none" ? "" : value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select location" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Unassigned</SelectItem>
-                      {flatNodes.map((node) => (
-                        <SelectItem key={node.id} value={node.id}>
-                          {'  '.repeat(node.depth)}• {node.name} ({node.level_info?.name})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <ParentAssetSelect
-                    value={formData.parent_asset_id}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, parent_asset_id: value || '' }))}
-                    excludeAssetId={assetId}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="technical" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Technical Details</CardTitle>
-              <CardDescription>Manufacturer information and asset specifications</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="manufacturer">Manufacturer</Label>
-                  <Input
-                    id="manufacturer"
-                    value={formData.manufacturer}
-                    onChange={(e) => setFormData(prev => ({ ...prev, manufacturer: e.target.value }))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="model">Model</Label>
-                  <Input
-                    id="model"
-                    value={formData.model}
-                    onChange={(e) => setFormData(prev => ({ ...prev, model: e.target.value }))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="serial_number">Serial Number</Label>
-                  <Input
-                    id="serial_number"
-                    value={formData.serial_number}
-                    onChange={(e) => setFormData(prev => ({ ...prev, serial_number: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, status: value as Asset['status'] }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="operational">Operational</SelectItem>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
-                      <SelectItem value="out_of_service">Out of Service</SelectItem>
-                      <SelectItem value="decommissioned">Decommissioned</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="criticality">Criticality</Label>
-                  <Select
-                    value={formData.criticality}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, criticality: value as Asset['criticality'] }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="financial" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Financial & Warranty</CardTitle>
-              <CardDescription>Purchase information and warranty details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="purchase_cost">Purchase Cost</Label>
-                  <Input
-                    id="purchase_cost"
-                    type="number"
-                    step="0.01"
-                    value={formData.purchase_cost}
-                    onChange={(e) => setFormData(prev => ({ ...prev, purchase_cost: e.target.value }))}
-                    placeholder="0.00"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="purchase_date">Purchase Date</Label>
-                  <Input
-                    id="purchase_date"
-                    type="date"
-                    value={formData.purchase_date}
-                    onChange={(e) => setFormData(prev => ({ ...prev, purchase_date: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="warranty_expiry_date">Warranty Expiry Date</Label>
-                <Input
-                  id="warranty_expiry_date"
-                  type="date"
-                  value={formData.warranty_expiry_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, warranty_expiry_date: e.target.value }))}
-                />
-              </div>
-
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="media" className="space-y-4 mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Asset Image</CardTitle>
-                <CardDescription>Upload a photo of the asset</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FileUpload
-                  bucket="asset-images"
-                  accept="image/*"
-                  maxSize={5 * 1024 * 1024} // 5MB
-                  currentFile={formData.asset_image_url}
-                  label="Asset Photo"
-                  onFileUploaded={(url, fileName) => {
-                    setFormData(prev => ({ ...prev, asset_image_url: url }));
-                  }}
-                  onFileRemoved={() => {
-                    setFormData(prev => ({ ...prev, asset_image_url: '' }));
-                  }}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Documents</CardTitle>
-                <CardDescription>Upload manuals, warranties, or other documents</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FileUpload
-                  bucket="asset-documents"
-                  accept=".pdf,.doc,.docx,.txt"
-                  maxSize={10 * 1024 * 1024} // 10MB
-                  currentFile=""
-                  label="Asset Documents"
-                  onFileUploaded={(url, fileName) => {
-                    setUploadedDocuments(prev => [...prev, { name: fileName, url }]);
-                  }}
-                  onFileRemoved={() => {
-                    // Handle document removal if needed
-                  }}
-                />
-                {uploadedDocuments.length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    <Label>Uploaded Documents:</Label>
-                    {uploadedDocuments.map((doc, index) => (
-                      <div key={index} className="text-sm text-muted-foreground">
-                        • {doc.name}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>QR Code Preview</CardTitle>
-                <CardDescription>Auto-generated QR code for asset identification</CardDescription>
-              </CardHeader>
-              <CardContent className="flex justify-center">
-                {formData.qr_code_data && (
-                  <QRCodePreview data={formData.qr_code_data} size={200} />
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      <div className="flex justify-end space-x-2 pt-4 border-t">
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={loading}>
-          {loading ? 'Saving...' : (assetId ? 'Update Asset' : 'Create Asset')}
-        </Button>
-      </div>
-    </form>
-  );
+  }, [formData, assetId, existingAsset?.health_score, updateAsset, addAsset, onClose]);
 
   if (mode === 'page') {
-    return <FormContent />;
+    return (
+      <AssetFormContent
+        formData={formData}
+        flatNodes={flatNodes}
+        assetId={assetId}
+        loading={loading}
+        uploadedDocuments={uploadedDocuments}
+        onFormDataChange={handleFormDataChange}
+        onUploadedDocumentsChange={handleUploadedDocumentsChange}
+        onSubmit={handleSubmit}
+        onClose={onClose}
+      />
+    );
   }
 
   return (
@@ -481,7 +183,17 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
             {assetId ? 'Edit Asset' : 'Create New Asset'}
           </DialogTitle>
         </DialogHeader>
-        <FormContent />
+        <AssetFormContent
+          formData={formData}
+          flatNodes={flatNodes}
+          assetId={assetId}
+          loading={loading}
+          uploadedDocuments={uploadedDocuments}
+          onFormDataChange={handleFormDataChange}
+          onUploadedDocumentsChange={handleUploadedDocumentsChange}
+          onSubmit={handleSubmit}
+          onClose={onClose}
+        />
       </DialogContent>
     </Dialog>
   );
