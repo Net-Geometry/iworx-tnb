@@ -252,6 +252,51 @@ export type Database = {
           },
         ]
       }
+      maintenance_records: {
+        Row: {
+          asset_id: string
+          cost: number | null
+          created_at: string
+          description: string
+          duration_hours: number | null
+          id: string
+          maintenance_type: string
+          notes: string | null
+          performed_date: string
+          status: string
+          technician_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          cost?: number | null
+          created_at?: string
+          description: string
+          duration_hours?: number | null
+          id?: string
+          maintenance_type: string
+          notes?: string | null
+          performed_date: string
+          status?: string
+          technician_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          cost?: number | null
+          created_at?: string
+          description?: string
+          duration_hours?: number | null
+          id?: string
+          maintenance_type?: string
+          notes?: string | null
+          performed_date?: string
+          status?: string
+          technician_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -272,6 +317,57 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      work_orders: {
+        Row: {
+          asset_id: string
+          assigned_technician: string | null
+          created_at: string
+          description: string | null
+          estimated_cost: number | null
+          estimated_duration_hours: number | null
+          id: string
+          maintenance_type: string
+          notes: string | null
+          priority: string
+          scheduled_date: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          assigned_technician?: string | null
+          created_at?: string
+          description?: string | null
+          estimated_cost?: number | null
+          estimated_duration_hours?: number | null
+          id?: string
+          maintenance_type: string
+          notes?: string | null
+          priority?: string
+          scheduled_date: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          assigned_technician?: string | null
+          created_at?: string
+          description?: string | null
+          estimated_cost?: number | null
+          estimated_duration_hours?: number | null
+          id?: string
+          maintenance_type?: string
+          notes?: string | null
+          priority?: string
+          scheduled_date?: string
+          status?: string
+          title?: string
           updated_at?: string
         }
         Relationships: []

@@ -7,42 +7,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { StatusBadge } from "./StatusBadge";
 import { HealthIndicator } from "./HealthIndicator";
 import { CriticalityBadge } from "./CriticalityBadge";
-
-interface Asset {
-  id: string;
-  name: string;
-  assetNumber: string;
-  type: string;
-  location: string;
-  status: "operational" | "maintenance" | "out_of_service" | "decommissioned";
-  healthScore: number;
-  criticality: "low" | "medium" | "high" | "critical";
-  lastMaintenance: string;
-  nextDue: string;
-  manufacturer?: string;
-  model?: string;
-  serialNumber?: string;
-  installationDate?: string;
-  specifications?: Record<string, string>;
-}
+import { Asset } from "@/hooks/useAssets";
+import { useAssetMaintenance } from "@/hooks/useMaintenance";
 
 interface AssetDetailsPanelProps {
   asset: Asset | null;
   onClose: () => void;
 }
 
-const mockMaintenanceHistory = [
-  { date: "2024-01-15", type: "Preventive", description: "Regular inspection and lubrication", technician: "John Smith" },
-  { date: "2023-12-10", type: "Corrective", description: "Belt replacement", technician: "Mike Johnson" },
-  { date: "2023-11-05", type: "Preventive", description: "Quarterly maintenance", technician: "Sarah Wilson" },
-];
-
-const mockUpcomingSchedules = [
-  { date: "2024-04-15", type: "Preventive", description: "Quarterly inspection", priority: "Medium" },
-  { date: "2024-05-20", type: "Predictive", description: "Vibration analysis", priority: "Low" },
-];
-
 export function AssetDetailsPanel({ asset, onClose }: AssetDetailsPanelProps) {
+  const { maintenanceHistory, upcomingWorkOrders, loading: maintenanceLoading } = useAssetMaintenance(asset?.id || '');
+  
   if (!asset) return null;
 
   return (
@@ -59,15 +34,25 @@ export function AssetDetailsPanel({ asset, onClose }: AssetDetailsPanelProps) {
         <div className="p-6 space-y-6">
           {/* Asset Image & Basic Info */}
           <div className="space-y-4">
-            <div className="aspect-video bg-gradient-primary rounded-lg flex items-center justify-center">
-              <span className="text-2xl font-bold text-primary-foreground">
-                {asset.type ? asset.type.slice(0, 2).toUpperCase() : 'AS'}
-              </span>
-            </div>
+            {asset.asset_image_url ? (
+              <div className="aspect-video bg-gradient-primary rounded-lg overflow-hidden">
+                <img 
+                  src={asset.asset_image_url} 
+                  alt={asset.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="aspect-video bg-gradient-primary rounded-lg flex items-center justify-center">
+                <span className="text-2xl font-bold text-primary-foreground">
+                  {asset.type ? asset.type.slice(0, 2).toUpperCase() : 'AS'}
+                </span>
+              </div>
+            )}
             
             <div>
               <h4 className="font-semibold text-foreground text-lg">{asset.name}</h4>
-              <p className="text-sm text-muted-foreground">{asset.assetNumber}</p>
+              <p className="text-sm text-muted-foreground">{asset.asset_number || 'No asset number'}</p>
             </div>
           </div>
 
@@ -80,7 +65,7 @@ export function AssetDetailsPanel({ asset, onClose }: AssetDetailsPanelProps) {
             
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted-foreground">Health Score</span>
-              <HealthIndicator score={asset.healthScore} className="w-24" />
+              <HealthIndicator score={asset.health_score} className="w-24" />
             </div>
             
             <div className="flex items-center justify-between">
@@ -117,10 +102,22 @@ export function AssetDetailsPanel({ asset, onClose }: AssetDetailsPanelProps) {
                   <p className="font-medium text-foreground">{asset.model}</p>
                 </div>
               )}
-              {asset.serialNumber && (
+              {asset.serial_number && (
                 <div>
                   <span className="text-muted-foreground">Serial</span>
-                  <p className="font-medium text-foreground">{asset.serialNumber}</p>
+                  <p className="font-medium text-foreground">{asset.serial_number}</p>
+                </div>
+              )}
+              {asset.category && (
+                <div>
+                  <span className="text-muted-foreground">Category</span>
+                  <p className="font-medium text-foreground">{asset.category}</p>
+                </div>
+              )}
+              {asset.purchase_cost && (
+                <div>
+                  <span className="text-muted-foreground">Purchase Cost</span>
+                  <p className="font-medium text-foreground">${asset.purchase_cost.toLocaleString()}</p>
                 </div>
               )}
             </div>
@@ -135,60 +132,98 @@ export function AssetDetailsPanel({ asset, onClose }: AssetDetailsPanelProps) {
               <div>
                 <span className="text-muted-foreground">Last Service</span>
                 <p className="font-medium text-foreground">
-                  {new Date(asset.lastMaintenance).toLocaleDateString()}
+                  {asset.last_maintenance_date 
+                    ? new Date(asset.last_maintenance_date).toLocaleDateString()
+                    : 'No records'
+                  }
                 </p>
               </div>
               <div>
                 <span className="text-muted-foreground">Next Due</span>
                 <p className={`font-medium ${
-                  new Date(asset.nextDue) < new Date() ? 'text-red-500' : 'text-foreground'
+                  asset.next_maintenance_date && new Date(asset.next_maintenance_date) < new Date() 
+                    ? 'text-red-500' : 'text-foreground'
                 }`}>
-                  {new Date(asset.nextDue).toLocaleDateString()}
+                  {asset.next_maintenance_date 
+                    ? new Date(asset.next_maintenance_date).toLocaleDateString()
+                    : 'Not scheduled'
+                  }
                 </p>
               </div>
+              {asset.warranty_expiry_date && (
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Warranty Expires</span>
+                  <p className="font-medium text-foreground">
+                    {new Date(asset.warranty_expiry_date).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Recent History */}
           <div className="space-y-3">
             <h5 className="font-medium text-foreground">Recent History</h5>
-            <div className="space-y-2">
-              {mockMaintenanceHistory.slice(0, 3).map((item, index) => (
-                <div key={index} className="p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center justify-between mb-1">
-                    <Badge variant="outline" className="text-xs">
-                      {item.type}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(item.date).toLocaleDateString()}
-                    </span>
+            {maintenanceLoading ? (
+              <div className="text-sm text-muted-foreground">Loading maintenance history...</div>
+            ) : maintenanceHistory.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No maintenance history available</div>
+            ) : (
+              <div className="space-y-2">
+                {maintenanceHistory.slice(0, 3).map((record) => (
+                  <div key={record.id} className="p-3 bg-muted/30 rounded-lg">
+                    <div className="flex items-center justify-between mb-1">
+                      <Badge variant="outline" className="text-xs capitalize">
+                        {record.maintenance_type}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(record.performed_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-foreground">{record.description}</p>
+                    {record.technician_name && (
+                      <p className="text-xs text-muted-foreground mt-1">by {record.technician_name}</p>
+                    )}
+                    {record.cost && (
+                      <p className="text-xs text-muted-foreground mt-1">Cost: ${record.cost}</p>
+                    )}
                   </div>
-                  <p className="text-sm text-foreground">{item.description}</p>
-                  <p className="text-xs text-muted-foreground mt-1">by {item.technician}</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Upcoming Schedules */}
           <div className="space-y-3">
             <h5 className="font-medium text-foreground">Upcoming</h5>
-            <div className="space-y-2">
-              {mockUpcomingSchedules.map((item, index) => (
-                <div key={index} className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                  <div className="flex items-center justify-between mb-1">
-                    <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-500 border-blue-500/20">
-                      {item.type}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(item.date).toLocaleDateString()}
-                    </span>
+            {maintenanceLoading ? (
+              <div className="text-sm text-muted-foreground">Loading work orders...</div>
+            ) : upcomingWorkOrders.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No upcoming maintenance scheduled</div>
+            ) : (
+              <div className="space-y-2">
+                {upcomingWorkOrders.slice(0, 3).map((workOrder) => (
+                  <div key={workOrder.id} className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                    <div className="flex items-center justify-between mb-1">
+                      <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-500 border-blue-500/20 capitalize">
+                        {workOrder.maintenance_type}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(workOrder.scheduled_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-foreground">{workOrder.title}</p>
+                    {workOrder.description && (
+                      <p className="text-xs text-muted-foreground mt-1">{workOrder.description}</p>
+                    )}
+                    <p className="text-xs text-blue-500 mt-1 capitalize">{workOrder.priority} Priority</p>
+                    {workOrder.assigned_technician && (
+                      <p className="text-xs text-muted-foreground">Assigned to: {workOrder.assigned_technician}</p>
+                    )}
                   </div>
-                  <p className="text-sm text-foreground">{item.description}</p>
-                  <p className="text-xs text-blue-500 mt-1">{item.priority} Priority</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </ScrollArea>
