@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { MoreHorizontal, Eye, Edit, Archive, Copy, FileText, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -29,6 +30,7 @@ interface AssetTableProps {
 
 export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect }) => {
   const { assets, loading, error, deleteAsset } = useAssets();
+  const navigate = useNavigate();
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [showAssetForm, setShowAssetForm] = useState(false);
   const [editingAsset, setEditingAsset] = useState<string | undefined>();
@@ -139,7 +141,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect }) => {
                 <TableRow 
                   key={asset.id}
                   className="border-border/50 hover:bg-muted/30 cursor-pointer"
-                  onClick={() => onAssetSelect?.(asset)}
+                  onClick={() => navigate(`/assets/${asset.id}`)}
                 >
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <Checkbox
@@ -199,7 +201,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect }) => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-background border-border">
-                        <DropdownMenuItem onClick={() => onAssetSelect?.(asset)}>
+                        <DropdownMenuItem onClick={() => navigate(`/assets/${asset.id}`)}>
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
