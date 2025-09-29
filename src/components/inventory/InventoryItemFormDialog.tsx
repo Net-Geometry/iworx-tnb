@@ -1,50 +1,69 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
-import { useUpdateInventoryItem, type InventoryItem, type UpdateInventoryItemData } from "@/hooks/useInventoryItems";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useCreateInventoryItem, useUpdateInventoryItem, type InventoryItem } from "@/hooks/useInventoryItems";
 import { useSuppliers } from "@/hooks/useSuppliers";
-import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 const itemSchema = z.object({
   item_number: z.string().optional(),
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, "Item name is required"),
   description: z.string().optional(),
   category: z.string().optional(),
   subcategory: z.string().optional(),
   unit_of_measure: z.string().optional(),
   barcode: z.string().optional(),
-  current_stock: z.number().min(0, "Stock must be 0 or greater").optional(),
-  reorder_point: z.number().min(0, "Reorder point must be 0 or greater").optional(),
-  reorder_quantity: z.number().min(0, "Reorder quantity must be 0 or greater").optional(),
-  safety_stock: z.number().min(0, "Safety stock must be 0 or greater").optional(),
-  max_stock_level: z.number().min(0, "Max stock level must be 0 or greater").optional(),
-  unit_cost: z.number().min(0, "Unit cost must be 0 or greater").optional(),
+  current_stock: z.string().optional(),
+  reorder_point: z.string().optional(),
+  reorder_quantity: z.string().optional(),
+  safety_stock: z.string().optional(),
+  max_stock_level: z.string().optional(),
+  unit_cost: z.string().optional(),
   supplier_id: z.string().optional(),
-  is_serialized: z.boolean().optional(),
-  is_active: z.boolean().optional(),
-  lead_time_days: z.number().min(0, "Lead time must be 0 or greater").optional(),
-  item_image_url: z.string().url().optional().or(z.literal("")),
+  is_serialized: z.boolean().default(false),
+  is_active: z.boolean().default(true),
+  lead_time_days: z.string().optional(),
+  item_image_url: z.string().optional(),
 });
 
 type ItemFormData = z.infer<typeof itemSchema>;
 
-interface EditItemDialogProps {
+interface InventoryItemFormDialogProps {
+  mode: 'add' | 'edit';
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  item: InventoryItem | null;
+  item?: InventoryItem | null;
 }
 
-export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps) => {
+export const InventoryItemFormDialog: React.FC<InventoryItemFormDialogProps> = ({
+  mode,
+  open,
+  onOpenChange,
+  item,
+}) => {
   const { data: suppliers = [] } = useSuppliers();
-  const updateItem = useUpdateInventoryItem();
+  const createItemMutation = useCreateInventoryItem();
+  const updateItemMutation = useUpdateInventoryItem();
 
   const form = useForm<ItemFormData>({
     resolver: zodResolver(itemSchema),
@@ -56,23 +75,23 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
       subcategory: "",
       unit_of_measure: "each",
       barcode: "",
-      current_stock: 0,
-      reorder_point: 0,
-      reorder_quantity: 0,
-      safety_stock: 0,
-      max_stock_level: undefined,
-      unit_cost: 0,
+      current_stock: "0",
+      reorder_point: "0",
+      reorder_quantity: "0",
+      safety_stock: "0",
+      max_stock_level: "",
+      unit_cost: "",
       supplier_id: "",
       is_serialized: false,
       is_active: true,
-      lead_time_days: 0,
+      lead_time_days: "0",
       item_image_url: "",
     },
   });
 
-  // Update form when item changes
+  // Update form when item changes for edit mode
   useEffect(() => {
-    if (item && open) {
+    if (mode === 'edit' && item && open) {
       form.reset({
         item_number: item.item_number || "",
         name: item.name,
@@ -81,61 +100,99 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
         subcategory: item.subcategory || "",
         unit_of_measure: item.unit_of_measure || "each",
         barcode: item.barcode || "",
-        current_stock: item.current_stock || 0,
-        reorder_point: item.reorder_point || 0,
-        reorder_quantity: item.reorder_quantity || 0,
-        safety_stock: item.safety_stock || 0,
-        max_stock_level: item.max_stock_level || undefined,
-        unit_cost: item.unit_cost || 0,
+        current_stock: item.current_stock?.toString() || "0",
+        reorder_point: item.reorder_point?.toString() || "0",
+        reorder_quantity: item.reorder_quantity?.toString() || "0",
+        safety_stock: item.safety_stock?.toString() || "0",
+        max_stock_level: item.max_stock_level?.toString() || "",
+        unit_cost: item.unit_cost?.toString() || "",
         supplier_id: item.supplier_id || "",
         is_serialized: item.is_serialized || false,
         is_active: item.is_active !== false,
-        lead_time_days: item.lead_time_days || 0,
+        lead_time_days: item.lead_time_days?.toString() || "0",
         item_image_url: item.item_image_url || "",
       });
+    } else if (mode === 'add' && open) {
+      form.reset({
+        item_number: "",
+        name: "",
+        description: "",
+        category: "",
+        subcategory: "",
+        unit_of_measure: "each",
+        barcode: "",
+        current_stock: "0",
+        reorder_point: "0",
+        reorder_quantity: "0",
+        safety_stock: "0",
+        max_stock_level: "",
+        unit_cost: "",
+        supplier_id: "",
+        is_serialized: false,
+        is_active: true,
+        lead_time_days: "0",
+        item_image_url: "",
+      });
     }
-  }, [item, open, form]);
+  }, [mode, item, open, form]);
 
   const onSubmit = async (data: ItemFormData) => {
-    if (!item) return;
-
-    const updateData: UpdateInventoryItemData = {
-      ...data,
-      // Convert empty strings to null for optional fields
-      item_number: data.item_number || undefined,
-      description: data.description || undefined,
-      category: data.category || undefined,
-      subcategory: data.subcategory || undefined,
-      unit_of_measure: data.unit_of_measure || undefined,
-      barcode: data.barcode || undefined,
-      supplier_id: data.supplier_id || undefined,
-      item_image_url: data.item_image_url || undefined,
-    };
-
     try {
-      await updateItem.mutateAsync({ id: item.id, itemData: updateData });
-      onOpenChange(false);
+      const itemData = {
+        item_number: data.item_number || undefined,
+        name: data.name,
+        description: data.description || undefined,
+        category: data.category || undefined,
+        subcategory: data.subcategory || undefined,
+        unit_of_measure: data.unit_of_measure || "each",
+        barcode: data.barcode || undefined,
+        current_stock: data.current_stock ? Number(data.current_stock) : 0,
+        reorder_point: data.reorder_point ? Number(data.reorder_point) : 0,
+        reorder_quantity: data.reorder_quantity ? Number(data.reorder_quantity) : 0,
+        safety_stock: data.safety_stock ? Number(data.safety_stock) : 0,
+        max_stock_level: data.max_stock_level ? Number(data.max_stock_level) : undefined,
+        unit_cost: data.unit_cost ? Number(data.unit_cost) : undefined,
+        lead_time_days: data.lead_time_days ? Number(data.lead_time_days) : 0,
+        supplier_id: data.supplier_id || undefined,
+        is_serialized: data.is_serialized,
+        is_active: data.is_active,
+        item_image_url: data.item_image_url || undefined,
+      };
+
+      if (mode === 'add') {
+        await createItemMutation.mutateAsync(itemData);
+      } else if (mode === 'edit' && item) {
+        await updateItemMutation.mutateAsync({ id: item.id, itemData });
+      }
+
       form.reset();
+      onOpenChange(false);
     } catch (error) {
-      console.error("Failed to update item:", error);
+      console.error(`Failed to ${mode} item:`, error);
     }
   };
 
   const categories = [
-    "hydraulics", "bearings", "safety", "couplings", "filters", "motors", "pumps", "valves"
+    "Hydraulics", "Bearings", "Safety", "Couplings", "Filters", 
+    "Motors", "Pumps", "Valves", "Seals", "Tools", "Electrical", "Other"
   ];
 
   const unitOptions = [
-    "each", "box", "case", "dozen", "kg", "lb", "liter", "gallon", "meter", "foot"
+    "each", "piece", "box", "case", "gallon", "liter", "meter", "foot", 
+    "kilogram", "pound", "set", "roll", "sheet"
   ];
+
+  const isLoading = createItemMutation.isPending || updateItemMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Inventory Item</DialogTitle>
+          <DialogTitle>
+            {mode === 'add' ? 'Add New Inventory Item' : 'Edit Inventory Item'}
+          </DialogTitle>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -146,7 +203,7 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                   <FormItem>
                     <FormLabel>Item Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter item number" {...field} />
+                      <Input placeholder="e.g., HYD-001" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -158,7 +215,7 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name *</FormLabel>
+                    <FormLabel>Item Name *</FormLabel>
                     <FormControl>
                       <Input placeholder="Enter item name" {...field} />
                     </FormControl>
@@ -175,11 +232,7 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Enter item description" 
-                      className="min-h-[100px]"
-                      {...field} 
-                    />
+                    <Textarea placeholder="Enter item description" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -202,7 +255,7 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                       <SelectContent>
                         {categories.map((category) => (
                           <SelectItem key={category} value={category}>
-                            {category.charAt(0).toUpperCase() + category.slice(1)}
+                            {category}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -243,7 +296,7 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                       <SelectContent>
                         {unitOptions.map((unit) => (
                           <SelectItem key={unit} value={unit}>
-                            {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                            {unit}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -276,13 +329,7 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                   <FormItem>
                     <FormLabel>Current Stock</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        min="0"
-                        step="1"
-                        {...field} 
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
-                      />
+                      <Input type="number" min="0" placeholder="0" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -296,13 +343,7 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                   <FormItem>
                     <FormLabel>Reorder Point</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        min="0"
-                        step="1"
-                        {...field} 
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
-                      />
+                      <Input type="number" min="0" placeholder="0" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -316,13 +357,7 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                   <FormItem>
                     <FormLabel>Reorder Quantity</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        min="0"
-                        step="1"
-                        {...field} 
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
-                      />
+                      <Input type="number" min="0" placeholder="0" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -336,13 +371,7 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                   <FormItem>
                     <FormLabel>Safety Stock</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        min="0"
-                        step="1"
-                        {...field} 
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
-                      />
+                      <Input type="number" min="0" placeholder="0" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -350,27 +379,21 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="max_stock_level"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Max Stock Level</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        min="0"
-                        step="1"
-                        {...field} 
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="max_stock_level"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Max Stock Level</FormLabel>
+                  <FormControl>
+                    <Input type="number" min="0" placeholder="Optional" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="unit_cost"
@@ -380,10 +403,10 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                     <FormControl>
                       <Input 
                         type="number" 
-                        min="0"
-                        step="0.01"
+                        min="0" 
+                        step="0.01" 
+                        placeholder="0.00" 
                         {...field} 
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -398,13 +421,7 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                   <FormItem>
                     <FormLabel>Lead Time (Days)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        min="0"
-                        step="1"
-                        {...field} 
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
-                      />
+                      <Input type="number" min="0" placeholder="0" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -444,18 +461,14 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                 <FormItem>
                   <FormLabel>Item Image URL</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="url"
-                      placeholder="https://example.com/image.jpg" 
-                      {...field} 
-                    />
+                    <Input placeholder="https://example.com/image.jpg" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="flex gap-4">
+            <div className="flex items-center space-x-4">
               <FormField
                 control={form.control}
                 name="is_serialized"
@@ -468,7 +481,7 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>Is Serialized</FormLabel>
+                      <FormLabel>Serialized Item</FormLabel>
                     </div>
                   </FormItem>
                 )}
@@ -486,25 +499,27 @@ export const EditItemDialog = ({ open, onOpenChange, item }: EditItemDialogProps
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>Is Active</FormLabel>
+                      <FormLabel>Active</FormLabel>
                     </div>
                   </FormItem>
                 )}
               />
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end space-x-2 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={updateItem.isPending}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={updateItem.isPending}>
-                {updateItem.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update Item
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {mode === 'add' ? 'Add Item' : 'Update Item'}
               </Button>
             </div>
           </form>
