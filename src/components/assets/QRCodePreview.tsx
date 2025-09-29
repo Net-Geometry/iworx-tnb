@@ -25,8 +25,8 @@ export const QRCodePreview: React.FC<QRCodePreviewProps> = ({ data, size = 128 }
   return (
     <div className="flex flex-col items-center space-y-2">
       <label className="text-sm font-medium text-foreground">QR Code Preview</label>
-      <div className="p-4 bg-white rounded-lg border border-border">
-        <canvas ref={canvasRef} />
+      <div className="p-4 bg-background rounded-lg border border-border shadow-sm">
+        <canvas ref={canvasRef} className="bg-white rounded" />
       </div>
       <p className="text-xs text-muted-foreground text-center max-w-48 break-all">
         {data}
