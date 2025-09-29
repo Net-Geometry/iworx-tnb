@@ -1,6 +1,6 @@
-import { Bell, Settings, User, Search } from "lucide-react";
+import { Bell, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const Header = () => {
@@ -21,16 +21,6 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="flex-1 max-w-md mx-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search assets, work orders, locations..."
-              className="pl-10 bg-muted/50 border-border focus:bg-background"
-            />
-          </div>
-        </div>
 
         {/* Action Buttons */}
         <div className="flex items-center space-x-3">
