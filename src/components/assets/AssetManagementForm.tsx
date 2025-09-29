@@ -31,7 +31,6 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
     description: '',
     hierarchy_node_id: '',
     status: 'operational' as Asset['status'],
-    health_score: 100,
     criticality: 'medium' as Asset['criticality'],
     manufacturer: '',
     model: '',
@@ -80,7 +79,6 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
         description: existingAsset.description || '',
         hierarchy_node_id: existingAsset.hierarchy_node_id || '',
         status: existingAsset.status,
-        health_score: existingAsset.health_score,
         criticality: existingAsset.criticality,
         manufacturer: existingAsset.manufacturer || '',
         model: existingAsset.model || '',
@@ -119,6 +117,7 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
       
       const assetData = {
         ...formData,
+        health_score: existingAsset?.health_score || 100, // Default to 100 for new assets
         hierarchy_node_id: formData.hierarchy_node_id || null,
         asset_number: formData.asset_number || null,
         type: formData.type || null,
@@ -305,7 +304,7 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
                   <Select
@@ -342,17 +341,6 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="health_score">Health Score (0-100)</Label>
-                  <Input
-                    id="health_score"
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={formData.health_score}
-                    onChange={(e) => setFormData(prev => ({ ...prev, health_score: parseInt(e.target.value) || 0 }))}
-                  />
-                </div>
               </div>
             </CardContent>
           </Card>
