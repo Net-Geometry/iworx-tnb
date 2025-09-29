@@ -1,7 +1,5 @@
 import { FileSpreadsheet } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BOMList } from "@/components/bom/BOMList";
-import { BOMTemplates } from "@/components/bom/BOMTemplates";
 
 const BOMPage = () => {
   return (
@@ -16,20 +14,7 @@ const BOMPage = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="boms" className="w-full">
-        <TabsList>
-          <TabsTrigger value="boms">All BOMs</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="boms" className="mt-6">
-          <BOMList />
-        </TabsContent>
-        
-        <TabsContent value="templates" className="mt-6">
-          <BOMTemplates />
-        </TabsContent>
-      </Tabs>
+      <BOMList />
     </div>
   );
 };
