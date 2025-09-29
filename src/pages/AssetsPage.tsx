@@ -15,7 +15,7 @@ import { AssetKPICards } from "@/components/assets/AssetKPICards";
 import { AssetTable } from "@/components/assets/AssetTable";
 import { AssetDetailsPanel } from "@/components/assets/AssetDetailsPanel";
 import { FilterBar } from "@/components/assets/FilterBar";
-import { HierarchyManagementPage } from "@/components/assets/HierarchyManagementPage";
+import { AssetHierarchy } from "@/components/assets/AssetHierarchy";
 
 const AssetsPage = () => {
   const navigate = useNavigate();
@@ -136,7 +136,12 @@ const AssetsPage = () => {
 
         {/* Hierarchy Tab */}
         <TabsContent value="hierarchy" className="space-y-6">
-          <HierarchyManagementPage />
+          <div className="bg-card rounded-lg border border-border/50 h-[calc(100vh-350px)]">
+            <AssetHierarchy 
+              onNodeSelect={(node) => console.log('Node selected:', node)}
+              onAssetSelect={setSelectedAsset}
+            />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

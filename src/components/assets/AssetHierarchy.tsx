@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { ChevronRight, ChevronDown, Search, Plus, Settings, Map, Building2, Zap, Activity, Navigation, Component, Folder, MapPin, Building, Factory, Home, Users, Box, Package, Wrench } from "lucide-react";
+import { ChevronRight, ChevronDown, Search, Plus, Settings, Map, Building2, Zap, Activity, Navigation, Component, Folder, MapPin, Building, Factory, Home, Users, Box, Package, Wrench, Cpu, Database, HardDrive, Server, Monitor, Laptop, Smartphone, Car, Truck, Plane, Train } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { useHierarchyNodes, useHierarchyLevels, HierarchyNode } from "@/hooks/useHierarchyData";
+import { useHierarchyNodes, useHierarchyLevels, HierarchyNode, HierarchyAsset } from "@/hooks/useHierarchyData";
 import { HierarchyManagerModal } from "./HierarchyManagerModal";
+import { StatusBadge } from "./StatusBadge";
+import { CriticalityBadge } from "./CriticalityBadge";
 
 // Dynamic icon mapping based on hierarchy levels
 const getIconComponent = (iconName: string) => {
@@ -30,11 +32,50 @@ const getIconComponent = (iconName: string) => {
   return iconMap[iconName] || Folder;
 };
 
+// Asset type icon mapping
+const getAssetIcon = (assetType?: string, category?: string) => {
+  const typeMap: Record<string, any> = {
+    // IT Equipment
+    computer: Laptop,
+    server: Server,
+    monitor: Monitor,
+    laptop: Laptop,
+    mobile: Smartphone,
+    hardware: Cpu,
+    database: Database,
+    storage: HardDrive,
+    
+    // Vehicles
+    vehicle: Car,
+    car: Car,
+    truck: Truck,
+    plane: Plane,
+    aircraft: Plane,
+    train: Train,
+    
+    // General Equipment
+    equipment: Component,
+    machinery: Settings,
+    tool: Wrench,
+    
+    // Default by category
+    electrical: Zap,
+    mechanical: Settings,
+    it: Laptop,
+    transport: Car,
+  };
+  
+  return typeMap[assetType?.toLowerCase() || ''] || 
+         typeMap[category?.toLowerCase() || ''] || 
+         Component;
+};
+
 interface AssetHierarchyProps {
   onNodeSelect?: (node: HierarchyNode) => void;
+  onAssetSelect?: (asset: HierarchyAsset) => void;
 }
 
-export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
+export function AssetHierarchy({ onNodeSelect, onAssetSelect }: AssetHierarchyProps) {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,6 +96,96 @@ export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
   const handleNodeClick = (node: HierarchyNode) => {
     setSelectedNode(node.id);
     onNodeSelect?.(node);
+  };
+
+  const handleAssetClick = (asset: HierarchyAsset) => {
+    setSelectedNode(asset.id);
+    onAssetSelect?.(asset);
+  };
+
+  const renderItem = (item: HierarchyNode | HierarchyAsset, level = 0): React.ReactNode => {
+    if (item.nodeType === 'asset') {
+      return renderAsset(item as HierarchyAsset, level);
+    } else {
+      return renderNode(item as HierarchyNode, level);
+    }
+  };
+
+  const renderAsset = (asset: HierarchyAsset, level = 0): React.ReactNode => {
+    const IconComponent = getAssetIcon(asset.type, asset.category);
+    const hasChildren = asset.children && asset.children.length > 0;
+    const isExpanded = expandedNodes.has(asset.id);
+    const isSelected = selectedNode === asset.id;
+
+    // Simple search filter
+    const matchesSearch = !searchTerm || 
+      asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.asset_number?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (!matchesSearch && level === 0) return null;
+
+    return (
+      <div key={asset.id}>
+        <div
+          className={cn(
+            "flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors group",
+            "border-l-2 border-l-accent/30 bg-accent/5",
+            isSelected && "bg-accent/20 text-accent-foreground",
+            level > 0 && "ml-4"
+          )}
+          style={{ paddingLeft: `${12 + level * 16}px` }}
+          onClick={() => handleAssetClick(asset)}
+        >
+          {hasChildren ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-4 w-4 p-0 hover:bg-transparent"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleNode(asset.id);
+              }}
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-3 w-3" />
+              ) : (
+                <ChevronRight className="h-3 w-3" />
+              )}
+            </Button>
+          ) : (
+            <div className="w-4" />
+          )}
+          
+          <IconComponent className="h-4 w-4 text-accent" />
+          
+          <span className="text-sm font-medium flex-1 truncate">
+            {asset.name}
+            {asset.asset_number && (
+              <span className="ml-2 text-xs text-muted-foreground">
+                #{asset.asset_number}
+              </span>
+            )}
+          </span>
+          
+          <div className="flex items-center gap-2">
+            <CriticalityBadge criticality={asset.criticality} />
+            <StatusBadge status={asset.status} className="text-xs" />
+            <div className="flex items-center gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <span className="text-xs text-muted-foreground">
+                {asset.health_score}%
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        {hasChildren && isExpanded && (
+          <div>
+            {asset.children!.map(child => renderItem(child, level + 1))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderNode = (node: HierarchyNode, level = 0): React.ReactNode => {
@@ -151,7 +282,7 @@ export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
         
         {hasChildren && isExpanded && (
           <div>
-            {node.children!.map(child => renderNode(child, level + 1))}
+            {node.children!.map(child => renderItem(child, level + 1))}
           </div>
         )}
       </div>
@@ -212,9 +343,9 @@ export function AssetHierarchy({ onNodeSelect }: AssetHierarchyProps) {
                 </Button>
               </HierarchyManagerModal>
             </div>
-          ) : (
-            nodes.map(node => renderNode(node))
-          )}
+           ) : (
+            nodes.map(node => renderItem(node))
+           )}
         </div>
       </ScrollArea>
     </div>

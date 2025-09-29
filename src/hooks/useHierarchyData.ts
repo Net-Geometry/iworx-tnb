@@ -21,8 +21,25 @@ export interface HierarchyNode {
   status: string;
   asset_count: number;
   path?: string;
-  children?: HierarchyNode[];
+  children?: (HierarchyNode | HierarchyAsset)[];
   level_info?: HierarchyLevel;
+  nodeType: 'node';
+}
+
+export interface HierarchyAsset {
+  id: string;
+  name: string;
+  asset_number?: string;
+  type?: string;
+  category?: string;
+  subcategory?: string;
+  status: 'operational' | 'maintenance' | 'out_of_service' | 'decommissioned';
+  criticality: 'low' | 'medium' | 'high' | 'critical';
+  health_score: number;
+  parent_asset_id?: string;
+  hierarchy_node_id?: string;
+  children?: HierarchyAsset[];
+  nodeType: 'asset';
 }
 
 export function useHierarchyLevels() {
@@ -116,7 +133,8 @@ export function useHierarchyNodes() {
 
   const fetchNodes = async () => {
     try {
-      const { data, error: fetchError } = await supabase
+      // Fetch hierarchy nodes
+      const { data: nodesData, error: nodesError } = await supabase
         .from('hierarchy_nodes')
         .select(`
           *,
@@ -126,24 +144,43 @@ export function useHierarchyNodes() {
             level_order,
             icon_name,
             color_code
-          ),
-          assets!hierarchy_node_id (
-            id
           )
         `)
         .order('name');
 
-      if (fetchError) throw fetchError;
+      if (nodesError) throw nodesError;
+
+      // Fetch assets with hierarchy relationships
+      const { data: assetsData, error: assetsError } = await supabase
+        .from('assets')
+        .select(`
+          id,
+          name,
+          asset_number,
+          type,
+          category,
+          subcategory,
+          status,
+          criticality,
+          health_score,
+          parent_asset_id,
+          hierarchy_node_id
+        `)
+        .order('name');
+
+      if (assetsError) throw assetsError;
       
       // Build tree structure
       const nodeMap = new Map<string, HierarchyNode>();
+      const assetMap = new Map<string, HierarchyAsset>();
       const rootNodes: HierarchyNode[] = [];
 
       // First pass: create all nodes
-      (data || []).forEach(node => {
+      (nodesData || []).forEach(node => {
         const hierarchyNode: HierarchyNode = {
           ...node,
-          asset_count: node.assets?.length || 0, // Use actual asset count from database
+          nodeType: 'node' as const,
+          asset_count: 0, // Will be calculated
           properties: typeof node.properties === 'string' 
             ? JSON.parse(node.properties) 
             : node.properties || {},
@@ -152,9 +189,62 @@ export function useHierarchyNodes() {
         nodeMap.set(node.id, hierarchyNode);
       });
 
-      // Second pass: build relationships
-      (data || []).forEach(node => {
+      // Second pass: create all assets
+      (assetsData || []).forEach(asset => {
+        const hierarchyAsset: HierarchyAsset = {
+          ...asset,
+          nodeType: 'asset' as const,
+          status: asset.status as HierarchyAsset['status'],
+          criticality: asset.criticality as HierarchyAsset['criticality'],
+          children: []
+        };
+        assetMap.set(asset.id, hierarchyAsset);
+      });
+
+      // Third pass: build asset parent-child relationships
+      (assetsData || []).forEach(asset => {
+        const hierarchyAsset = assetMap.get(asset.id)!;
+        if (asset.parent_asset_id) {
+          const parentAsset = assetMap.get(asset.parent_asset_id);
+          if (parentAsset) {
+            parentAsset.children = parentAsset.children || [];
+            parentAsset.children.push(hierarchyAsset);
+          }
+        }
+      });
+
+      // Fourth pass: attach assets to hierarchy nodes
+      (assetsData || []).forEach(asset => {
+        const hierarchyAsset = assetMap.get(asset.id)!;
+        
+        // Only attach root-level assets (those without parents) to hierarchy nodes
+        if (!asset.parent_asset_id && asset.hierarchy_node_id) {
+          const node = nodeMap.get(asset.hierarchy_node_id);
+          if (node) {
+            node.children = node.children || [];
+            node.children.push(hierarchyAsset);
+          }
+        }
+      });
+
+      // Fifth pass: build node relationships and calculate asset counts
+      (nodesData || []).forEach(node => {
         const hierarchyNode = nodeMap.get(node.id)!;
+        
+        // Calculate total asset count (including nested assets)
+        const countAssetsRecursively = (items: (HierarchyNode | HierarchyAsset)[]): number => {
+          return items.reduce((count, item) => {
+            if (item.nodeType === 'asset') {
+              return count + 1 + countAssetsRecursively(item.children || []);
+            } else {
+              return count + countAssetsRecursively(item.children || []);
+            }
+          }, 0);
+        };
+        
+        hierarchyNode.asset_count = countAssetsRecursively(hierarchyNode.children || []);
+        
+        // Build node hierarchy
         if (node.parent_id) {
           const parent = nodeMap.get(node.parent_id);
           if (parent) {

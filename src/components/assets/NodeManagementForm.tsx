@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useHierarchyLevels, useHierarchyNodes, HierarchyNode } from "@/hooks/useHierarchyData";
+import { useHierarchyLevels, useHierarchyNodes, HierarchyNode, HierarchyAsset } from "@/hooks/useHierarchyData";
 import { useToast } from "@/hooks/use-toast";
 
 interface NodeManagementFormProps {
@@ -37,7 +37,7 @@ export function NodeManagementForm({ nodeId, onClose }: NodeManagementFormProps)
 
   const isEditing = !!nodeId;
   
-  // Flatten nodes for parent selection
+  // Flatten nodes for parent selection - only include hierarchy nodes, not assets
   const flattenNodes = (nodeList: HierarchyNode[]): HierarchyNode[] => {
     const result: HierarchyNode[] = [];
     
@@ -45,7 +45,9 @@ export function NodeManagementForm({ nodeId, onClose }: NodeManagementFormProps)
       nodes.forEach(node => {
         result.push(node);
         if (node.children && node.children.length > 0) {
-          traverse(node.children);
+          // Filter to only traverse hierarchy nodes, not assets
+          const childNodes = node.children.filter(child => child.nodeType === 'node') as HierarchyNode[];
+          traverse(childNodes);
         }
       });
     };
@@ -104,6 +106,7 @@ export function NodeManagementForm({ nodeId, onClose }: NodeManagementFormProps)
         parent_id: formData.parent_id === "none" ? null : formData.parent_id,
         status: formData.status,
         asset_count: formData.asset_count,
+        nodeType: 'node' as const,
         properties
       };
 
