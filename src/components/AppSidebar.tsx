@@ -12,6 +12,12 @@ import {
   BarChart3,
   Home,
   ChevronDown,
+  ArrowRightLeft,
+  Building,
+  FileBarChart,
+  Package2,
+  RotateCcw,
+  ShoppingCart,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -57,11 +63,6 @@ const moduleItems = [
     icon: Calendar,
   },
   {
-    title: "Inventory & Procurement",
-    url: "/inventory",
-    icon: Package,
-  },
-  {
     title: "Bill of Materials",
     url: "/bom",
     icon: FileSpreadsheet,
@@ -98,6 +99,17 @@ const moduleItems = [
   },
 ];
 
+const inventorySubModules = [
+  { title: "Inventory Overview", url: "/inventory", icon: BarChart3 },
+  { title: "Items & Stock", url: "/inventory/items", icon: Package },
+  { title: "Locations", url: "/inventory/locations", icon: MapPin },
+  { title: "Reorder Management", url: "/inventory/reorder", icon: RotateCcw },
+  { title: "Transfers & Loans", url: "/inventory/transfers", icon: ArrowRightLeft },
+  { title: "Purchase Orders", url: "/inventory/purchase-orders", icon: ShoppingCart },
+  { title: "Suppliers", url: "/inventory/suppliers", icon: Building },
+  { title: "Reports", url: "/inventory/reports", icon: FileBarChart },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
@@ -111,6 +123,7 @@ export function AppSidebar() {
   };
 
   const isModulesExpanded = moduleItems.some((item) => isActive(item.url));
+  const isInventoryExpanded = currentPath.startsWith('/inventory');
 
   return (
     <Sidebar className="border-r border-border/50 bg-sidebar">
@@ -172,6 +185,41 @@ export function AppSidebar() {
                       >
                         <NavLink to={item.url}>
                           <item.icon className="w-5 h-5" />
+                          <span>{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+
+        {/* Inventory & Procurement Submenu */}
+        <Collapsible defaultOpen={isInventoryExpanded} className="group/collapsible">
+          <SidebarGroup>
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
+                <div className="flex items-center gap-2">
+                  <Package className="w-4 h-4" />
+                  Inventory & Procurement
+                </div>
+                <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {inventorySubModules.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.url)}
+                        tooltip={state === "collapsed" ? item.title : undefined}
+                      >
+                        <NavLink to={item.url}>
+                          <item.icon className="w-4 h-4" />
                           <span>{item.title}</span>
                         </NavLink>
                       </SidebarMenuButton>

@@ -17,7 +17,14 @@ import AssetDetailPage from "./pages/AssetDetailPage";
 import CreateAssetPage from "./pages/CreateAssetPage";
 import WorkOrdersPage from "./pages/WorkOrdersPage";
 import PreventiveMaintenancePage from "./pages/PreventiveMaintenancePage";
-import InventoryPage from "./pages/InventoryPage";
+import InventoryOverviewPage from "./pages/inventory/InventoryOverviewPage";
+import ItemsStockPage from "./pages/inventory/ItemsStockPage";
+import LocationsPage from "./pages/inventory/LocationsPage";
+import ReorderManagementPage from "./pages/inventory/ReorderManagementPage";
+import TransfersLoansPage from "./pages/inventory/TransfersLoansPage";
+import PurchaseOrdersPage from "./pages/inventory/PurchaseOrdersPage";
+import SuppliersPage from "./pages/inventory/SuppliersPage";
+import InventoryReportsPage from "./pages/inventory/InventoryReportsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import MobileOperationsPage from "./pages/MobileOperationsPage";
 import IntegrationsPage from "./pages/IntegrationsPage";
@@ -83,7 +90,56 @@ const App = () => (
             <Route path="/inventory" element={
               <AuthGuard>
                 <Layout>
-                  <InventoryPage />
+                  <InventoryOverviewPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/inventory/items" element={
+              <AuthGuard>
+                <Layout>
+                  <ItemsStockPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/inventory/locations" element={
+              <AuthGuard>
+                <Layout>
+                  <LocationsPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/inventory/reorder" element={
+              <AuthGuard>
+                <Layout>
+                  <ReorderManagementPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/inventory/transfers" element={
+              <AuthGuard>
+                <Layout>
+                  <TransfersLoansPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/inventory/purchase-orders" element={
+              <AuthGuard>
+                <Layout>
+                  <PurchaseOrdersPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/inventory/suppliers" element={
+              <AuthGuard>
+                <Layout>
+                  <SuppliersPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/inventory/reports" element={
+              <AuthGuard>
+                <Layout>
+                  <InventoryReportsPage />
                 </Layout>
               </AuthGuard>
             } />
