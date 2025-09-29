@@ -5,81 +5,71 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useMemo } from "react";
+import { useInventoryItems } from "@/hooks/useInventoryItems";
+import { AddItemDialog } from "@/components/inventory/AddItemDialog";
 
 const ItemsStockPage = () => {
-  // Mock data for demonstration
-  const inventoryItems = [
-    {
-      id: "1",
-      itemNumber: "HYD-001",
-      name: "Hydraulic Pump Seal",
-      category: "Hydraulics",
-      currentStock: 15,
-      reservedStock: 3,
-      availableStock: 12,
-      reorderPoint: 5,
-      unitCost: 45.99,
-      supplier: "Industrial Parts Co",
-      location: "Warehouse A",
-      status: "Normal"
-    },
-    {
-      id: "2", 
-      itemNumber: "BRG-205",
-      name: "Motor Bearing 6205",
-      category: "Bearings",
-      currentStock: 8,
-      reservedStock: 0,
-      availableStock: 8,
-      reorderPoint: 10,
-      unitCost: 12.50,
-      supplier: "Bearing Solutions",
-      location: "Warehouse A",
-      status: "Low Stock"
-    },
-    {
-      id: "3",
-      itemNumber: "SAF-100", 
-      name: "Safety Valve Spring",
-      category: "Safety",
-      currentStock: 0,
-      reservedStock: 0,
-      availableStock: 0,
-      reorderPoint: 3,
-      unitCost: 8.75,
-      supplier: "Safety First Ltd",
-      location: "Warehouse B",
-      status: "Out of Stock"
-    },
-    {
-      id: "4",
-      itemNumber: "COU-050",
-      name: "Coupling Insert", 
-      category: "Couplings",
-      currentStock: 25,
-      reservedStock: 2,
-      availableStock: 23,
-      reorderPoint: 8,
-      unitCost: 22.00,
-      supplier: "Power Transmission Inc",
-      location: "Warehouse A", 
-      status: "Normal"
-    },
-    {
-      id: "5",
-      itemNumber: "FIL-200",
-      name: "Oil Filter Element",
-      category: "Filters",
-      currentStock: 50,
-      reservedStock: 5,
-      availableStock: 45,
-      reorderPoint: 20,
-      unitCost: 15.25,
-      supplier: "Filter Tech Corp",
-      location: "Warehouse C",
-      status: "Normal"
-    }
-  ];
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  
+  const { data: rawInventoryItems = [], isLoading } = useInventoryItems();
+
+  // Transform and filter data
+  const inventoryItems = useMemo(() => {
+    return rawInventoryItems
+      .filter(item => {
+        // Search filter
+        if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+            !item.item_number?.toLowerCase().includes(searchTerm.toLowerCase())) {
+          return false;
+        }
+        
+        // Category filter
+        if (selectedCategory !== "all" && item.category?.toLowerCase() !== selectedCategory) {
+          return false;
+        }
+        
+        return true;
+      })
+      .map(item => {
+        // Calculate stock status
+        const currentStock = item.current_stock || 0;
+        const reorderPoint = item.reorder_point || 0;
+        const availableStock = item.available_stock || 0;
+        
+        let status = "Normal";
+        if (currentStock === 0) {
+          status = "Out of Stock";
+        } else if (currentStock <= reorderPoint) {
+          status = "Low Stock";
+        }
+        
+        // Apply status filter
+        const statusFilterValue = selectedStatus.replace("-", " ").toLowerCase();
+        if (selectedStatus !== "all" && status.toLowerCase() !== statusFilterValue) {
+          return null;
+        }
+        
+        return {
+          id: item.id,
+          itemNumber: item.item_number || "N/A",
+          name: item.name,
+          category: item.category || "Uncategorized",
+          currentStock,
+          reservedStock: item.reserved_stock || 0,
+          availableStock,
+          reorderPoint,
+          unitCost: item.unit_cost || 0,
+          supplier: (item as any).suppliers?.name || "No Supplier",
+          location: (item as any).inventory_item_locations?.[0]?.inventory_locations?.name || "No Location",
+          status
+        };
+      })
+      .filter(Boolean);
+  }, [rawInventoryItems, searchTerm, selectedCategory, selectedStatus]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -111,7 +101,7 @@ const ItemsStockPage = () => {
             <Upload className="w-4 h-4 mr-2" />
             Import Items
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Add New Item
           </Button>
@@ -130,9 +120,11 @@ const ItemsStockPage = () => {
               <Input
                 placeholder="Search items..."
                 className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Select>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger>
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
@@ -143,9 +135,12 @@ const ItemsStockPage = () => {
                 <SelectItem value="safety">Safety</SelectItem>
                 <SelectItem value="couplings">Couplings</SelectItem>
                 <SelectItem value="filters">Filters</SelectItem>
+                <SelectItem value="motors">Motors</SelectItem>
+                <SelectItem value="pumps">Pumps</SelectItem>
+                <SelectItem value="valves">Valves</SelectItem>
               </SelectContent>
             </Select>
-            <Select>
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -156,7 +151,14 @@ const ItemsStockPage = () => {
                 <SelectItem value="out-of-stock">Out of Stock</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline">
+            <Button 
+              variant="outline"
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedCategory("all");
+                setSelectedStatus("all");
+              }}
+            >
               <Filter className="w-4 h-4 mr-2" />
               Clear Filters
             </Button>
@@ -195,26 +197,43 @@ const ItemsStockPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {inventoryItems.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.itemNumber}</TableCell>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{item.category}</TableCell>
-                    <TableCell>{item.currentStock}</TableCell>
-                    <TableCell>{item.availableStock}</TableCell>
-                    <TableCell>{item.reorderPoint}</TableCell>
-                    <TableCell>${item.unitCost.toFixed(2)}</TableCell>
-                    <TableCell>{item.supplier}</TableCell>
-                    <TableCell>{item.location}</TableCell>
-                    <TableCell>{getStatusBadge(item.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm">Edit</Button>
-                        <Button variant="outline" size="sm">Adjust Stock</Button>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={11} className="text-center py-8">
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        <span className="ml-2">Loading items...</span>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : inventoryItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
+                      No inventory items found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  inventoryItems.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{item.itemNumber}</TableCell>
+                      <TableCell>{item.name}</TableCell>
+                      <TableCell>{item.category}</TableCell>
+                      <TableCell>{item.currentStock}</TableCell>
+                      <TableCell>{item.availableStock}</TableCell>
+                      <TableCell>{item.reorderPoint}</TableCell>
+                      <TableCell>${item.unitCost.toFixed(2)}</TableCell>
+                      <TableCell>{item.supplier}</TableCell>
+                      <TableCell>{item.location}</TableCell>
+                      <TableCell>{getStatusBadge(item.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" size="sm">Edit</Button>
+                          <Button variant="outline" size="sm">Adjust Stock</Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
@@ -255,6 +274,11 @@ const ItemsStockPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      <AddItemDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+      />
     </div>
   );
 };
