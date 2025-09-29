@@ -1,111 +1,18 @@
-import { useState } from "react";
-import { BookOpen, Plus, Search, Filter, Eye, Edit, AlertTriangle, ShieldCheck, Zap, Wrench, Globe, Heart } from "lucide-react";
+import { useState, useMemo } from "react";
+import { BookOpen, Plus, Search, Filter, Eye, Edit, AlertTriangle, ShieldCheck, Zap, Wrench, Globe, Heart, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePrecautions } from "@/hooks/usePrecautions";
+import { PrecautionForm } from "@/components/safety/PrecautionForm";
+import { PrecautionDetailsModal } from "@/components/safety/PrecautionDetailsModal";
+import type { Database } from '@/integrations/supabase/types';
 
-interface SafetyPrecaution {
-  id: string;
-  precaution_code: string;
-  title: string;
-  description: string;
-  category: string;
-  subcategory?: string;
-  severity_level: 'critical' | 'high' | 'medium' | 'low';
-  required_actions: string[];
-  associated_hazards: string[];
-  regulatory_references: string[];
-  status: 'active' | 'under_review' | 'archived';
-  usage_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-const mockPrecautions: SafetyPrecaution[] = [
-  {
-    id: "1",
-    precaution_code: "PPE-001",
-    title: "Hard Hat Required",
-    description: "Hard hats must be worn in all construction and maintenance areas to protect against falling objects and head injuries.",
-    category: "PPE",
-    subcategory: "Head Protection",
-    severity_level: "critical",
-    required_actions: ["Ensure hard hat is properly fitted", "Check for cracks or damage before use", "Replace if damaged"],
-    associated_hazards: ["Falling objects", "Head injuries", "Impact hazards"],
-    regulatory_references: ["OSHA 1926.95", "ANSI Z89.1"],
-    status: "active",
-    usage_count: 156,
-    created_at: "2024-01-15T10:30:00Z",
-    updated_at: "2024-03-20T14:45:00Z"
-  },
-  {
-    id: "2",
-    precaution_code: "CHEM-015",
-    title: "Chemical Splash Protection",
-    description: "Wear appropriate chemical-resistant clothing and eye protection when handling corrosive substances.",
-    category: "Chemical Safety",
-    subcategory: "Corrosives",
-    severity_level: "high",
-    required_actions: ["Wear chemical-resistant gloves", "Use safety goggles or face shield", "Ensure proper ventilation"],
-    associated_hazards: ["Chemical burns", "Eye injuries", "Skin contact"],
-    regulatory_references: ["OSHA 1910.132", "ANSI Z87.1"],
-    status: "active",
-    usage_count: 89,
-    created_at: "2024-02-01T09:15:00Z",
-    updated_at: "2024-03-15T11:20:00Z"
-  },
-  {
-    id: "3",
-    precaution_code: "ELEC-008",
-    title: "Lockout/Tagout Required",
-    description: "All electrical equipment must be properly locked out and tagged out before maintenance work begins.",
-    category: "Electrical Safety",
-    subcategory: "Energy Control",
-    severity_level: "critical",
-    required_actions: ["Turn off power at source", "Apply lockout device", "Tag with identification", "Test equipment is de-energized"],
-    associated_hazards: ["Electrical shock", "Arc flash", "Electrocution"],
-    regulatory_references: ["OSHA 1910.147", "NFPA 70E"],
-    status: "active",
-    usage_count: 234,
-    created_at: "2024-01-10T08:00:00Z",
-    updated_at: "2024-03-18T16:30:00Z"
-  },
-  {
-    id: "4",
-    precaution_code: "MECH-022",
-    title: "Pinch Point Awareness",
-    description: "Be aware of pinch points and moving parts when working near conveyor systems and rotating equipment.",
-    category: "Mechanical Safety",
-    subcategory: "Moving Parts",
-    severity_level: "high",
-    required_actions: ["Keep hands and loose clothing away", "Use proper tools", "Ensure guards are in place"],
-    associated_hazards: ["Crushing injuries", "Caught-in hazards", "Amputation"],
-    regulatory_references: ["OSHA 1910.212", "ANSI B11.0"],
-    status: "active",
-    usage_count: 127,
-    created_at: "2024-01-25T12:45:00Z",
-    updated_at: "2024-03-10T10:15:00Z"
-  },
-  {
-    id: "5",
-    precaution_code: "ENV-005",
-    title: "Confined Space Entry",
-    description: "Follow proper confined space entry procedures including atmospheric testing and continuous monitoring.",
-    category: "Environmental Safety",
-    subcategory: "Confined Spaces",
-    severity_level: "critical",
-    required_actions: ["Test atmosphere before entry", "Use continuous monitoring", "Maintain communication with attendant", "Have rescue plan ready"],
-    associated_hazards: ["Oxygen deficiency", "Toxic gases", "Engulfment"],
-    regulatory_references: ["OSHA 1910.146", "NIOSH 80-106"],
-    status: "active",
-    usage_count: 78,
-    created_at: "2024-02-10T14:20:00Z",
-    updated_at: "2024-03-22T09:40:00Z"
-  }
-];
+type SafetyPrecaution = Database['public']['Tables']['safety_precautions']['Row'];
 
 const getSeverityColor = (severity: string) => {
   switch (severity) {
@@ -132,32 +39,89 @@ export default function PrecautionLibraryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedSeverity, setSelectedSeverity] = useState("all");
+  const [formOpen, setFormOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedPrecaution, setSelectedPrecaution] = useState<SafetyPrecaution | null>(null);
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
 
-  const categories = ["PPE", "Chemical Safety", "Electrical Safety", "Mechanical Safety", "Environmental Safety"];
+  const { 
+    precautions, 
+    loading, 
+    error, 
+    addPrecaution, 
+    updatePrecaution, 
+    incrementUsageCount,
+    refetch 
+  } = usePrecautions();
+
+  const categories = ["PPE", "Chemical Safety", "Electrical Safety", "Mechanical Safety", "Environmental Safety", "Fire Safety", "Fall Protection", "Ergonomics"];
   const severityLevels = ["critical", "high", "medium", "low"];
 
-  const filteredPrecautions = mockPrecautions.filter(precaution => {
-    const matchesSearch = precaution.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         precaution.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         precaution.precaution_code.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || precaution.category === selectedCategory;
-    const matchesSeverity = selectedSeverity === "all" || precaution.severity_level === selectedSeverity;
-    
-    return matchesSearch && matchesCategory && matchesSeverity;
-  });
+  const filteredPrecautions = useMemo(() => {
+    return precautions.filter(precaution => {
+      const matchesSearch = searchTerm === "" || 
+        precaution.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        precaution.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        precaution.precaution_code.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === "all" || precaution.category === selectedCategory;
+      const matchesSeverity = selectedSeverity === "all" || precaution.severity_level === selectedSeverity;
+      
+      return matchesSearch && matchesCategory && matchesSeverity;
+    });
+  }, [precautions, searchTerm, selectedCategory, selectedSeverity]);
 
-  const stats = {
-    total: mockPrecautions.length,
-    active: mockPrecautions.filter(p => p.status === 'active').length,
-    critical: mockPrecautions.filter(p => p.severity_level === 'critical').length,
-    recentlyUpdated: mockPrecautions.filter(p => {
-      const updatedDate = new Date(p.updated_at);
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      return updatedDate > thirtyDaysAgo;
-    }).length,
-    mostUsed: Math.max(...mockPrecautions.map(p => p.usage_count))
+  const stats = useMemo(() => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    return {
+      total: precautions.length,
+      active: precautions.filter(p => p.status === 'active').length,
+      critical: precautions.filter(p => p.severity_level === 'critical').length,
+      recentlyUpdated: precautions.filter(p => {
+        const updatedDate = new Date(p.updated_at);
+        return updatedDate > thirtyDaysAgo;
+      }).length,
+      mostUsed: precautions.length > 0 ? Math.max(...precautions.map(p => p.usage_count || 0)) : 0
+    };
+  }, [precautions]);
+
+  const handleCreatePrecaution = () => {
+    setFormMode('create');
+    setSelectedPrecaution(null);
+    setFormOpen(true);
   };
+
+  const handleEditPrecaution = (precaution: SafetyPrecaution) => {
+    setFormMode('edit');
+    setSelectedPrecaution(precaution);
+    setFormOpen(true);
+  };
+
+  const handleViewPrecaution = (precaution: SafetyPrecaution) => {
+    setSelectedPrecaution(precaution);
+    setDetailsOpen(true);
+    incrementUsageCount(precaution.id);
+  };
+
+  const handleFormSubmit = async (data: any) => {
+    if (formMode === 'create') {
+      await addPrecaution(data);
+    } else if (selectedPrecaution) {
+      await updatePrecaution(selectedPrecaution.id, data);
+    }
+    setFormOpen(false);
+  };
+
+  // Refresh data when filters change
+  useState(() => {
+    const filters = {
+      category: selectedCategory,
+      severity: selectedSeverity,
+      search: searchTerm
+    };
+    refetch(filters);
+  });
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -172,7 +136,7 @@ export default function PrecautionLibraryPage() {
             </p>
           </div>
         </div>
-        <Button>
+        <Button onClick={handleCreatePrecaution}>
           <Plus className="mr-2 h-4 w-4" />
           Add New Precaution
         </Button>
@@ -186,7 +150,11 @@ export default function PrecautionLibraryPage() {
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats.total}</div>
+            )}
             <p className="text-xs text-muted-foreground">All precautions in library</p>
           </CardContent>
         </Card>
@@ -197,7 +165,11 @@ export default function PrecautionLibraryPage() {
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.active}</div>
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats.active}</div>
+            )}
             <p className="text-xs text-muted-foreground">Currently approved</p>
           </CardContent>
         </Card>
@@ -208,7 +180,11 @@ export default function PrecautionLibraryPage() {
             <AlertTriangle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{stats.critical}</div>
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold text-destructive">{stats.critical}</div>
+            )}
             <p className="text-xs text-muted-foreground">High-priority items</p>
           </CardContent>
         </Card>
@@ -219,7 +195,11 @@ export default function PrecautionLibraryPage() {
             <Edit className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.recentlyUpdated}</div>
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats.recentlyUpdated}</div>
+            )}
             <p className="text-xs text-muted-foreground">Last 30 days</p>
           </CardContent>
         </Card>
@@ -230,7 +210,11 @@ export default function PrecautionLibraryPage() {
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.mostUsed}</div>
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats.mostUsed}</div>
+            )}
             <p className="text-xs text-muted-foreground">Usage count</p>
           </CardContent>
         </Card>
@@ -294,94 +278,173 @@ export default function PrecautionLibraryPage() {
         </TabsList>
 
         <TabsContent value={selectedCategory === "all" ? "all" : selectedCategory} className="mt-6">
-          {/* Precautions Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPrecautions.map((precaution) => {
-              const CategoryIcon = getCategoryIcon(precaution.category);
-              
-              return (
-                <Card key={precaution.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2">
-                        <CategoryIcon className="h-5 w-5 text-primary" />
-                        <Badge variant="outline" className="text-xs font-mono">
-                          {precaution.precaution_code}
-                        </Badge>
-                      </div>
-                      <Badge variant={getSeverityColor(precaution.severity_level)}>
-                        {precaution.severity_level}
-                      </Badge>
-                    </div>
-                    <CardTitle className="text-lg leading-tight">
-                      {precaution.title}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {precaution.category}
-                      </Badge>
-                      {precaution.subcategory && (
-                        <Badge variant="outline" className="text-xs">
-                          {precaution.subcategory}
-                        </Badge>
-                      )}
-                    </div>
+          {/* Loading State */}
+          {loading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <CardDescription className="text-sm line-clamp-3">
-                      {precaution.description}
-                    </CardDescription>
-                    
-                    <div className="space-y-2">
-                      <div className="text-xs font-medium text-muted-foreground">Required Actions:</div>
-                      <ul className="text-xs space-y-1">
-                        {precaution.required_actions.slice(0, 2).map((action, index) => (
-                          <li key={index} className="flex items-start gap-1">
-                            <span className="text-primary">•</span>
-                            <span>{action}</span>
-                          </li>
-                        ))}
-                        {precaution.required_actions.length > 2 && (
-                          <li className="text-muted-foreground">
-                            +{precaution.required_actions.length - 2} more...
-                          </li>
-                        )}
-                      </ul>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Eye className="h-3 w-3" />
-                        <span>{precaution.usage_count} uses</span>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
+                  <CardContent>
+                    <Skeleton className="h-20 w-full mb-4" />
+                    <Skeleton className="h-4 w-full mb-2" />
+                    <Skeleton className="h-4 w-2/3" />
                   </CardContent>
                 </Card>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
 
-          {filteredPrecautions.length === 0 && (
+          {/* Error State */}
+          {error && !loading && (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Error Loading Precautions</h3>
+                <p className="text-muted-foreground mb-4">{error}</p>
+                <Button onClick={() => refetch()}>Try Again</Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Precautions Grid */}
+          {!loading && !error && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPrecautions.map((precaution) => {
+                const CategoryIcon = getCategoryIcon(precaution.category);
+                
+                return (
+                  <Card key={precaution.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                          <CategoryIcon className="h-5 w-5 text-primary" />
+                          <Badge variant="outline" className="text-xs font-mono">
+                            {precaution.precaution_code}
+                          </Badge>
+                        </div>
+                        <Badge variant={getSeverityColor(precaution.severity_level)}>
+                          {precaution.severity_level}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-lg leading-tight">
+                        {precaution.title}
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="text-xs">
+                          {precaution.category}
+                        </Badge>
+                        {precaution.subcategory && (
+                          <Badge variant="outline" className="text-xs">
+                            {precaution.subcategory}
+                          </Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <CardDescription className="text-sm line-clamp-3">
+                        {precaution.description}
+                      </CardDescription>
+                      
+                      {precaution.required_actions && precaution.required_actions.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-xs font-medium text-muted-foreground">Required Actions:</div>
+                          <ul className="text-xs space-y-1">
+                            {precaution.required_actions.slice(0, 2).map((action, index) => (
+                              <li key={index} className="flex items-start gap-1">
+                                <span className="text-primary">•</span>
+                                <span>{action}</span>
+                              </li>
+                            ))}
+                            {precaution.required_actions.length > 2 && (
+                              <li className="text-muted-foreground">
+                                +{precaution.required_actions.length - 2} more...
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Eye className="h-3 w-3" />
+                          <span>{precaution.usage_count || 0} uses</span>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewPrecaution(precaution)}
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEditPrecaution(precaution)}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && !error && filteredPrecautions.length === 0 && (
             <Card>
               <CardContent className="py-8 text-center">
                 <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No precautions found</h3>
-                <p className="text-muted-foreground">
-                  Try adjusting your search criteria or filters.
+                <p className="text-muted-foreground mb-4">
+                  {precautions.length === 0 
+                    ? "No safety precautions have been created yet." 
+                    : "Try adjusting your search criteria or filters."
+                  }
                 </p>
+                {precautions.length === 0 && (
+                  <Button onClick={handleCreatePrecaution}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create First Precaution
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Form and Detail Modals */}
+      <PrecautionForm
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        onSubmit={handleFormSubmit}
+        precaution={selectedPrecaution}
+        mode={formMode}
+      />
+
+      <PrecautionDetailsModal
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        precaution={selectedPrecaution}
+        onEdit={() => {
+          setDetailsOpen(false);
+          if (selectedPrecaution) {
+            handleEditPrecaution(selectedPrecaution);
+          }
+        }}
+        onIncrementUsage={() => {
+          if (selectedPrecaution) {
+            incrementUsageCount(selectedPrecaution.id);
+          }
+        }}
+      />
     </div>
   );
 }
