@@ -31,6 +31,7 @@ export interface BOMItem {
   notes?: string;
   parent_item_id?: string;
   level: number;
+  inventory_item_id?: string;
   created_at: string;
   updated_at: string;
 }

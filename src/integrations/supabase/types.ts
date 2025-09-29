@@ -264,6 +264,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          inventory_item_id: string | null
           item_name: string
           item_number: string | null
           item_type: Database["public"]["Enums"]["bom_item_type"] | null
@@ -282,6 +283,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          inventory_item_id?: string | null
           item_name: string
           item_number?: string | null
           item_type?: Database["public"]["Enums"]["bom_item_type"] | null
@@ -300,6 +302,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          inventory_item_id?: string | null
           item_name?: string
           item_number?: string | null
           item_type?: Database["public"]["Enums"]["bom_item_type"] | null
@@ -318,6 +321,13 @@ export type Database = {
             columns: ["bom_id"]
             isOneToOne: false
             referencedRelation: "bill_of_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bom_items_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
             referencedColumns: ["id"]
           },
           {

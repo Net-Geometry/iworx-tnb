@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Edit, Trash2, Package } from "lucide-react";
+import { Plus, Edit, Trash2, Package, Link, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Skeleton } from "@/components/ui/skeleton";
 import { BOMItemForm } from "./BOMItemForm";
 import { useBOMItems, BOMItem } from "@/hooks/useBOMs";
+import { useInventoryItems } from "@/hooks/useInventoryItems";
 
 interface BOMItemsViewProps {
   bomId: string;
@@ -16,6 +17,7 @@ interface BOMItemsViewProps {
 
 export const BOMItemsView = ({ bomId }: BOMItemsViewProps) => {
   const { items, loading, deleteBOMItem, refetch } = useBOMItems(bomId);
+  const { data: inventoryItems = [] } = useInventoryItems();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<BOMItem | null>(null);
 
@@ -41,6 +43,21 @@ export const BOMItemsView = ({ bomId }: BOMItemsViewProps) => {
     const cost = item.cost_per_unit || 0;
     const quantity = item.quantity || 0;
     return cost * quantity;
+  };
+
+  const getInventoryItemById = (id?: string) => {
+    if (!id) return null;
+    return inventoryItems.find(inv => inv.id === id) || null;
+  };
+
+  const getStockStatus = (inventoryItem: any) => {
+    if (!inventoryItem) return null;
+    const stock = inventoryItem.current_stock || 0;
+    const reorderPoint = inventoryItem.reorder_point || 0;
+    
+    if (stock <= 0) return { status: "out", label: "Out of Stock", color: "bg-red-100 text-red-800" };
+    if (stock <= reorderPoint) return { status: "low", label: "Low Stock", color: "bg-yellow-100 text-yellow-800" };
+    return { status: "in", label: "In Stock", color: "bg-green-100 text-green-800" };
   };
 
   const totalBOMCost = items.reduce((sum, item) => sum + calculateTotalCost(item), 0);
@@ -137,6 +154,7 @@ export const BOMItemsView = ({ bomId }: BOMItemsViewProps) => {
                   <TableHead>Item Name</TableHead>
                   <TableHead>Item Number</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Source</TableHead>
                   <TableHead className="text-right">Quantity</TableHead>
                   <TableHead>Unit</TableHead>
                   <TableHead className="text-right">Unit Cost</TableHead>
@@ -146,33 +164,63 @@ export const BOMItemsView = ({ bomId }: BOMItemsViewProps) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{item.item_name}</div>
-                        {item.description && (
-                          <div className="text-sm text-muted-foreground">
-                            {item.description}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{item.item_number || '-'}</TableCell>
-                    <TableCell>
-                      <Badge className={getItemTypeColor(item.item_type)}>
-                        {item.item_type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">{item.quantity}</TableCell>
-                    <TableCell>{item.unit}</TableCell>
-                    <TableCell className="text-right">
-                      {item.cost_per_unit ? `$${item.cost_per_unit.toFixed(2)}` : '-'}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {item.cost_per_unit ? `$${calculateTotalCost(item).toFixed(2)}` : '-'}
-                    </TableCell>
-                    <TableCell>{item.supplier || '-'}</TableCell>
+                {items.map((item) => {
+                  const inventoryItem = getInventoryItemById((item as any).inventory_item_id);
+                  const stockStatus = getStockStatus(inventoryItem);
+                  
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{item.item_name}</div>
+                          {item.description && (
+                            <div className="text-sm text-muted-foreground">
+                              {item.description}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{item.item_number || '-'}</TableCell>
+                      <TableCell>
+                        <Badge className={getItemTypeColor(item.item_type)}>
+                          {item.item_type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          {inventoryItem ? (
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                                <Link className="h-3 w-3 mr-1" />
+                                Inventory
+                              </Badge>
+                              {stockStatus && (
+                                <Badge className={stockStatus.color} variant="outline">
+                                  {stockStatus.label}
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="bg-gray-50 text-gray-700">
+                              Manual Entry
+                            </Badge>
+                          )}
+                          {inventoryItem && (
+                            <div className="text-xs text-muted-foreground">
+                              Stock: {inventoryItem.current_stock || 0} {inventoryItem.unit_of_measure}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">{item.quantity}</TableCell>
+                      <TableCell>{item.unit}</TableCell>
+                      <TableCell className="text-right">
+                        {item.cost_per_unit ? `$${item.cost_per_unit.toFixed(2)}` : '-'}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {item.cost_per_unit ? `$${calculateTotalCost(item).toFixed(2)}` : '-'}
+                      </TableCell>
+                      <TableCell>{item.supplier || '-'}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Dialog open={editingItem?.id === item.id} onOpenChange={(open) => setEditingItem(open ? item : null)}>
@@ -219,8 +267,9 @@ export const BOMItemsView = ({ bomId }: BOMItemsViewProps) => {
                         </AlertDialog>
                       </div>
                     </TableCell>
-                  </TableRow>
-                ))}
+                   </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
