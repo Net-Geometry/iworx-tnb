@@ -18,6 +18,10 @@ import {
   Package2,
   RotateCcw,
   ShoppingCart,
+  AlertTriangle,
+  AlertCircle,
+  Lock,
+  CheckCircle,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -99,6 +103,16 @@ const moduleItems = [
   },
 ];
 
+// Safety & HSE sub-modules
+const safetySubModules = [
+  { title: "Safety Overview", url: "/safety", icon: Shield },
+  { title: "Incident Management", url: "/safety/incidents", icon: AlertTriangle },
+  { title: "Hazard & Risk Register", url: "/safety/hazards", icon: AlertCircle },
+  { title: "LOTO Procedures", url: "/safety/loto", icon: Lock },
+  { title: "CAPA Management", url: "/safety/capa", icon: CheckCircle },
+  { title: "Safety Reports", url: "/safety/reports", icon: BarChart3 },
+];
+
 const inventorySubModules = [
   { title: "Inventory Overview", url: "/inventory", icon: BarChart3 },
   { title: "Items & Stock", url: "/inventory/items", icon: Package },
@@ -124,6 +138,7 @@ export function AppSidebar() {
 
   const isModulesExpanded = moduleItems.some((item) => isActive(item.url));
   const isInventoryExpanded = currentPath.startsWith('/inventory');
+  const isSafetyExpanded = currentPath.startsWith('/safety');
 
   return (
     <Sidebar className="border-r border-border/50 bg-sidebar">
@@ -185,6 +200,41 @@ export function AppSidebar() {
                       >
                         <NavLink to={item.url}>
                           <item.icon className="w-5 h-5" />
+                          <span>{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+
+        {/* Safety & HSE Submenu */}
+        <Collapsible defaultOpen={isSafetyExpanded} className="group/collapsible">
+          <SidebarGroup>
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Safety & HSE
+                </div>
+                <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {safetySubModules.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.url)}
+                        tooltip={state === "collapsed" ? item.title : undefined}
+                      >
+                        <NavLink to={item.url}>
+                          <item.icon className="w-4 h-4" />
                           <span>{item.title}</span>
                         </NavLink>
                       </SidebarMenuButton>

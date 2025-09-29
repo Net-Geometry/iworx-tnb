@@ -339,6 +339,81 @@ export type Database = {
           },
         ]
       }
+      capa_records: {
+        Row: {
+          capa_number: string
+          completion_date: string | null
+          corrective_actions: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          due_date: string
+          effectiveness_review: string | null
+          effectiveness_verified: boolean | null
+          id: string
+          preventive_actions: string | null
+          priority: number
+          responsible_person: string
+          root_cause_analysis: string | null
+          source: string
+          source_reference_id: string | null
+          status: Database["public"]["Enums"]["capa_status"]
+          title: string
+          updated_at: string
+          updated_by: string | null
+          verified_by: string | null
+          verified_date: string | null
+        }
+        Insert: {
+          capa_number: string
+          completion_date?: string | null
+          corrective_actions?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          due_date: string
+          effectiveness_review?: string | null
+          effectiveness_verified?: boolean | null
+          id?: string
+          preventive_actions?: string | null
+          priority?: number
+          responsible_person: string
+          root_cause_analysis?: string | null
+          source: string
+          source_reference_id?: string | null
+          status?: Database["public"]["Enums"]["capa_status"]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          verified_by?: string | null
+          verified_date?: string | null
+        }
+        Update: {
+          capa_number?: string
+          completion_date?: string | null
+          corrective_actions?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          due_date?: string
+          effectiveness_review?: string | null
+          effectiveness_verified?: boolean | null
+          id?: string
+          preventive_actions?: string | null
+          priority?: number
+          responsible_person?: string
+          root_cause_analysis?: string | null
+          source?: string
+          source_reference_id?: string | null
+          status?: Database["public"]["Enums"]["capa_status"]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          verified_by?: string | null
+          verified_date?: string | null
+        }
+        Relationships: []
+      }
       hierarchy_levels: {
         Row: {
           color_code: string
@@ -900,6 +975,78 @@ export type Database = {
           },
         ]
       }
+      loto_procedures: {
+        Row: {
+          approval_required: boolean | null
+          approved_by: string | null
+          approved_date: string | null
+          asset_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          energy_sources: string[]
+          equipment_name: string
+          id: string
+          lockout_points: string[]
+          next_review_date: string | null
+          procedure_number: string
+          procedure_steps: Json
+          required_ppe: string[] | null
+          required_tools: string[] | null
+          review_frequency_months: number | null
+          status: Database["public"]["Enums"]["loto_status"]
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          approval_required?: boolean | null
+          approved_by?: string | null
+          approved_date?: string | null
+          asset_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          energy_sources: string[]
+          equipment_name: string
+          id?: string
+          lockout_points: string[]
+          next_review_date?: string | null
+          procedure_number: string
+          procedure_steps: Json
+          required_ppe?: string[] | null
+          required_tools?: string[] | null
+          review_frequency_months?: number | null
+          status?: Database["public"]["Enums"]["loto_status"]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          approval_required?: boolean | null
+          approved_by?: string | null
+          approved_date?: string | null
+          asset_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          energy_sources?: string[]
+          equipment_name?: string
+          id?: string
+          lockout_points?: string[]
+          next_review_date?: string | null
+          procedure_number?: string
+          procedure_steps?: Json
+          required_ppe?: string[] | null
+          required_tools?: string[] | null
+          review_frequency_months?: number | null
+          status?: Database["public"]["Enums"]["loto_status"]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       maintenance_records: {
         Row: {
           asset_id: string
@@ -1109,6 +1256,147 @@ export type Database = {
           },
         ]
       }
+      safety_hazards: {
+        Row: {
+          asset_id: string | null
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          hazard_number: string
+          id: string
+          likelihood: number
+          location: string
+          mitigation_measures: string | null
+          responsible_person: string | null
+          review_date: string | null
+          risk_level: Database["public"]["Enums"]["risk_level"] | null
+          risk_score: number | null
+          severity: number
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          hazard_number: string
+          id?: string
+          likelihood: number
+          location: string
+          mitigation_measures?: string | null
+          responsible_person?: string | null
+          review_date?: string | null
+          risk_level?: Database["public"]["Enums"]["risk_level"] | null
+          risk_score?: number | null
+          severity: number
+          status?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          hazard_number?: string
+          id?: string
+          likelihood?: number
+          location?: string
+          mitigation_measures?: string | null
+          responsible_person?: string | null
+          review_date?: string | null
+          risk_level?: Database["public"]["Enums"]["risk_level"] | null
+          risk_score?: number | null
+          severity?: number
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      safety_incidents: {
+        Row: {
+          asset_id: string | null
+          corrective_actions: string | null
+          cost_estimate: number | null
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          incident_date: string
+          incident_number: string
+          investigation_notes: string | null
+          investigator_name: string | null
+          location: string
+          regulatory_report_number: string | null
+          regulatory_reporting_required: boolean | null
+          reporter_email: string | null
+          reporter_name: string
+          root_cause: string | null
+          severity: Database["public"]["Enums"]["incident_severity"]
+          status: Database["public"]["Enums"]["incident_status"]
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          corrective_actions?: string | null
+          cost_estimate?: number | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          incident_date: string
+          incident_number: string
+          investigation_notes?: string | null
+          investigator_name?: string | null
+          location: string
+          regulatory_report_number?: string | null
+          regulatory_reporting_required?: boolean | null
+          reporter_email?: string | null
+          reporter_name: string
+          root_cause?: string | null
+          severity?: Database["public"]["Enums"]["incident_severity"]
+          status?: Database["public"]["Enums"]["incident_status"]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          corrective_actions?: string | null
+          cost_estimate?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          incident_date?: string
+          incident_number?: string
+          investigation_notes?: string | null
+          investigator_name?: string | null
+          location?: string
+          regulatory_report_number?: string | null
+          regulatory_reporting_required?: boolean | null
+          reporter_email?: string | null
+          reporter_name?: string
+          root_cause?: string | null
+          severity?: Database["public"]["Enums"]["incident_severity"]
+          status?: Database["public"]["Enums"]["incident_status"]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       suppliers: {
         Row: {
           address: string | null
@@ -1222,6 +1510,11 @@ export type Database = {
       bom_item_type: "part" | "material" | "tool" | "consumable"
       bom_status: "active" | "inactive" | "draft" | "archived"
       bom_type: "manufacturing" | "maintenance" | "spare_parts"
+      capa_status: "open" | "in_progress" | "completed" | "overdue" | "closed"
+      incident_severity: "low" | "medium" | "high" | "critical"
+      incident_status: "reported" | "investigating" | "resolved" | "closed"
+      loto_status: "draft" | "approved" | "active" | "expired" | "archived"
+      risk_level: "very_low" | "low" | "medium" | "high" | "very_high"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1352,6 +1645,11 @@ export const Constants = {
       bom_item_type: ["part", "material", "tool", "consumable"],
       bom_status: ["active", "inactive", "draft", "archived"],
       bom_type: ["manufacturing", "maintenance", "spare_parts"],
+      capa_status: ["open", "in_progress", "completed", "overdue", "closed"],
+      incident_severity: ["low", "medium", "high", "critical"],
+      incident_status: ["reported", "investigating", "resolved", "closed"],
+      loto_status: ["draft", "approved", "active", "expired", "archived"],
+      risk_level: ["very_low", "low", "medium", "high", "very_high"],
     },
   },
 } as const
