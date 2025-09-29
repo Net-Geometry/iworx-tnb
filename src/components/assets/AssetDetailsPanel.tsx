@@ -61,7 +61,7 @@ export function AssetDetailsPanel({ asset, onClose }: AssetDetailsPanelProps) {
           <div className="space-y-4">
             <div className="aspect-video bg-gradient-primary rounded-lg flex items-center justify-center">
               <span className="text-2xl font-bold text-primary-foreground">
-                {asset.type.slice(0, 2).toUpperCase()}
+                {asset.type ? asset.type.slice(0, 2).toUpperCase() : 'AS'}
               </span>
             </div>
             
@@ -97,12 +97,12 @@ export function AssetDetailsPanel({ asset, onClose }: AssetDetailsPanelProps) {
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
                 <span className="text-muted-foreground">Type</span>
-                <p className="font-medium text-foreground">{asset.type}</p>
+                <p className="font-medium text-foreground">{asset.type || 'N/A'}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Location</span>
-                <p className="font-medium text-foreground text-xs" title={asset.location}>
-                  {asset.location.split(' > ').pop()}
+                <p className="font-medium text-foreground text-xs" title={asset.location || ''}>
+                  {asset.location ? asset.location.split(' > ').pop() : 'N/A'}
                 </p>
               </div>
               {asset.manufacturer && (
