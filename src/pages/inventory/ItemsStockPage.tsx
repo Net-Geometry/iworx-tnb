@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useMemo } from "react";
 import { useInventoryItems, type InventoryItem } from "@/hooks/useInventoryItems";
-import { InventoryItemFormDialog } from "@/components/inventory/InventoryItemFormDialog";
+import { AddItemDialog } from "@/components/inventory/AddItemDialog";
+import { EditItemDialog } from "@/components/inventory/EditItemDialog";
 
 const ItemsStockPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -289,14 +290,12 @@ const ItemsStockPage = () => {
         </Card>
       </div>
 
-      <InventoryItemFormDialog
-        mode="add"
+      <AddItemDialog
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
       />
       
-      <InventoryItemFormDialog
-        mode="edit"
+      <EditItemDialog
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         item={selectedItem}
