@@ -1,74 +1,13 @@
-import { MapPin, Plus, Building, Warehouse, Archive } from "lucide-react";
+import { MapPin, Building, Warehouse, Archive, Package } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AddLocationDialog } from "@/components/inventory/AddLocationDialog";
+import { useInventoryLocationWithItems } from "@/hooks/useInventoryLocations";
 
 const LocationsPage = () => {
-  // Mock data for demonstration
-  const locations = [
-    {
-      id: "1",
-      name: "Main Warehouse",
-      code: "WH-A",
-      type: "warehouse",
-      address: "123 Industrial Blvd, Manufacturing District",
-      capacity: 10000,
-      utilization: 7500,
-      itemCount: 145,
-      isActive: true,
-      parentLocation: null
-    },
-    {
-      id: "2", 
-      name: "Storage Room B",
-      code: "ST-B",
-      type: "storage",
-      address: "Building 2, Floor 1",
-      capacity: 2000,
-      utilization: 1200,
-      itemCount: 68,
-      isActive: true,
-      parentLocation: "Main Warehouse"
-    },
-    {
-      id: "3",
-      name: "Tool Crib",
-      code: "TC-01",
-      type: "storage",
-      address: "Workshop Area, Section C",
-      capacity: 500,
-      utilization: 450,
-      itemCount: 89,
-      isActive: true,
-      parentLocation: null
-    },
-    {
-      id: "4",
-      name: "Outdoor Storage",
-      code: "OUT-01", 
-      type: "warehouse",
-      address: "Yard Area, East Side",
-      capacity: 5000,
-      utilization: 2100,
-      itemCount: 23,
-      isActive: true,
-      parentLocation: null
-    },
-    {
-      id: "5",
-      name: "Archive Storage",
-      code: "AR-01",
-      type: "storage", 
-      address: "Building 3, Basement",
-      capacity: 1500,
-      utilization: 300,
-      itemCount: 45,
-      isActive: false,
-      parentLocation: null
-    }
-  ];
+  const { data: locations = [], isLoading, refetch } = useInventoryLocationWithItems();
 
   const getLocationIcon = (type: string) => {
     switch (type) {
@@ -76,6 +15,11 @@ const LocationsPage = () => {
         return <Warehouse className="w-4 h-4" />;
       case "storage":
         return <Building className="w-4 h-4" />;
+      case "bin":
+      case "zone":
+      case "aisle":
+      case "shelf":
+        return <Package className="w-4 h-4" />;
       case "archive":
         return <Archive className="w-4 h-4" />;
       default:
@@ -101,10 +45,7 @@ const LocationsPage = () => {
             <p className="text-muted-foreground">Manage warehouses, storage areas, and inventory locations</p>
           </div>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Add New Location
-        </Button>
+        <AddLocationDialog onLocationAdded={() => refetch()} />
       </div>
 
       {/* Summary Cards */}
@@ -116,7 +57,7 @@ const LocationsPage = () => {
           <CardContent>
             <div className="text-2xl font-bold">{locations.length}</div>
             <div className="text-xs text-muted-foreground">
-              {locations.filter(l => l.isActive).length} active
+              {locations.filter(l => l.is_active).length} active
             </div>
           </CardContent>
         </Card>
@@ -126,9 +67,9 @@ const LocationsPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {locations.reduce((sum, loc) => sum + loc.capacity, 0).toLocaleString()}
+              {locations.reduce((sum, loc) => sum + (loc.capacity_limit || 0), 0).toLocaleString()}
             </div>
-            <div className="text-xs text-muted-foreground">sq ft total space</div>
+            <div className="text-xs text-muted-foreground">total capacity</div>
           </CardContent>
         </Card>
         <Card>
@@ -137,8 +78,8 @@ const LocationsPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round((locations.reduce((sum, loc) => sum + loc.utilization, 0) / 
-                locations.reduce((sum, loc) => sum + loc.capacity, 0)) * 100)}%
+              {locations.length > 0 ? Math.round((locations.reduce((sum, loc) => sum + (loc.current_utilization || 0), 0) / 
+                Math.max(locations.reduce((sum, loc) => sum + (loc.capacity_limit || 0), 0), 1)) * 100) : 0}%
             </div>
             <div className="text-xs text-muted-foreground">across all locations</div>
           </CardContent>
@@ -149,7 +90,7 @@ const LocationsPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {locations.reduce((sum, loc) => sum + loc.itemCount, 0)}
+              {locations.reduce((sum, loc) => sum + (loc.itemCount || 0), 0)}
             </div>
             <div className="text-xs text-muted-foreground">items stored</div>
           </CardContent>
@@ -178,54 +119,70 @@ const LocationsPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {locations.map((location) => {
-                  const utilizationPercentage = (location.utilization / location.capacity) * 100;
-                  return (
-                    <TableRow key={location.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getLocationIcon(location.type)}
-                          <div>
-                            <div className="font-medium">{location.name}</div>
-                            <div className="text-sm text-muted-foreground">{location.code}</div>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8">
+                      Loading locations...
+                    </TableCell>
+                  </TableRow>
+                ) : locations.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8">
+                      No locations found. Add your first location to get started.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  locations.map((location) => {
+                    const utilizationPercentage = location.utilizationPercentage || 0;
+                    return (
+                      <TableRow key={location.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getLocationIcon(location.location_type)}
+                            <div>
+                              <div className="font-medium">{location.name}</div>
+                              <div className="text-sm text-muted-foreground">{location.code || 'No code'}</div>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="capitalize">{location.type}</TableCell>
-                      <TableCell className="max-w-[200px]">
-                        <div className="truncate" title={location.address}>
-                          {location.address}
-                        </div>
-                      </TableCell>
-                      <TableCell>{location.capacity.toLocaleString()} sq ft</TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className={getUtilizationColor(utilizationPercentage)}>
-                              {Math.round(utilizationPercentage)}%
-                            </span>
-                            <span className="text-muted-foreground">
-                              {location.utilization.toLocaleString()} / {location.capacity.toLocaleString()}
-                            </span>
+                        </TableCell>
+                        <TableCell className="capitalize">{location.location_type.replace('_', ' ')}</TableCell>
+                        <TableCell className="max-w-[200px]">
+                          <div className="truncate" title={location.address || 'No address'}>
+                            {location.address || 'No address'}
                           </div>
-                          <Progress value={utilizationPercentage} className="h-1" />
-                        </div>
-                      </TableCell>
-                      <TableCell>{location.itemCount}</TableCell>
-                      <TableCell>
-                        <Badge variant={location.isActive ? "default" : "secondary"}>
-                          {location.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm">Edit</Button>
-                          <Button variant="outline" size="sm">View Items</Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                        </TableCell>
+                        <TableCell>
+                          {location.capacity_limit ? `${location.capacity_limit.toLocaleString()} units` : 'Not set'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className={getUtilizationColor(utilizationPercentage)}>
+                                {utilizationPercentage}%
+                              </span>
+                              <span className="text-muted-foreground">
+                                {(location.current_utilization || 0).toLocaleString()} / {(location.capacity_limit || 0).toLocaleString()}
+                              </span>
+                            </div>
+                            <Progress value={utilizationPercentage} className="h-1" />
+                          </div>
+                        </TableCell>
+                        <TableCell>{location.itemCount || 0}</TableCell>
+                        <TableCell>
+                          <Badge variant={location.is_active ? "default" : "secondary"}>
+                            {location.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Badge variant="outline" className="text-xs">Edit</Badge>
+                            <Badge variant="outline" className="text-xs">View Items</Badge>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
               </TableBody>
             </Table>
           </div>
@@ -240,38 +197,43 @@ const LocationsPage = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {locations.filter(loc => !loc.parentLocation).map((parent) => (
+            {locations.filter(loc => !loc.parent_location_id).map((parent) => (
               <div key={parent.id} className="border border-border rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {getLocationIcon(parent.type)}
+                    {getLocationIcon(parent.location_type)}
                     <div>
                       <div className="font-medium">{parent.name}</div>
-                      <div className="text-sm text-muted-foreground">{parent.code}</div>
+                      <div className="text-sm text-muted-foreground">{parent.code || 'No code'}</div>
                     </div>
                   </div>
-                  <Badge variant={parent.isActive ? "default" : "secondary"}>
-                    {parent.isActive ? "Active" : "Inactive"}
+                  <Badge variant={parent.is_active ? "default" : "secondary"}>
+                    {parent.is_active ? "Active" : "Inactive"}
                   </Badge>
                 </div>
                 
                 {/* Show child locations */}
-                {locations.filter(child => child.parentLocation === parent.name).map((child) => (
+                {locations.filter(child => child.parent_location_id === parent.id).map((child) => (
                   <div key={child.id} className="ml-8 mt-3 flex items-center justify-between border-l-2 border-border pl-4">
                     <div className="flex items-center gap-3">
-                      {getLocationIcon(child.type)}
+                      {getLocationIcon(child.location_type)}
                       <div>
                         <div className="font-medium">{child.name}</div>
-                        <div className="text-sm text-muted-foreground">{child.code}</div>
+                        <div className="text-sm text-muted-foreground">{child.code || 'No code'}</div>
                       </div>
                     </div>
-                    <Badge variant={child.isActive ? "default" : "secondary"}>
-                      {child.isActive ? "Active" : "Inactive"}
+                    <Badge variant={child.is_active ? "default" : "secondary"}>
+                      {child.is_active ? "Active" : "Inactive"}
                     </Badge>
                   </div>
                 ))}
               </div>
             ))}
+            {locations.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                No locations found. Add your first location to get started.
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
