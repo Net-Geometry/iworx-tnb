@@ -5,91 +5,39 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AddSupplierDialog } from "@/components/inventory/AddSupplierDialog";
+import { useSuppliers } from "@/hooks/useSuppliers";
+import { useState } from "react";
 
 const SuppliersPage = () => {
-  // Mock data for demonstration
-  const suppliers = [
-    {
-      id: "1",
-      name: "Industrial Parts Co",
-      contactName: "Robert Martinez",
-      email: "robert@industrialparts.com",
-      phone: "+1 (555) 123-4567",
-      address: "789 Manufacturing Ave, Industrial City, TX 75001",
-      website: "www.industrialparts.com",
-      rating: 5,
-      paymentTerms: 30,
-      isActive: true,
-      totalOrders: 24,
-      totalValue: 45750.50,
-      lastOrder: "2024-01-15",
-      categories: ["Hydraulics", "Pumps", "Seals"]
-    },
-    {
-      id: "2",
-      name: "Bearing Solutions",
-      contactName: "Jennifer Lee",
-      email: "j.lee@bearingsolutions.com", 
-      phone: "+1 (555) 987-6543",
-      address: "456 Precision Way, Bearing Valley, OH 44101",
-      website: "www.bearingsolutions.com",
-      rating: 4,
-      paymentTerms: 15,
-      isActive: true,
-      totalOrders: 18,
-      totalValue: 28900.75,
-      lastOrder: "2024-01-14",
-      categories: ["Bearings", "Seals", "Lubricants"]
-    },
-    {
-      id: "3", 
-      name: "Safety First Ltd",
-      contactName: "Michael Thompson",
-      email: "m.thompson@safetyfirst.com",
-      phone: "+1 (555) 456-7890",
-      address: "321 Safety Boulevard, Secure City, CA 90210",
-      website: "www.safetyfirst.com",
-      rating: 5,
-      paymentTerms: 45,
-      isActive: true,
-      totalOrders: 12,
-      totalValue: 15600.25,
-      lastOrder: "2024-01-12",
-      categories: ["Safety", "PPE", "Valves"]
-    },
-    {
-      id: "4",
-      name: "Power Transmission Inc",
-      contactName: "Sarah Wilson",
-      email: "s.wilson@powertrans.com",
-      phone: "+1 (555) 321-0987",
-      address: "654 Transmission Road, Power City, MI 48201",
-      website: "www.powertrans.com",
-      rating: 4,
-      paymentTerms: 30,
-      isActive: true,
-      totalOrders: 15,
-      totalValue: 32450.00,
-      lastOrder: "2024-01-10",
-      categories: ["Couplings", "Gears", "Motors"]
-    },
-    {
-      id: "5",
-      name: "Filter Tech Corp",
-      contactName: "David Chen",
-      email: "d.chen@filtertech.com",
-      phone: "+1 (555) 654-3210", 
-      address: "987 Filter Lane, Clean Air City, WA 98001",
-      website: "www.filtertech.com",
-      rating: 3,
-      paymentTerms: 60,
-      isActive: false,
-      totalOrders: 8,
-      totalValue: 12300.00,
-      lastOrder: "2023-12-15",
-      categories: ["Filters", "Air Systems", "Purification"]
-    }
-  ];
+  const { data: suppliers = [], isLoading, error } = useSuppliers();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [ratingFilter, setRatingFilter] = useState("all");
+
+  // Filter suppliers based on search and filters
+  const filteredSuppliers = suppliers.filter(supplier => {
+    const matchesSearch = supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         supplier.contact_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         supplier.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || 
+                         (statusFilter === "active" && supplier.is_active) ||
+                         (statusFilter === "inactive" && !supplier.is_active);
+    
+    const matchesRating = ratingFilter === "all" ||
+                         (ratingFilter === "5" && supplier.rating === 5) ||
+                         (ratingFilter === "4" && supplier.rating && supplier.rating >= 4) ||
+                         (ratingFilter === "3" && supplier.rating && supplier.rating >= 3);
+
+    return matchesSearch && matchesStatus && matchesRating;
+  });
+
+  const totalSuppliers = suppliers.length;
+  const activeSuppliers = suppliers.filter(s => s.is_active).length;
+  const averageRating = suppliers.length > 0 
+    ? suppliers.filter(s => s.rating).reduce((sum, s) => sum + (s.rating || 0), 0) / suppliers.filter(s => s.rating).length
+    : 0;
 
   const renderStarRating = (rating: number) => {
     return (
@@ -127,10 +75,7 @@ const SuppliersPage = () => {
             <p className="text-muted-foreground">Manage vendor relationships and supplier information</p>
           </div>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Add New Supplier
-        </Button>
+        <AddSupplierDialog />
       </div>
 
       {/* Summary Stats */}
@@ -140,9 +85,9 @@ const SuppliersPage = () => {
             <CardTitle className="text-sm font-medium">Total Suppliers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{suppliers.length}</div>
+            <div className="text-2xl font-bold">{totalSuppliers}</div>
             <div className="text-xs text-muted-foreground">
-              {suppliers.filter(s => s.isActive).length} active
+              {activeSuppliers} active
             </div>
           </CardContent>
         </Card>
@@ -151,9 +96,7 @@ const SuppliersPage = () => {
             <CardTitle className="text-sm font-medium">Total Orders (YTD)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {suppliers.reduce((sum, supplier) => sum + supplier.totalOrders, 0)}
-            </div>
+            <div className="text-2xl font-bold">-</div>
             <div className="text-xs text-muted-foreground">Across all suppliers</div>
           </CardContent>
         </Card>
@@ -162,9 +105,7 @@ const SuppliersPage = () => {
             <CardTitle className="text-sm font-medium">Total Value (YTD)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              ${suppliers.reduce((sum, supplier) => sum + supplier.totalValue, 0).toLocaleString()}
-            </div>
+            <div className="text-2xl font-bold">-</div>
             <div className="text-xs text-muted-foreground">Total procurement value</div>
           </CardContent>
         </Card>
@@ -174,7 +115,7 @@ const SuppliersPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(suppliers.reduce((sum, supplier) => sum + supplier.rating, 0) / suppliers.length).toFixed(1)}
+              {averageRating > 0 ? averageRating.toFixed(1) : "-"}
             </div>
             <div className="text-xs text-muted-foreground">Supplier performance</div>
           </CardContent>
@@ -188,8 +129,12 @@ const SuppliersPage = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Input placeholder="Search suppliers..." />
-            <Select>
+            <Input 
+              placeholder="Search suppliers..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -199,7 +144,7 @@ const SuppliersPage = () => {
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
-            <Select>
+            <Select value={ratingFilter} onValueChange={setRatingFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Rating" />
               </SelectTrigger>
@@ -210,113 +155,132 @@ const SuppliersPage = () => {
                 <SelectItem value="3">3+ Stars</SelectItem>
               </SelectContent>
             </Select>
-            <Select>
+            <Select disabled>
               <SelectTrigger>
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="hydraulics">Hydraulics</SelectItem>
-                <SelectItem value="bearings">Bearings</SelectItem>
-                <SelectItem value="safety">Safety</SelectItem>
-                <SelectItem value="couplings">Couplings</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </CardContent>
       </Card>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="text-center py-8">
+          <div className="text-muted-foreground">Loading suppliers...</div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="text-center py-8">
+          <div className="text-destructive">Error loading suppliers. Please try again.</div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !error && filteredSuppliers.length === 0 && (
+        <div className="text-center py-12">
+          <Building className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">No suppliers found</h3>
+          <p className="text-muted-foreground mb-4">
+            {searchTerm || statusFilter !== "all" || ratingFilter !== "all" 
+              ? "Try adjusting your search or filters."
+              : "Get started by adding your first supplier."}
+          </p>
+          <AddSupplierDialog>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Add New Supplier
+            </Button>
+          </AddSupplierDialog>
+        </div>
+      )}
+
       {/* Suppliers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {suppliers.map((supplier) => (
-          <Card key={supplier.id} className={!supplier.isActive ? "opacity-60" : ""}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarFallback>{getInitials(supplier.name)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle className="text-lg">{supplier.name}</CardTitle>
-                    <CardDescription>{supplier.contactName}</CardDescription>
+      {!isLoading && !error && filteredSuppliers.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredSuppliers.map((supplier) => (
+            <Card key={supplier.id} className={!supplier.is_active ? "opacity-60" : ""}>
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback>{getInitials(supplier.name)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <CardTitle className="text-lg">{supplier.name}</CardTitle>
+                      <CardDescription>{supplier.contact_name || "No contact"}</CardDescription>
+                    </div>
                   </div>
+                  <Badge variant={supplier.is_active ? "default" : "secondary"}>
+                    {supplier.is_active ? "Active" : "Inactive"}
+                  </Badge>
                 </div>
-                <Badge variant={supplier.isActive ? "default" : "secondary"}>
-                  {supplier.isActive ? "Active" : "Inactive"}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Rating */}
-              <div>
-                {renderStarRating(supplier.rating)}
-              </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Rating */}
+                {supplier.rating && (
+                  <div>
+                    {renderStarRating(supplier.rating)}
+                  </div>
+                )}
 
-              {/* Contact Information */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Mail className="w-4 h-4" />
-                  <span className="truncate">{supplier.email}</span>
+                {/* Contact Information */}
+                <div className="space-y-2">
+                  {supplier.email && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="w-4 h-4" />
+                      <span className="truncate">{supplier.email}</span>
+                    </div>
+                  )}
+                  {supplier.phone && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Phone className="w-4 h-4" />
+                      <span>{supplier.phone}</span>
+                    </div>
+                  )}
+                  {supplier.website && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Globe className="w-4 h-4" />
+                      <span className="truncate">{supplier.website}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Phone className="w-4 h-4" />
-                  <span>{supplier.phone}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Globe className="w-4 h-4" />
-                  <span className="truncate">{supplier.website}</span>
-                </div>
-              </div>
 
-              {/* Categories */}
-              <div>
-                <div className="text-sm font-medium mb-2">Categories</div>
-                <div className="flex flex-wrap gap-1">
-                  {supplier.categories.map((category) => (
-                    <Badge key={category} variant="outline" className="text-xs">
-                      {category}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+                {/* Payment Terms */}
+                {supplier.payment_terms && (
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Payment Terms:</span>
+                    <div className="font-medium">{supplier.payment_terms} days</div>
+                  </div>
+                )}
 
-              {/* Performance Metrics */}
-              <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border">
-                <div>
-                  <div className="text-sm text-muted-foreground">Orders</div>
-                  <div className="font-medium">{supplier.totalOrders}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">Total Value</div>
-                  <div className="font-medium">${supplier.totalValue.toLocaleString()}</div>
-                </div>
-              </div>
+                {/* Notes */}
+                {supplier.notes && (
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Notes:</span>
+                    <div className="font-medium line-clamp-2">{supplier.notes}</div>
+                  </div>
+                )}
 
-              {/* Payment Terms & Last Order */}
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Payment Terms:</span>
-                  <div className="font-medium">{supplier.paymentTerms} days</div>
+                {/* Actions */}
+                <div className="flex gap-2 pt-2">
+                  <Button variant="outline" size="sm" className="flex-1">
+                    View Details
+                  </Button>
+                  <Button variant="outline" size="sm" className="flex-1">
+                    Create PO
+                  </Button>
                 </div>
-                <div>
-                  <span className="text-muted-foreground">Last Order:</span>
-                  <div className="font-medium">{supplier.lastOrder}</div>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1">
-                  View Details
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1">
-                  Create PO
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

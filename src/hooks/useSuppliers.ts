@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Supplier {
@@ -18,14 +18,29 @@ export interface Supplier {
   updated_at: string;
 }
 
+export interface CreateSupplierData {
+  name: string;
+  contact_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  website?: string | null;
+  tax_id?: string | null;
+  payment_terms?: number;
+  rating?: number;
+  is_active: boolean;
+  notes?: string | null;
+}
+
 export const useSuppliers = () => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["suppliers"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("suppliers")
         .select("*")
-        .eq("is_active", true)
         .order("name");
 
       if (error) {
@@ -36,4 +51,29 @@ export const useSuppliers = () => {
       return data as Supplier[];
     },
   });
+
+  const addSupplier = useMutation({
+    mutationFn: async (supplierData: CreateSupplierData) => {
+      const { data, error } = await supabase
+        .from("suppliers")
+        .insert([supplierData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error adding supplier:", error);
+        throw error;
+      }
+
+      return data as Supplier;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+    },
+  });
+
+  return {
+    ...query,
+    addSupplier,
+  };
 };
