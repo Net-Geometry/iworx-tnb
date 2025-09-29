@@ -1,4 +1,3 @@
-import Header from "@/components/Header";
 import ModuleCard from "@/components/ModuleCard";
 import KPIMetrics from "@/components/KPIMetrics";
 import QuickActions from "@/components/QuickActions";
@@ -131,10 +130,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-dashboard">
-      <Header />
-      
-      <main className="p-6 space-y-8">
+    <div className="space-y-8">
         {/* Welcome Section */}
         <div className="relative bg-gradient-card rounded-xl overflow-hidden shadow-enterprise border border-border/50">
           <div className="absolute inset-0">
@@ -187,16 +183,15 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="bg-gradient-card rounded-xl p-6 shadow-card border border-border/50 text-center">
-          <p className="text-muted-foreground">
-            iWorx - Next-Generation Asset Management Solution for Enterprise Utility Organizations
-          </p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Unified platform eliminating integration complexity with modern, mobile-first interface
-          </p>
-        </div>
-      </main>
+      {/* Footer */}
+      <div className="bg-gradient-card rounded-xl p-6 shadow-card border border-border/50 text-center">
+        <p className="text-muted-foreground">
+          iWorx - Next-Generation Asset Management Solution for Enterprise Utility Organizations
+        </p>
+        <p className="text-sm text-muted-foreground mt-2">
+          Unified platform eliminating integration complexity with modern, mobile-first interface
+        </p>
+      </div>
     </div>
   );
 };

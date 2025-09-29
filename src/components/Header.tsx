@@ -1,13 +1,15 @@
 import { Bell, Settings, User, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 const Header = () => {
   return (
     <header className="bg-gradient-card border-b border-border shadow-card sticky top-0 z-50">
       <div className="flex h-16 items-center justify-between px-6">
-        {/* Logo and Brand */}
+        {/* Sidebar Trigger and Brand */}
         <div className="flex items-center space-x-4">
+          <SidebarTrigger className="h-8 w-8" />
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">iW</span>
