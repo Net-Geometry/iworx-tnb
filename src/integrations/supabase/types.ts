@@ -14,7 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      hierarchy_levels: {
+        Row: {
+          color_code: string
+          created_at: string | null
+          custom_properties_schema: Json | null
+          icon_name: string
+          id: string
+          is_active: boolean | null
+          level_order: number
+          name: string
+          parent_level_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          color_code?: string
+          created_at?: string | null
+          custom_properties_schema?: Json | null
+          icon_name?: string
+          id?: string
+          is_active?: boolean | null
+          level_order: number
+          name: string
+          parent_level_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          color_code?: string
+          created_at?: string | null
+          custom_properties_schema?: Json | null
+          icon_name?: string
+          id?: string
+          is_active?: boolean | null
+          level_order?: number
+          name?: string
+          parent_level_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hierarchy_levels_parent_level_id_fkey"
+            columns: ["parent_level_id"]
+            isOneToOne: false
+            referencedRelation: "hierarchy_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hierarchy_nodes: {
+        Row: {
+          asset_count: number | null
+          created_at: string | null
+          hierarchy_level_id: string
+          id: string
+          name: string
+          parent_id: string | null
+          path: string | null
+          properties: Json | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          asset_count?: number | null
+          created_at?: string | null
+          hierarchy_level_id: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          path?: string | null
+          properties?: Json | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          asset_count?: number | null
+          created_at?: string | null
+          hierarchy_level_id?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          path?: string | null
+          properties?: Json | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hierarchy_nodes_hierarchy_level_id_fkey"
+            columns: ["hierarchy_level_id"]
+            isOneToOne: false
+            referencedRelation: "hierarchy_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hierarchy_nodes_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "hierarchy_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
