@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Plus, Download, Upload, LayoutGrid, List, ChevronRight } from "lucide-react";
+import { Settings, Plus, Download, Upload, LayoutGrid, List, ChevronRight, Network } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,9 +13,9 @@ import {
 } from "@/components/ui/breadcrumb";
 import { AssetKPICards } from "@/components/assets/AssetKPICards";
 import { AssetTable } from "@/components/assets/AssetTable";
-import { AssetHierarchy } from "@/components/assets/AssetHierarchy";
 import { AssetDetailsPanel } from "@/components/assets/AssetDetailsPanel";
 import { FilterBar } from "@/components/assets/FilterBar";
+import { HierarchyManagementPage } from "@/components/assets/HierarchyManagementPage";
 
 const AssetsPage = () => {
   const navigate = useNavigate();
@@ -69,59 +70,75 @@ const AssetsPage = () => {
       {/* KPI Cards */}
       <AssetKPICards />
 
-      {/* Main Content Area */}
-      <div className="flex gap-6 h-[calc(100vh-300px)]">
-        {/* Left Sidebar - Hierarchy */}
-        <div className="w-80 bg-card rounded-lg border border-border/50">
-          <AssetHierarchy onNodeSelect={(node) => console.log('Selected node:', node)} />
-        </div>
+      {/* Tabs for Assets and Hierarchy Management */}
+      <Tabs defaultValue="assets" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="assets" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Assets
+          </TabsTrigger>
+          <TabsTrigger value="hierarchy" className="flex items-center gap-2">
+            <Network className="h-4 w-4" />
+            Hierarchy
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Main Content */}
-        <div className="flex-1 space-y-6">
-          {/* Filter Bar */}
-          <FilterBar onFiltersChange={(filters) => console.log('Filters:', filters)} />
+        {/* Assets Tab */}
+        <TabsContent value="assets" className="space-y-6">
+          <div className="flex gap-6 h-[calc(100vh-350px)]">
+            {/* Main Content - Full Width */}
+            <div className="flex-1 space-y-6">
+              {/* Filter Bar */}
+              <FilterBar onFiltersChange={(filters) => console.log('Filters:', filters)} />
 
-          {/* View Toggle & Asset List */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-foreground">1,247 assets</span>
-                <span className="text-xs text-muted-foreground">• 23 critical</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={viewMode === "list" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("list")}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "grid" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("grid")}
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </Button>
+              {/* View Toggle & Asset List */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">1,247 assets</span>
+                    <span className="text-xs text-muted-foreground">• 23 critical</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={viewMode === "list" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setViewMode("list")}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === "grid" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setViewMode("grid")}
+                    >
+                      <LayoutGrid className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Asset Table/Grid */}
+                <div className="bg-card rounded-lg border border-border/50">
+                  <AssetTable onAssetSelect={setSelectedAsset} />
+                </div>
               </div>
             </div>
 
-            {/* Asset Table/Grid */}
-            <div className="bg-card rounded-lg border border-border/50">
-              <AssetTable onAssetSelect={setSelectedAsset} />
-            </div>
+            {/* Right Sidebar - Asset Details */}
+            {selectedAsset && (
+              <AssetDetailsPanel 
+                asset={selectedAsset} 
+                onClose={() => setSelectedAsset(null)} 
+              />
+            )}
           </div>
-        </div>
+        </TabsContent>
 
-        {/* Right Sidebar - Asset Details */}
-        {selectedAsset && (
-          <AssetDetailsPanel 
-            asset={selectedAsset} 
-            onClose={() => setSelectedAsset(null)} 
-          />
-        )}
-      </div>
+        {/* Hierarchy Tab */}
+        <TabsContent value="hierarchy" className="space-y-6">
+          <HierarchyManagementPage />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
