@@ -430,6 +430,466 @@ export type Database = {
           },
         ]
       }
+      inventory_item_locations: {
+        Row: {
+          available_quantity: number | null
+          bin_location: string | null
+          created_at: string
+          id: string
+          item_id: string
+          location_id: string
+          quantity: number | null
+          reserved_quantity: number | null
+          updated_at: string
+        }
+        Insert: {
+          available_quantity?: number | null
+          bin_location?: string | null
+          created_at?: string
+          id?: string
+          item_id: string
+          location_id: string
+          quantity?: number | null
+          reserved_quantity?: number | null
+          updated_at?: string
+        }
+        Update: {
+          available_quantity?: number | null
+          bin_location?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          location_id?: string
+          quantity?: number | null
+          reserved_quantity?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_item_locations_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_item_locations_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_items: {
+        Row: {
+          available_stock: number | null
+          average_cost: number | null
+          barcode: string | null
+          category: string | null
+          created_at: string
+          current_stock: number | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_serialized: boolean | null
+          item_image_url: string | null
+          item_number: string | null
+          last_cost: number | null
+          lead_time_days: number | null
+          max_stock_level: number | null
+          name: string
+          qr_code_data: string | null
+          reorder_point: number | null
+          reorder_quantity: number | null
+          reserved_stock: number | null
+          safety_stock: number | null
+          subcategory: string | null
+          supplier_id: string | null
+          unit_cost: number | null
+          unit_of_measure: string | null
+          updated_at: string
+        }
+        Insert: {
+          available_stock?: number | null
+          average_cost?: number | null
+          barcode?: string | null
+          category?: string | null
+          created_at?: string
+          current_stock?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_serialized?: boolean | null
+          item_image_url?: string | null
+          item_number?: string | null
+          last_cost?: number | null
+          lead_time_days?: number | null
+          max_stock_level?: number | null
+          name: string
+          qr_code_data?: string | null
+          reorder_point?: number | null
+          reorder_quantity?: number | null
+          reserved_stock?: number | null
+          safety_stock?: number | null
+          subcategory?: string | null
+          supplier_id?: string | null
+          unit_cost?: number | null
+          unit_of_measure?: string | null
+          updated_at?: string
+        }
+        Update: {
+          available_stock?: number | null
+          average_cost?: number | null
+          barcode?: string | null
+          category?: string | null
+          created_at?: string
+          current_stock?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_serialized?: boolean | null
+          item_image_url?: string | null
+          item_number?: string | null
+          last_cost?: number | null
+          lead_time_days?: number | null
+          max_stock_level?: number | null
+          name?: string
+          qr_code_data?: string | null
+          reorder_point?: number | null
+          reorder_quantity?: number | null
+          reserved_stock?: number | null
+          safety_stock?: number | null
+          subcategory?: string | null
+          supplier_id?: string | null
+          unit_cost?: number | null
+          unit_of_measure?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_loans: {
+        Row: {
+          actual_return_date: string | null
+          borrower_department: string | null
+          borrower_email: string | null
+          borrower_name: string
+          created_at: string
+          expected_return_date: string
+          from_location_id: string
+          id: string
+          item_id: string
+          loan_date: string | null
+          loan_number: string
+          loaned_by: string | null
+          notes: string | null
+          quantity: number
+          returned_by: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_return_date?: string | null
+          borrower_department?: string | null
+          borrower_email?: string | null
+          borrower_name: string
+          created_at?: string
+          expected_return_date: string
+          from_location_id: string
+          id?: string
+          item_id: string
+          loan_date?: string | null
+          loan_number: string
+          loaned_by?: string | null
+          notes?: string | null
+          quantity: number
+          returned_by?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_return_date?: string | null
+          borrower_department?: string | null
+          borrower_email?: string | null
+          borrower_name?: string
+          created_at?: string
+          expected_return_date?: string
+          from_location_id?: string
+          id?: string
+          item_id?: string
+          loan_date?: string | null
+          loan_number?: string
+          loaned_by?: string | null
+          notes?: string | null
+          quantity?: number
+          returned_by?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_loans_from_location_id_fkey"
+            columns: ["from_location_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_loans_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_locations: {
+        Row: {
+          address: string | null
+          capacity_limit: number | null
+          code: string | null
+          created_at: string
+          current_utilization: number | null
+          id: string
+          is_active: boolean | null
+          location_type: string | null
+          name: string
+          parent_location_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          capacity_limit?: number | null
+          code?: string | null
+          created_at?: string
+          current_utilization?: number | null
+          id?: string
+          is_active?: boolean | null
+          location_type?: string | null
+          name: string
+          parent_location_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          capacity_limit?: number | null
+          code?: string | null
+          created_at?: string
+          current_utilization?: number | null
+          id?: string
+          is_active?: boolean | null
+          location_type?: string | null
+          name?: string
+          parent_location_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_locations_parent_location_id_fkey"
+            columns: ["parent_location_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_transactions: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          location_id: string | null
+          notes: string | null
+          performed_by: string | null
+          quantity: number
+          reference_id: string | null
+          reference_type: string | null
+          total_cost: number | null
+          transaction_date: string
+          transaction_type: string
+          unit_cost: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          location_id?: string | null
+          notes?: string | null
+          performed_by?: string | null
+          quantity: number
+          reference_id?: string | null
+          reference_type?: string | null
+          total_cost?: number | null
+          transaction_date?: string
+          transaction_type: string
+          unit_cost?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          location_id?: string | null
+          notes?: string | null
+          performed_by?: string | null
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          total_cost?: number | null
+          transaction_date?: string
+          transaction_type?: string
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_transactions_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_transactions_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_transfer_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          notes: string | null
+          quantity_received: number | null
+          quantity_requested: number
+          quantity_shipped: number | null
+          transfer_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          notes?: string | null
+          quantity_received?: number | null
+          quantity_requested: number
+          quantity_shipped?: number | null
+          transfer_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          notes?: string | null
+          quantity_received?: number | null
+          quantity_requested?: number
+          quantity_shipped?: number | null
+          transfer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_transfer_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_transfer_items_transfer_id_fkey"
+            columns: ["transfer_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_transfers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_transfers: {
+        Row: {
+          approved_by: string | null
+          created_at: string
+          expected_arrival_date: string | null
+          from_location_id: string
+          id: string
+          notes: string | null
+          received_by: string | null
+          received_date: string | null
+          request_date: string | null
+          requested_by: string | null
+          ship_date: string | null
+          shipped_by: string | null
+          status: string | null
+          to_location_id: string
+          transfer_number: string
+          transfer_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string
+          expected_arrival_date?: string | null
+          from_location_id: string
+          id?: string
+          notes?: string | null
+          received_by?: string | null
+          received_date?: string | null
+          request_date?: string | null
+          requested_by?: string | null
+          ship_date?: string | null
+          shipped_by?: string | null
+          status?: string | null
+          to_location_id: string
+          transfer_number: string
+          transfer_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string
+          expected_arrival_date?: string | null
+          from_location_id?: string
+          id?: string
+          notes?: string | null
+          received_by?: string | null
+          received_date?: string | null
+          request_date?: string | null
+          requested_by?: string | null
+          ship_date?: string | null
+          shipped_by?: string | null
+          status?: string | null
+          to_location_id?: string
+          transfer_number?: string
+          transfer_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_transfers_from_location_id_fkey"
+            columns: ["from_location_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_transfers_to_location_id_fkey"
+            columns: ["to_location_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_records: {
         Row: {
           asset_id: string
@@ -496,6 +956,197 @@ export type Database = {
           display_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      purchase_order_items: {
+        Row: {
+          created_at: string
+          expected_delivery_date: string | null
+          id: string
+          item_description: string
+          item_id: string | null
+          notes: string | null
+          purchase_order_id: string
+          quantity: number
+          received_quantity: number | null
+          remaining_quantity: number | null
+          total_price: number | null
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expected_delivery_date?: string | null
+          id?: string
+          item_description: string
+          item_id?: string | null
+          notes?: string | null
+          purchase_order_id: string
+          quantity: number
+          received_quantity?: number | null
+          remaining_quantity?: number | null
+          total_price?: number | null
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expected_delivery_date?: string | null
+          id?: string
+          item_description?: string
+          item_id?: string | null
+          notes?: string | null
+          purchase_order_id?: string
+          quantity?: number
+          received_quantity?: number | null
+          remaining_quantity?: number | null
+          total_price?: number | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          currency: string | null
+          delivery_address: string | null
+          delivery_date: string | null
+          expected_delivery_date: string | null
+          id: string
+          notes: string | null
+          order_date: string | null
+          payment_terms: number | null
+          po_number: string
+          requested_by: string | null
+          shipping_cost: number | null
+          status: string | null
+          subtotal: number | null
+          supplier_id: string
+          tax_amount: number | null
+          total_amount: number | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          currency?: string | null
+          delivery_address?: string | null
+          delivery_date?: string | null
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string | null
+          payment_terms?: number | null
+          po_number: string
+          requested_by?: string | null
+          shipping_cost?: number | null
+          status?: string | null
+          subtotal?: number | null
+          supplier_id: string
+          tax_amount?: number | null
+          total_amount?: number | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          currency?: string | null
+          delivery_address?: string | null
+          delivery_date?: string | null
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string | null
+          payment_terms?: number | null
+          po_number?: string
+          requested_by?: string | null
+          shipping_cost?: number | null
+          status?: string | null
+          subtotal?: number | null
+          supplier_id?: string
+          tax_amount?: number | null
+          total_amount?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          contact_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          payment_terms: number | null
+          phone: string | null
+          rating: number | null
+          tax_id: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          payment_terms?: number | null
+          phone?: string | null
+          rating?: number | null
+          tax_id?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          payment_terms?: number | null
+          phone?: string | null
+          rating?: number | null
+          tax_id?: string | null
+          updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
