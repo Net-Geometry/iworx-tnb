@@ -189,11 +189,12 @@ const CreatePMSchedulePage = () => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Tabs defaultValue="details" className="w-full">
             {/* Tab Navigation */}
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="details">Schedule Details</TabsTrigger>
               <TabsTrigger value="asset">Asset & Job Plan</TabsTrigger>
               <TabsTrigger value="safety">Safety & Frequency</TabsTrigger>
               <TabsTrigger value="assignment">Assignment & Options</TabsTrigger>
+              <TabsTrigger value="planned">Planned</TabsTrigger>
             </TabsList>
 
             {/* Tab 1: Schedule Details */}
