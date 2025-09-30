@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface MaintenanceRecord {
   id: string;
@@ -13,6 +14,7 @@ export interface MaintenanceRecord {
   duration_hours?: number;
   notes?: string;
   status: 'completed' | 'cancelled' | 'in_progress';
+  organization_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -40,13 +42,20 @@ export const useAssetMaintenance = (assetId: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
 
   const fetchMaintenanceHistory = async () => {
     try {
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('maintenance_records')
         .select('*')
-        .eq('asset_id', assetId)
+        .eq('asset_id', assetId);
+
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq('organization_id', currentOrganization.id);
+      }
+
+      const { data, error: fetchError } = await query
         .order('performed_date', { ascending: false })
         .limit(10);
 

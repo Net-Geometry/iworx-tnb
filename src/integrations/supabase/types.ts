@@ -1105,6 +1105,7 @@ export type Database = {
           id: string
           is_required: boolean | null
           job_plan_id: string
+          organization_id: string
           updated_at: string
         }
         Insert: {
@@ -1116,6 +1117,7 @@ export type Database = {
           id?: string
           is_required?: boolean | null
           job_plan_id: string
+          organization_id: string
           updated_at?: string
         }
         Update: {
@@ -1127,6 +1129,7 @@ export type Database = {
           id?: string
           is_required?: boolean | null
           job_plan_id?: string
+          organization_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -1135,6 +1138,13 @@ export type Database = {
             columns: ["job_plan_id"]
             isOneToOne: false
             referencedRelation: "job_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_plan_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1148,6 +1158,7 @@ export type Database = {
           is_critical_part: boolean | null
           job_plan_id: string
           notes: string | null
+          organization_id: string
           part_name: string
           part_number: string | null
           quantity_required: number
@@ -1161,6 +1172,7 @@ export type Database = {
           is_critical_part?: boolean | null
           job_plan_id: string
           notes?: string | null
+          organization_id: string
           part_name: string
           part_number?: string | null
           quantity_required?: number
@@ -1174,6 +1186,7 @@ export type Database = {
           is_critical_part?: boolean | null
           job_plan_id?: string
           notes?: string | null
+          organization_id?: string
           part_name?: string
           part_number?: string | null
           quantity_required?: number
@@ -1187,6 +1200,13 @@ export type Database = {
             referencedRelation: "job_plans"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "job_plan_parts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       job_plan_tasks: {
@@ -1198,6 +1218,7 @@ export type Database = {
           is_critical_step: boolean | null
           job_plan_id: string
           notes: string | null
+          organization_id: string
           safety_precaution_ids: string[] | null
           skill_required: string | null
           task_description: string | null
@@ -1213,6 +1234,7 @@ export type Database = {
           is_critical_step?: boolean | null
           job_plan_id: string
           notes?: string | null
+          organization_id: string
           safety_precaution_ids?: string[] | null
           skill_required?: string | null
           task_description?: string | null
@@ -1228,6 +1250,7 @@ export type Database = {
           is_critical_step?: boolean | null
           job_plan_id?: string
           notes?: string | null
+          organization_id?: string
           safety_precaution_ids?: string[] | null
           skill_required?: string | null
           task_description?: string | null
@@ -1243,6 +1266,13 @@ export type Database = {
             referencedRelation: "job_plans"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "job_plan_tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       job_plan_tools: {
@@ -1252,6 +1282,7 @@ export type Database = {
           is_specialized_tool: boolean | null
           job_plan_id: string
           notes: string | null
+          organization_id: string
           quantity_required: number | null
           tool_description: string | null
           tool_name: string
@@ -1263,6 +1294,7 @@ export type Database = {
           is_specialized_tool?: boolean | null
           job_plan_id: string
           notes?: string | null
+          organization_id: string
           quantity_required?: number | null
           tool_description?: string | null
           tool_name: string
@@ -1274,6 +1306,7 @@ export type Database = {
           is_specialized_tool?: boolean | null
           job_plan_id?: string
           notes?: string | null
+          organization_id?: string
           quantity_required?: number | null
           tool_description?: string | null
           tool_name?: string
@@ -1285,6 +1318,13 @@ export type Database = {
             columns: ["job_plan_id"]
             isOneToOne: false
             referencedRelation: "job_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_plan_tools_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1305,6 +1345,7 @@ export type Database = {
           id: string
           job_plan_number: string
           job_type: Database["public"]["Enums"]["job_type"] | null
+          organization_id: string
           priority: string | null
           skill_level_required:
             | Database["public"]["Enums"]["skill_level"]
@@ -1331,6 +1372,7 @@ export type Database = {
           id?: string
           job_plan_number: string
           job_type?: Database["public"]["Enums"]["job_type"] | null
+          organization_id: string
           priority?: string | null
           skill_level_required?:
             | Database["public"]["Enums"]["skill_level"]
@@ -1357,6 +1399,7 @@ export type Database = {
           id?: string
           job_plan_number?: string
           job_type?: Database["public"]["Enums"]["job_type"] | null
+          organization_id?: string
           priority?: string | null
           skill_level_required?:
             | Database["public"]["Enums"]["skill_level"]
@@ -1368,7 +1411,15 @@ export type Database = {
           usage_count?: number | null
           version?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "job_plans_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       loto_procedures: {
         Row: {
@@ -1452,6 +1503,7 @@ export type Database = {
           id: string
           maintenance_type: string
           notes: string | null
+          organization_id: string
           performed_date: string
           status: string
           technician_name: string | null
@@ -1466,6 +1518,7 @@ export type Database = {
           id?: string
           maintenance_type: string
           notes?: string | null
+          organization_id: string
           performed_date: string
           status?: string
           technician_name?: string | null
@@ -1480,12 +1533,21 @@ export type Database = {
           id?: string
           maintenance_type?: string
           notes?: string | null
+          organization_id?: string
           performed_date?: string
           status?: string
           technician_name?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       organizations: {
         Row: {

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Database } from "@/integrations/supabase/types";
 
 type JobPlan = Database["public"]["Tables"]["job_plans"]["Row"];
@@ -19,18 +20,20 @@ export interface JobPlanWithDetails extends JobPlan {
   documents?: JobPlanDocument[];
 }
 
-export interface CreateJobPlanData extends Omit<JobPlanInsert, 'id' | 'created_at' | 'updated_at'> {
-  tasks?: Omit<JobPlanTask, 'id' | 'job_plan_id' | 'created_at' | 'updated_at'>[];
-  parts?: Omit<JobPlanPart, 'id' | 'job_plan_id' | 'created_at' | 'updated_at'>[];
-  tools?: Omit<JobPlanTool, 'id' | 'job_plan_id' | 'created_at' | 'updated_at'>[];
-  documents?: Omit<JobPlanDocument, 'id' | 'job_plan_id' | 'created_at' | 'updated_at'>[];
+export interface CreateJobPlanData extends Omit<JobPlanInsert, 'id' | 'created_at' | 'updated_at' | 'organization_id'> {
+  tasks?: Omit<JobPlanTask, 'id' | 'job_plan_id' | 'created_at' | 'updated_at' | 'organization_id'>[];
+  parts?: Omit<JobPlanPart, 'id' | 'job_plan_id' | 'created_at' | 'updated_at' | 'organization_id'>[];
+  tools?: Omit<JobPlanTool, 'id' | 'job_plan_id' | 'created_at' | 'updated_at' | 'organization_id'>[];
+  documents?: Omit<JobPlanDocument, 'id' | 'job_plan_id' | 'created_at' | 'updated_at' | 'organization_id'>[];
 }
 
 export const useJobPlans = () => {
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
+
   return useQuery({
-    queryKey: ["job-plans"],
+    queryKey: ["job-plans", currentOrganization?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("job_plans")
         .select(`
           *,
@@ -38,20 +41,28 @@ export const useJobPlans = () => {
           parts:job_plan_parts(*),
           tools:job_plan_tools(*),
           documents:job_plan_documents(*)
-        `)
-        .order("created_at", { ascending: false });
+        `);
+
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq("organization_id", currentOrganization.id);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as JobPlanWithDetails[];
     },
+    enabled: !!currentOrganization || hasCrossProjectAccess,
   });
 };
 
 export const useJobPlan = (id: string) => {
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
+
   return useQuery({
-    queryKey: ["job-plans", id],
+    queryKey: ["job-plans", id, currentOrganization?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("job_plans")
         .select(`
           *,
@@ -60,59 +71,84 @@ export const useJobPlan = (id: string) => {
           tools:job_plan_tools(*),
           documents:job_plan_documents(*)
         `)
-        .eq("id", id)
-        .single();
+        .eq("id", id);
+
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq("organization_id", currentOrganization.id);
+      }
+
+      const { data, error } = await query.single();
 
       if (error) throw error;
       return data as JobPlanWithDetails;
     },
-    enabled: !!id,
+    enabled: !!id && (!!currentOrganization || hasCrossProjectAccess),
   });
 };
 
 export const useCreateJobPlan = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { currentOrganization } = useAuth();
 
   return useMutation({
     mutationFn: async (jobPlanData: CreateJobPlanData) => {
       const { tasks, parts, tools, documents, ...planData } = jobPlanData;
 
-      // Create the job plan first
+      // Create the job plan first with organization_id
       const { data: jobPlan, error: planError } = await supabase
         .from("job_plans")
-        .insert(planData)
+        .insert({
+          ...planData,
+          organization_id: currentOrganization?.id,
+        })
         .select()
         .single();
 
       if (planError) throw planError;
 
-      // Create related records if they exist
+      // Create related records if they exist (organization_id inherited via RLS)
       if (tasks && tasks.length > 0) {
         const { error: tasksError } = await supabase
           .from("job_plan_tasks")
-          .insert(tasks.map(task => ({ ...task, job_plan_id: jobPlan.id })));
+          .insert(tasks.map(task => ({ 
+            ...task, 
+            job_plan_id: jobPlan.id,
+            organization_id: currentOrganization?.id,
+          })));
         if (tasksError) throw tasksError;
       }
 
       if (parts && parts.length > 0) {
         const { error: partsError } = await supabase
           .from("job_plan_parts")
-          .insert(parts.map(part => ({ ...part, job_plan_id: jobPlan.id })));
+          .insert(parts.map(part => ({ 
+            ...part, 
+            job_plan_id: jobPlan.id,
+            organization_id: currentOrganization?.id,
+          })));
         if (partsError) throw partsError;
       }
 
       if (tools && tools.length > 0) {
         const { error: toolsError } = await supabase
           .from("job_plan_tools")
-          .insert(tools.map(tool => ({ ...tool, job_plan_id: jobPlan.id })));
+          .insert(tools.map(tool => ({ 
+            ...tool, 
+            job_plan_id: jobPlan.id,
+            organization_id: currentOrganization?.id,
+          })));
         if (toolsError) throw toolsError;
       }
 
       if (documents && documents.length > 0) {
         const { error: documentsError } = await supabase
           .from("job_plan_documents")
-          .insert(documents.map(doc => ({ ...doc, job_plan_id: jobPlan.id })));
+          .insert(documents.map(doc => ({ 
+            ...doc, 
+            job_plan_id: jobPlan.id,
+            organization_id: currentOrganization?.id,
+          })));
         if (documentsError) throw documentsError;
       }
 
@@ -202,12 +238,20 @@ export const useDeleteJobPlan = () => {
 };
 
 export const useJobPlanStats = () => {
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
+
   return useQuery({
-    queryKey: ["job-plan-stats"],
+    queryKey: ["job-plan-stats", currentOrganization?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("job_plans")
         .select("status, job_type, usage_count");
+
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq("organization_id", currentOrganization.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -232,5 +276,6 @@ export const useJobPlanStats = () => {
         }
       };
     },
+    enabled: !!currentOrganization || hasCrossProjectAccess,
   });
 };
