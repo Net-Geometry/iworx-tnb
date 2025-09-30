@@ -56,6 +56,7 @@ import { toast } from "@/hooks/use-toast";
 import SafetyPrecautionsSelector from "@/components/pm/SafetyPrecautionsSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PMPlannedTab } from "@/components/pm/PMPlannedTab";
+import { UserMultiSelect } from "@/components/people-labor/UserMultiSelect";
 
 // ============================================================================
 // Form Validation Schema
@@ -577,29 +578,18 @@ const CreatePMSchedulePage = () => {
                       name="assigned_person_ids"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Assigned People (Multiple)</FormLabel>
-                          <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                            {people?.map((person) => (
-                              <div key={person.id} className="flex items-center space-x-2">
-                                <Checkbox
-                                  checked={field.value?.includes(person.id)}
-                                  onCheckedChange={(checked) => {
-                                    const currentValue = field.value || [];
-                                    if (checked) {
-                                      field.onChange([...currentValue, person.id]);
-                                    } else {
-                                      field.onChange(currentValue.filter((id) => id !== person.id));
-                                    }
-                                  }}
-                                />
-                                <Label className="text-sm font-normal cursor-pointer">
-                                  {person.first_name} {person.last_name}
-                                  {person.job_title && ` - ${person.job_title}`}
-                                  {person.employee_number && ` (${person.employee_number})`}
-                                </Label>
-                              </div>
-                            ))}
-                          </div>
+                          <FormLabel>Assigned People</FormLabel>
+                          <FormControl>
+                            <UserMultiSelect
+                              people={people}
+                              selectedIds={field.value || []}
+                              onChange={field.onChange}
+                              placeholder="Search and select users to assign..."
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Search and select multiple team members to assign to this schedule
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
