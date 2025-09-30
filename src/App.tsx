@@ -18,6 +18,8 @@ import CreateAssetPage from "./pages/CreateAssetPage";
 import WorkOrdersPage from "./pages/WorkOrdersPage";
 import JobPlansPage from "./pages/JobPlansPage";
 import PreventiveMaintenancePage from "./pages/PreventiveMaintenancePage";
+import CreatePMSchedulePage from "./pages/CreatePMSchedulePage";
+import EditPMSchedulePage from "./pages/EditPMSchedulePage";
 import InventoryOverviewPage from "./pages/inventory/InventoryOverviewPage";
 import ItemsStockPage from "./pages/inventory/ItemsStockPage";
 import LocationsPage from "./pages/inventory/LocationsPage";
@@ -109,6 +111,20 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <PreventiveMaintenancePage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/preventive-maintenance/create" element={
+              <AuthGuard>
+                <Layout>
+                  <CreatePMSchedulePage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/preventive-maintenance/edit/:id" element={
+              <AuthGuard>
+                <Layout>
+                  <EditPMSchedulePage />
                 </Layout>
               </AuthGuard>
             } />
