@@ -18,6 +18,7 @@ export interface WorkOrder {
   notes?: string;
   organization_id: string;
   pm_schedule_id?: string;
+  incident_report_id?: string;
   generation_type?: 'manual' | 'automatic';
   created_at: string;
   updated_at: string;

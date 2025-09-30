@@ -2917,6 +2917,7 @@ export type Database = {
           estimated_duration_hours: number | null
           generation_type: string | null
           id: string
+          incident_report_id: string | null
           maintenance_type: string
           notes: string | null
           organization_id: string
@@ -2936,6 +2937,7 @@ export type Database = {
           estimated_duration_hours?: number | null
           generation_type?: string | null
           id?: string
+          incident_report_id?: string | null
           maintenance_type: string
           notes?: string | null
           organization_id: string
@@ -2955,6 +2957,7 @@ export type Database = {
           estimated_duration_hours?: number | null
           generation_type?: string | null
           id?: string
+          incident_report_id?: string | null
           maintenance_type?: string
           notes?: string | null
           organization_id?: string
@@ -2966,6 +2969,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "work_orders_incident_report_id_fkey"
+            columns: ["incident_report_id"]
+            isOneToOne: false
+            referencedRelation: "safety_incidents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "work_orders_organization_id_fkey"
             columns: ["organization_id"]
