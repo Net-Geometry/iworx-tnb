@@ -51,6 +51,7 @@ import { usePeople } from "@/hooks/usePeople";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import SafetyPrecautionsSelector from "@/components/pm/SafetyPrecautionsSelector";
 
 // ============================================================================
 // Form Validation Schema
@@ -72,6 +73,7 @@ const pmScheduleSchema = z.object({
   estimated_duration_hours: z.coerce.number().optional(),
   auto_generate_wo: z.boolean(),
   notification_enabled: z.boolean(),
+  safety_precaution_ids: z.array(z.string()).optional(),
 });
 
 type PMScheduleFormValues = z.infer<typeof pmScheduleSchema>;
@@ -111,6 +113,7 @@ const EditPMSchedulePage = () => {
       estimated_duration_hours: undefined,
       auto_generate_wo: true,
       notification_enabled: true,
+      safety_precaution_ids: [],
     },
   });
 
@@ -136,6 +139,7 @@ const EditPMSchedulePage = () => {
         estimated_duration_hours: schedule.estimated_duration_hours || undefined,
         auto_generate_wo: schedule.auto_generate_wo ?? true,
         notification_enabled: schedule.notification_enabled ?? true,
+        safety_precaution_ids: schedule.safety_precaution_ids || [],
       });
     }
   }, [schedule, form]);
@@ -162,6 +166,7 @@ const EditPMSchedulePage = () => {
         estimated_duration_hours: values.estimated_duration_hours,
         auto_generate_wo: values.auto_generate_wo,
         notification_enabled: values.notification_enabled,
+        safety_precaution_ids: values.safety_precaution_ids || [],
         organization_id: currentOrganization!.id,
       };
 
@@ -377,6 +382,37 @@ const EditPMSchedulePage = () => {
                     </Select>
                     <FormDescription>
                       Optional: Link to a job plan for detailed procedures
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Safety Precautions Section (Optional) */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Safety Precautions (Optional)</CardTitle>
+              <CardDescription>
+                Select applicable safety precautions for this maintenance schedule
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="safety_precaution_ids"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Safety Precautions</FormLabel>
+                    <FormControl>
+                      <SafetyPrecautionsSelector
+                        value={field.value || []}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      These precautions will be referenced when work orders are generated
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

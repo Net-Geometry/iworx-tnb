@@ -26,6 +26,7 @@ export interface PMSchedule {
   status: 'active' | 'paused' | 'suspended' | 'completed';
   auto_generate_wo: boolean;
   notification_enabled: boolean;
+  safety_precaution_ids?: string[] | null;
   organization_id: string;
   created_at: string;
   updated_at: string;
@@ -62,6 +63,7 @@ export interface PMScheduleInsert {
   estimated_duration_hours?: number;
   auto_generate_wo?: boolean;
   notification_enabled?: boolean;
+  safety_precaution_ids?: string[];
   organization_id: string;
 }
 

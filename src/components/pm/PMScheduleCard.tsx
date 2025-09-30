@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar, MoreVertical, Play, Pause, Edit, Trash2, Clock } from "lucide-react";
+import { Calendar, MoreVertical, Play, Pause, Edit, Trash2, Clock, Shield } from "lucide-react";
 import { PMSchedule } from "@/hooks/usePMSchedules";
 import { format, differenceInDays, parseISO } from "date-fns";
 
@@ -141,6 +141,16 @@ const PMScheduleCard = ({ schedule, onEdit, onDelete, onPause, onView }: PMSched
           <Clock className="w-4 h-4 text-muted-foreground" />
           <span className="text-muted-foreground">{getFrequencyDisplay()}</span>
         </div>
+
+        {/* Safety Precautions */}
+        {schedule.safety_precaution_ids && schedule.safety_precaution_ids.length > 0 && (
+          <div className="flex items-center gap-2 text-sm">
+            <Shield className="w-4 h-4 text-muted-foreground" />
+            <span className="text-muted-foreground">
+              {schedule.safety_precaution_ids.length} Safety Precaution{schedule.safety_precaution_ids.length > 1 ? 's' : ''}
+            </span>
+          </div>
+        )}
 
         {/* Next Due Date */}
         <div className="pt-2 border-t">
