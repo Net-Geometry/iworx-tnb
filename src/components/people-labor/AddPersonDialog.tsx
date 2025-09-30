@@ -16,6 +16,7 @@ import { usePeople } from "@/hooks/usePeople";
 import { useRoles } from "@/hooks/useRoles";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { User, Briefcase, ShieldCheck, Lock, FileText, CheckCircle2, Circle, HelpCircle } from "lucide-react";
 
 const personSchema = z.object({
@@ -79,6 +80,7 @@ export function AddPersonDialog({ open, onOpenChange }: AddPersonDialogProps) {
   const { createPerson } = usePeople();
   const { roles, isLoading: rolesLoading } = useRoles();
   const { assignRole } = useUserRoles();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -127,7 +129,28 @@ export function AddPersonDialog({ open, onOpenChange }: AddPersonDialogProps) {
           }
         });
 
-        if (edgeError) throw edgeError;
+        if (edgeError) {
+          // Parse the error message from the edge function
+          const errorMessage = typeof edgeError === 'string' 
+            ? edgeError 
+            : (edgeError as any)?.message || 'Failed to create system account';
+          
+          // Check if it's a duplicate email error
+          if (errorMessage.includes('already been registered') || errorMessage.includes('already exists')) {
+            toast({
+              variant: "destructive",
+              title: "Email Already Registered",
+              description: "This email is already registered in the system. Please use a different email or link to the existing user account.",
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Failed to Create System Account",
+              description: errorMessage,
+            });
+          }
+          return; // Stop execution
+        }
         userId = edgeData?.userId;
       }
 
@@ -150,8 +173,13 @@ export function AddPersonDialog({ open, onOpenChange }: AddPersonDialogProps) {
 
       reset();
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating person:", error);
+      toast({
+        variant: "destructive",
+        title: "Error Creating Employee",
+        description: error?.message || "An unexpected error occurred. Please try again.",
+      });
     } finally {
       setIsSubmitting(false);
     }
