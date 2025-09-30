@@ -31,10 +31,11 @@ export interface CreateSupplierData {
   notes?: string | null;
 }
 
+// TODO: Add organization_id to suppliers table and update this hook
 export const useSuppliers = () => {
   const queryClient = useQueryClient();
 
-  const query = useQuery({
+  const suppliersQuery = useQuery({
     queryKey: ["suppliers"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -72,7 +73,7 @@ export const useSuppliers = () => {
   });
 
   return {
-    ...query,
+    ...suppliersQuery,
     addSupplier,
   };
 };

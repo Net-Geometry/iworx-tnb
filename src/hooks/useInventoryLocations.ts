@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface InventoryLocation {
   id: string;
@@ -11,18 +12,26 @@ export interface InventoryLocation {
   is_active: boolean;
   capacity_limit?: number;
   current_utilization?: number;
+  organization_id: string;
   created_at: string;
   updated_at: string;
 }
 
 export const useInventoryLocations = () => {
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
+
   return useQuery({
-    queryKey: ["inventory-locations"],
+    queryKey: ["inventory-locations", currentOrganization?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("inventory_locations")
-        .select("*")
-        .order("name");
+        .select("*");
+
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq("organization_id", currentOrganization.id);
+      }
+
+      const { data, error } = await query.order("name");
 
       if (error) {
         console.error("Error fetching inventory locations:", error);
@@ -31,15 +40,17 @@ export const useInventoryLocations = () => {
 
       return data as InventoryLocation[];
     },
+    enabled: !!currentOrganization || hasCrossProjectAccess,
   });
 };
 
 export const useInventoryLocationWithItems = () => {
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
+
   return useQuery({
-    queryKey: ["inventory-locations-with-items"],
+    queryKey: ["inventory-locations-with-items", currentOrganization?.id],
     queryFn: async () => {
-      // Get locations with item count
-      const { data: locationsData, error: locationsError } = await supabase
+      let query = supabase
         .from("inventory_locations")
         .select(`
           *,
@@ -48,8 +59,13 @@ export const useInventoryLocationWithItems = () => {
             quantity,
             inventory_items(name)
           )
-        `)
-        .order("name");
+        `);
+
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq("organization_id", currentOrganization.id);
+      }
+
+      const { data: locationsData, error: locationsError } = await query.order("name");
 
       if (locationsError) {
         console.error("Error fetching locations with items:", locationsError);
@@ -74,5 +90,6 @@ export const useInventoryLocationWithItems = () => {
 
       return locationsWithStats;
     },
+    enabled: !!currentOrganization || hasCrossProjectAccess,
   });
 };

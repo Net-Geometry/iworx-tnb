@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -52,6 +53,7 @@ export function AddLocationDialog({ onLocationAdded }: AddLocationDialogProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { currentOrganization } = useAuth();
 
   const form = useForm<LocationFormData>({
     resolver: zodResolver(locationSchema),
@@ -75,6 +77,7 @@ export function AddLocationDialog({ onLocationAdded }: AddLocationDialogProps) {
         address: data.address || null,
         capacity_limit: data.capacity_limit ? Number(data.capacity_limit) : null,
         parent_location_id: data.parent_location_id || null,
+        organization_id: currentOrganization?.id,
       };
 
       const { error } = await supabase

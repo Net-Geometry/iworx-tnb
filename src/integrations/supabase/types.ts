@@ -573,6 +573,7 @@ export type Database = {
           id: string
           item_id: string
           location_id: string
+          organization_id: string
           quantity: number | null
           reserved_quantity: number | null
           updated_at: string
@@ -584,6 +585,7 @@ export type Database = {
           id?: string
           item_id: string
           location_id: string
+          organization_id: string
           quantity?: number | null
           reserved_quantity?: number | null
           updated_at?: string
@@ -595,6 +597,7 @@ export type Database = {
           id?: string
           item_id?: string
           location_id?: string
+          organization_id?: string
           quantity?: number | null
           reserved_quantity?: number | null
           updated_at?: string
@@ -612,6 +615,13 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "inventory_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_item_locations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -634,6 +644,7 @@ export type Database = {
           lead_time_days: number | null
           max_stock_level: number | null
           name: string
+          organization_id: string
           qr_code_data: string | null
           reorder_point: number | null
           reorder_quantity: number | null
@@ -662,6 +673,7 @@ export type Database = {
           lead_time_days?: number | null
           max_stock_level?: number | null
           name: string
+          organization_id: string
           qr_code_data?: string | null
           reorder_point?: number | null
           reorder_quantity?: number | null
@@ -690,6 +702,7 @@ export type Database = {
           lead_time_days?: number | null
           max_stock_level?: number | null
           name?: string
+          organization_id?: string
           qr_code_data?: string | null
           reorder_point?: number | null
           reorder_quantity?: number | null
@@ -702,6 +715,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "inventory_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "inventory_items_supplier_id_fkey"
             columns: ["supplier_id"]
@@ -726,6 +746,7 @@ export type Database = {
           loan_number: string
           loaned_by: string | null
           notes: string | null
+          organization_id: string
           quantity: number
           returned_by: string | null
           status: string | null
@@ -745,6 +766,7 @@ export type Database = {
           loan_number: string
           loaned_by?: string | null
           notes?: string | null
+          organization_id: string
           quantity: number
           returned_by?: string | null
           status?: string | null
@@ -764,6 +786,7 @@ export type Database = {
           loan_number?: string
           loaned_by?: string | null
           notes?: string | null
+          organization_id?: string
           quantity?: number
           returned_by?: string | null
           status?: string | null
@@ -784,6 +807,13 @@ export type Database = {
             referencedRelation: "inventory_items"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "inventory_loans_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       inventory_locations: {
@@ -797,6 +827,7 @@ export type Database = {
           is_active: boolean | null
           location_type: string | null
           name: string
+          organization_id: string
           parent_location_id: string | null
           updated_at: string
         }
@@ -810,6 +841,7 @@ export type Database = {
           is_active?: boolean | null
           location_type?: string | null
           name: string
+          organization_id: string
           parent_location_id?: string | null
           updated_at?: string
         }
@@ -823,10 +855,18 @@ export type Database = {
           is_active?: boolean | null
           location_type?: string | null
           name?: string
+          organization_id?: string
           parent_location_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "inventory_locations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "inventory_locations_parent_location_id_fkey"
             columns: ["parent_location_id"]
@@ -843,6 +883,7 @@ export type Database = {
           item_id: string
           location_id: string | null
           notes: string | null
+          organization_id: string
           performed_by: string | null
           quantity: number
           reference_id: string | null
@@ -858,6 +899,7 @@ export type Database = {
           item_id: string
           location_id?: string | null
           notes?: string | null
+          organization_id: string
           performed_by?: string | null
           quantity: number
           reference_id?: string | null
@@ -873,6 +915,7 @@ export type Database = {
           item_id?: string
           location_id?: string | null
           notes?: string | null
+          organization_id?: string
           performed_by?: string | null
           quantity?: number
           reference_id?: string | null
@@ -897,6 +940,13 @@ export type Database = {
             referencedRelation: "inventory_locations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "inventory_transactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       inventory_transfer_items: {
@@ -905,6 +955,7 @@ export type Database = {
           id: string
           item_id: string
           notes: string | null
+          organization_id: string
           quantity_received: number | null
           quantity_requested: number
           quantity_shipped: number | null
@@ -916,6 +967,7 @@ export type Database = {
           id?: string
           item_id: string
           notes?: string | null
+          organization_id: string
           quantity_received?: number | null
           quantity_requested: number
           quantity_shipped?: number | null
@@ -927,6 +979,7 @@ export type Database = {
           id?: string
           item_id?: string
           notes?: string | null
+          organization_id?: string
           quantity_received?: number | null
           quantity_requested?: number
           quantity_shipped?: number | null
@@ -939,6 +992,13 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_transfer_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -958,6 +1018,7 @@ export type Database = {
           from_location_id: string
           id: string
           notes: string | null
+          organization_id: string
           received_by: string | null
           received_date: string | null
           request_date: string | null
@@ -977,6 +1038,7 @@ export type Database = {
           from_location_id: string
           id?: string
           notes?: string | null
+          organization_id: string
           received_by?: string | null
           received_date?: string | null
           request_date?: string | null
@@ -996,6 +1058,7 @@ export type Database = {
           from_location_id?: string
           id?: string
           notes?: string | null
+          organization_id?: string
           received_by?: string | null
           received_date?: string | null
           request_date?: string | null
@@ -1014,6 +1077,13 @@ export type Database = {
             columns: ["from_location_id"]
             isOneToOne: false
             referencedRelation: "inventory_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_transfers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -1639,6 +1709,7 @@ export type Database = {
           item_description: string
           item_id: string | null
           notes: string | null
+          organization_id: string
           purchase_order_id: string
           quantity: number
           received_quantity: number | null
@@ -1654,6 +1725,7 @@ export type Database = {
           item_description: string
           item_id?: string | null
           notes?: string | null
+          organization_id: string
           purchase_order_id: string
           quantity: number
           received_quantity?: number | null
@@ -1669,6 +1741,7 @@ export type Database = {
           item_description?: string
           item_id?: string | null
           notes?: string | null
+          organization_id?: string
           purchase_order_id?: string
           quantity?: number
           received_quantity?: number | null
@@ -1683,6 +1756,13 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -1706,6 +1786,7 @@ export type Database = {
           id: string
           notes: string | null
           order_date: string | null
+          organization_id: string
           payment_terms: number | null
           po_number: string
           requested_by: string | null
@@ -1728,6 +1809,7 @@ export type Database = {
           id?: string
           notes?: string | null
           order_date?: string | null
+          organization_id: string
           payment_terms?: number | null
           po_number: string
           requested_by?: string | null
@@ -1750,6 +1832,7 @@ export type Database = {
           id?: string
           notes?: string | null
           order_date?: string | null
+          organization_id?: string
           payment_terms?: number | null
           po_number?: string
           requested_by?: string | null
@@ -1762,6 +1845,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "purchase_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "purchase_orders_supplier_id_fkey"
             columns: ["supplier_id"]

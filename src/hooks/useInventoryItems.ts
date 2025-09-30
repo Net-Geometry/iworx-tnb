@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface InventoryItem {
   id: string;
@@ -27,6 +28,7 @@ export interface InventoryItem {
   is_active?: boolean;
   lead_time_days?: number;
   item_image_url?: string;
+  organization_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -53,10 +55,12 @@ export interface CreateInventoryItemData {
 }
 
 export const useInventoryItems = () => {
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
+
   return useQuery({
-    queryKey: ["inventory-items"],
+    queryKey: ["inventory-items", currentOrganization?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("inventory_items")
         .select(`
           *,
@@ -66,8 +70,13 @@ export const useInventoryItems = () => {
             inventory_locations(name)
           )
         `)
-        .eq("is_active", true)
-        .order("name");
+        .eq("is_active", true);
+
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq("organization_id", currentOrganization.id);
+      }
+
+      const { data, error } = await query.order("name");
 
       if (error) {
         console.error("Error fetching inventory items:", error);
@@ -76,6 +85,7 @@ export const useInventoryItems = () => {
 
       return data as InventoryItem[];
     },
+    enabled: !!currentOrganization || hasCrossProjectAccess,
   });
 };
 
@@ -103,6 +113,7 @@ export interface UpdateInventoryItemData {
 export const useCreateInventoryItem = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { currentOrganization } = useAuth();
 
   return useMutation({
     mutationFn: async (itemData: CreateInventoryItemData) => {
@@ -111,6 +122,7 @@ export const useCreateInventoryItem = () => {
         .insert([{
           ...itemData,
           reserved_stock: 0,
+          organization_id: currentOrganization?.id,
         }])
         .select()
         .single();
