@@ -1,38 +1,65 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, Mail, Lock, User } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { UserPlus, Mail, Lock, User, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useRoles } from "@/hooks/useRoles";
+import { useOrganizations } from "@/hooks/useOrganizations";
 
 export default function UserRegistrationPage() {
   const { toast } = useToast();
   const { roles, isLoading: rolesLoading } = useRoles();
+  const { organizations } = useOrganizations();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     displayName: "",
     roleId: "",
-    employeeNumber: ""
+    employeeNumber: "",
+    organizationIds: [] as string[]
   });
+
+  // Auto-select MSMS by default
+  useEffect(() => {
+    const msms = organizations.find(org => org.code === 'MSMS');
+    if (msms && formData.organizationIds.length === 0) {
+      setFormData(prev => ({
+        ...prev,
+        organizationIds: [msms.id]
+      }));
+    }
+  }, [organizations]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // Validate organization selection
+      if (formData.organizationIds.length === 0) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Please select at least one organization."
+        });
+        setLoading(false);
+        return;
+      }
+
       // Create user via edge function
       const { data: edgeData, error: edgeError } = await supabase.functions.invoke('create-user', {
         body: {
           email: formData.email,
           password: formData.password,
           displayName: formData.displayName,
-          roleId: formData.roleId
+          roleId: formData.roleId,
+          organizationIds: formData.organizationIds
         }
       });
 
@@ -40,11 +67,12 @@ export default function UserRegistrationPage() {
 
       if (edgeData?.userId) {
 
-        // Create corresponding people record
+        // Create corresponding people record in primary organization
         if (formData.employeeNumber) {
           const { error: personError } = await supabase.rpc('import_user_as_person', {
             _user_id: edgeData.userId,
-            _employee_number: formData.employeeNumber
+            _employee_number: formData.employeeNumber,
+            _organization_id: formData.organizationIds[0]
           });
 
           if (personError) {
@@ -62,13 +90,15 @@ export default function UserRegistrationPage() {
           description: `${formData.email} has been registered successfully with system access and employee record.`
         });
 
-        // Reset form
+        // Reset form (but keep MSMS selected)
+        const msms = organizations.find(org => org.code === 'MSMS');
         setFormData({
           email: "",
           password: "",
           displayName: "",
           roleId: "",
-          employeeNumber: ""
+          employeeNumber: "",
+          organizationIds: msms ? [msms.id] : []
         });
       }
     } catch (error: any) {
@@ -196,11 +226,63 @@ export default function UserRegistrationPage() {
               </p>
             </div>
 
+            <div className="space-y-2">
+              <Label>Assign to Organizations *</Label>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {organizations.filter(org => org.is_active).map((org) => (
+                      <div key={org.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`org-${org.id}`}
+                          checked={formData.organizationIds.includes(org.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setFormData({
+                                ...formData,
+                                organizationIds: [...formData.organizationIds, org.id]
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                organizationIds: formData.organizationIds.filter(id => id !== org.id)
+                              });
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor={`org-${org.id}`}
+                          className="text-sm cursor-pointer flex items-center gap-2"
+                        >
+                          <Building2 className="h-3 w-3 text-muted-foreground" />
+                          <span>{org.name}</span>
+                          <span className="text-muted-foreground">({org.code})</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              <p className="text-xs text-muted-foreground">
+                User will have access to selected organizations. At least one required.
+              </p>
+            </div>
+
             <div className="flex justify-end gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setFormData({ email: "", password: "", displayName: "", roleId: "", employeeNumber: "" })}
+                onClick={() => {
+                  const msms = organizations.find(org => org.code === 'MSMS');
+                  setFormData({
+                    email: "",
+                    password: "",
+                    displayName: "",
+                    roleId: "",
+                    employeeNumber: "",
+                    organizationIds: msms ? [msms.id] : []
+                  });
+                }}
               >
                 Clear
               </Button>

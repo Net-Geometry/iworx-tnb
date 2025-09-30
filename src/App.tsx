@@ -44,10 +44,12 @@ import SystemSettingsPage from "./pages/admin/SystemSettingsPage";
 import UserRegistrationPage from "./pages/admin/UserRegistrationPage";
 import RoleManagementPage from "./pages/admin/RoleManagementPage";
 import RoleFormPage from "./pages/admin/RoleFormPage";
+import OrganizationManagementPage from "./pages/admin/OrganizationManagementPage";
 import PeopleLaborPage from "./pages/people-labor/PeopleLaborPage";
 import PeopleManagementPage from "./pages/people-labor/PeopleManagementPage";
 import TeamsManagementPage from "./pages/people-labor/TeamsManagementPage";
 import SkillsLibraryPage from "./pages/people-labor/SkillsLibraryPage";
+import MyOrganizations from "./pages/MyOrganizations";
 
 const queryClient = new QueryClient();
 
@@ -324,6 +326,20 @@ const App = () => (
                   <RoleFormPage />
                 </Layout>
               </AdminGuard>
+            } />
+            <Route path="/admin/organizations" element={
+              <AdminGuard>
+                <Layout>
+                  <OrganizationManagementPage />
+                </Layout>
+              </AdminGuard>
+            } />
+            <Route path="/my-organizations" element={
+              <AuthGuard>
+                <Layout>
+                  <MyOrganizations />
+                </Layout>
+              </AuthGuard>
             } />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

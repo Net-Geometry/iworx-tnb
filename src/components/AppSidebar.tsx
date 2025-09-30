@@ -147,6 +147,7 @@ const systemAdminModules = [
   { title: "System Settings", url: "/admin/settings", icon: Settings },
   { title: "User Registration", url: "/admin/users/register", icon: UserPlus },
   { title: "Role Management", url: "/admin/roles", icon: Shield },
+  { title: "Organizations", url: "/admin/organizations", icon: Building },
 ];
 
 export function AppSidebar() {
