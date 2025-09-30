@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -372,13 +371,13 @@ const PMScheduleForm = ({ open, onOpenChange, schedule }: PMScheduleFormProps) =
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
                           <Calendar
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
                             initialFocus
-                            className="pointer-events-auto"
+                            className={cn("p-3")}
                           />
                         </PopoverContent>
                       </Popover>
