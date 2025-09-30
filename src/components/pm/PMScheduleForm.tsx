@@ -254,7 +254,6 @@ const PMScheduleForm = ({ open, onOpenChange, schedule }: PMScheduleFormProps) =
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
                         {jobPlans?.map((plan) => (
                           <SelectItem key={plan.id} value={plan.id}>
                             {plan.title} ({plan.job_plan_number})
@@ -436,7 +435,6 @@ const PMScheduleForm = ({ open, onOpenChange, schedule }: PMScheduleFormProps) =
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
                         {people?.map((person) => (
                           <SelectItem key={person.id} value={person.id}>
                             {person.first_name} {person.last_name}
