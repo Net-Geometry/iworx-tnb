@@ -50,6 +50,7 @@ import PeopleManagementPage from "./pages/people-labor/PeopleManagementPage";
 import TeamsManagementPage from "./pages/people-labor/TeamsManagementPage";
 import SkillsLibraryPage from "./pages/people-labor/SkillsLibraryPage";
 import MyOrganizations from "./pages/MyOrganizations";
+import CrossProjectAnalytics from "./pages/CrossProjectAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -199,6 +200,13 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <ReportsPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/analytics/cross-project" element={
+              <AuthGuard>
+                <Layout>
+                  <CrossProjectAnalytics />
                 </Layout>
               </AuthGuard>
             } />
