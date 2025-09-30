@@ -2181,9 +2181,7 @@ export type Database = {
         Returns: Json
       }
       has_role: {
-        Args:
-          | { _role: Database["public"]["Enums"]["app_role"]; _user_id: string }
-          | { _role_name: string; _user_id: string }
+        Args: { _role_name: string; _user_id: string }
         Returns: boolean
       }
       import_user_as_person: {
