@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface Asset {
   id: string;
@@ -31,6 +32,7 @@ export interface Asset {
   // Joined data from hierarchy
   hierarchy_path?: string;
   location?: string;
+  organization_id: string;
 }
 
 export const useAssets = () => {
@@ -38,6 +40,7 @@ export const useAssets = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
 
   const fetchAssets = async () => {
     try {
@@ -45,7 +48,7 @@ export const useAssets = () => {
       setError(null);
 
       // Fetch assets with hierarchy information
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('assets')
         .select(`
           *,
@@ -54,8 +57,14 @@ export const useAssets = () => {
             name,
             path
           )
-        `)
-        .order('created_at', { ascending: false });
+        `);
+
+      // Filter by organization unless user has cross-project access
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq('organization_id', currentOrganization.id);
+      }
+
+      const { data, error: fetchError } = await query.order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
 
@@ -77,11 +86,16 @@ export const useAssets = () => {
     }
   };
 
-  const addAsset = async (assetData: Omit<Asset, 'id' | 'created_at' | 'updated_at' | 'hierarchy_path' | 'location'>) => {
+  const addAsset = async (assetData: Omit<Asset, 'id' | 'created_at' | 'updated_at' | 'hierarchy_path' | 'location' | 'organization_id'>) => {
     try {
+      const dataWithOrg = {
+        ...assetData,
+        organization_id: currentOrganization?.id
+      };
+
       const { data, error } = await supabase
         .from('assets')
-        .insert([assetData])
+        .insert([dataWithOrg])
         .select()
         .single();
 
@@ -161,8 +175,10 @@ export const useAssets = () => {
   };
 
   useEffect(() => {
-    fetchAssets();
-  }, []);
+    if (currentOrganization || hasCrossProjectAccess) {
+      fetchAssets();
+    }
+  }, [currentOrganization?.id, hasCrossProjectAccess]);
 
   return {
     assets,

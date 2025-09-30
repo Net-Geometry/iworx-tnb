@@ -22,6 +22,7 @@ export type Database = {
           bom_id: string
           id: string
           is_primary: boolean | null
+          organization_id: string
         }
         Insert: {
           asset_id: string
@@ -30,6 +31,7 @@ export type Database = {
           bom_id: string
           id?: string
           is_primary?: boolean | null
+          organization_id: string
         }
         Update: {
           asset_id?: string
@@ -38,6 +40,7 @@ export type Database = {
           bom_id?: string
           id?: string
           is_primary?: boolean | null
+          organization_id?: string
         }
         Relationships: [
           {
@@ -61,6 +64,13 @@ export type Database = {
             referencedRelation: "bill_of_materials"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "asset_boms_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       asset_documents: {
@@ -72,6 +82,7 @@ export type Database = {
           file_size: number | null
           file_type: string
           id: string
+          organization_id: string
           uploaded_at: string | null
         }
         Insert: {
@@ -82,6 +93,7 @@ export type Database = {
           file_size?: number | null
           file_type: string
           id?: string
+          organization_id: string
           uploaded_at?: string | null
         }
         Update: {
@@ -92,6 +104,7 @@ export type Database = {
           file_size?: number | null
           file_type?: string
           id?: string
+          organization_id?: string
           uploaded_at?: string | null
         }
         Relationships: [
@@ -100,6 +113,13 @@ export type Database = {
             columns: ["asset_id"]
             isOneToOne: false
             referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -120,6 +140,7 @@ export type Database = {
           model: string | null
           name: string
           next_maintenance_date: string | null
+          organization_id: string
           parent_asset_id: string | null
           purchase_cost: number | null
           purchase_date: string | null
@@ -146,6 +167,7 @@ export type Database = {
           model?: string | null
           name: string
           next_maintenance_date?: string | null
+          organization_id: string
           parent_asset_id?: string | null
           purchase_cost?: number | null
           purchase_date?: string | null
@@ -172,6 +194,7 @@ export type Database = {
           model?: string | null
           name?: string
           next_maintenance_date?: string | null
+          organization_id?: string
           parent_asset_id?: string | null
           purchase_cost?: number | null
           purchase_date?: string | null
@@ -189,6 +212,13 @@ export type Database = {
             columns: ["hierarchy_node_id"]
             isOneToOne: false
             referencedRelation: "hierarchy_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -424,6 +454,7 @@ export type Database = {
           is_active: boolean | null
           level_order: number
           name: string
+          organization_id: string
           parent_level_id: string | null
           updated_at: string | null
         }
@@ -436,6 +467,7 @@ export type Database = {
           is_active?: boolean | null
           level_order: number
           name: string
+          organization_id: string
           parent_level_id?: string | null
           updated_at?: string | null
         }
@@ -448,10 +480,18 @@ export type Database = {
           is_active?: boolean | null
           level_order?: number
           name?: string
+          organization_id?: string
           parent_level_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "hierarchy_levels_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "hierarchy_levels_parent_level_id_fkey"
             columns: ["parent_level_id"]
@@ -468,6 +508,7 @@ export type Database = {
           hierarchy_level_id: string
           id: string
           name: string
+          organization_id: string
           parent_id: string | null
           path: string | null
           properties: Json | null
@@ -480,6 +521,7 @@ export type Database = {
           hierarchy_level_id: string
           id?: string
           name: string
+          organization_id: string
           parent_id?: string | null
           path?: string | null
           properties?: Json | null
@@ -492,6 +534,7 @@ export type Database = {
           hierarchy_level_id?: string
           id?: string
           name?: string
+          organization_id?: string
           parent_id?: string | null
           path?: string | null
           properties?: Json | null
@@ -504,6 +547,13 @@ export type Database = {
             columns: ["hierarchy_level_id"]
             isOneToOne: false
             referencedRelation: "hierarchy_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hierarchy_nodes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {

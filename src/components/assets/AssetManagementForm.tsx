@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAssets, Asset } from '@/hooks/useAssets';
 import { useHierarchyNodes } from '@/hooks/useHierarchyData';
+import { useAuth } from '@/contexts/AuthContext';
 import AssetFormContent from './AssetFormContent';
 
 interface AssetManagementFormProps {

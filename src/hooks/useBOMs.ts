@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface BOM {
   id: string;
@@ -315,6 +316,7 @@ export const useAssetBOMs = (assetId?: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
 
   const fetchAssetBOMs = async () => {
     if (!assetId) {
@@ -327,14 +329,20 @@ export const useAssetBOMs = (assetId?: string) => {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('asset_boms')
         .select(`
           *,
           bom:bill_of_materials(*)
         `)
-        .eq('asset_id', assetId)
-        .order('assigned_date', { ascending: false });
+        .eq('asset_id', assetId);
+
+      // Filter by organization unless user has cross-project access
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq('organization_id', currentOrganization.id);
+      }
+
+      const { data, error } = await query.order('assigned_date', { ascending: false });
 
       if (error) throw error;
       setAssetBOMs(data || []);
@@ -361,6 +369,7 @@ export const useAssetBOMs = (assetId?: string) => {
           asset_id: assetId,
           bom_id: bomId,
           is_primary: isPrimary,
+          organization_id: currentOrganization?.id
         }])
         .select(`
           *,
@@ -414,8 +423,10 @@ export const useAssetBOMs = (assetId?: string) => {
   };
 
   useEffect(() => {
-    fetchAssetBOMs();
-  }, [assetId]);
+    if (currentOrganization || hasCrossProjectAccess) {
+      fetchAssetBOMs();
+    }
+  }, [assetId, currentOrganization?.id, hasCrossProjectAccess]);
 
   return {
     assetBOMs,

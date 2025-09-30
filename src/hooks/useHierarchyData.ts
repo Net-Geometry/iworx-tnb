@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface HierarchyLevel {
   id: string;
@@ -46,14 +47,21 @@ export function useHierarchyLevels() {
   const [levels, setLevels] = useState<HierarchyLevel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
 
   const fetchLevels = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('hierarchy_levels')
         .select('*')
-        .eq('is_active', true)
-        .order('level_order');
+        .eq('is_active', true);
+
+      // Filter by organization unless user has cross-project access
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq('organization_id', currentOrganization.id);
+      }
+
+      const { data, error } = await query.order('level_order');
 
       if (error) throw error;
       setLevels(data || []);
@@ -65,14 +73,21 @@ export function useHierarchyLevels() {
   };
 
   useEffect(() => {
-    fetchLevels();
-  }, []);
+    if (currentOrganization || hasCrossProjectAccess) {
+      fetchLevels();
+    }
+  }, [currentOrganization?.id, hasCrossProjectAccess]);
 
-  const addLevel = async (levelData: Omit<HierarchyLevel, 'id'>) => {
+  const addLevel = async (levelData: Omit<HierarchyLevel, 'id' | 'organization_id'>) => {
     try {
+      const dataWithOrg = {
+        ...levelData,
+        organization_id: currentOrganization?.id
+      };
+
       const { data, error } = await supabase
         .from('hierarchy_levels')
-        .insert([levelData])
+        .insert([dataWithOrg])
         .select()
         .single();
 
@@ -130,11 +145,12 @@ export function useHierarchyNodes() {
   const [nodes, setNodes] = useState<HierarchyNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
 
   const fetchNodes = async () => {
     try {
       // Fetch hierarchy nodes
-      const { data: nodesData, error: nodesError } = await supabase
+      let nodesQuery = supabase
         .from('hierarchy_nodes')
         .select(`
           *,
@@ -145,13 +161,19 @@ export function useHierarchyNodes() {
             icon_name,
             color_code
           )
-        `)
-        .order('name');
+        `);
+
+      // Filter by organization unless user has cross-project access
+      if (!hasCrossProjectAccess && currentOrganization) {
+        nodesQuery = nodesQuery.eq('organization_id', currentOrganization.id);
+      }
+
+      const { data: nodesData, error: nodesError } = await nodesQuery.order('name');
 
       if (nodesError) throw nodesError;
 
       // Fetch assets with hierarchy relationships
-      const { data: assetsData, error: assetsError } = await supabase
+      let assetsQuery = supabase
         .from('assets')
         .select(`
           id,
@@ -165,8 +187,14 @@ export function useHierarchyNodes() {
           health_score,
           parent_asset_id,
           hierarchy_node_id
-        `)
-        .order('name');
+        `);
+
+      // Filter assets by organization as well
+      if (!hasCrossProjectAccess && currentOrganization) {
+        assetsQuery = assetsQuery.eq('organization_id', currentOrganization.id);
+      }
+
+      const { data: assetsData, error: assetsError } = await assetsQuery.order('name');
 
       if (assetsError) throw assetsError;
       
@@ -265,15 +293,22 @@ export function useHierarchyNodes() {
   };
 
   useEffect(() => {
-    fetchNodes();
-  }, []);
+    if (currentOrganization || hasCrossProjectAccess) {
+      fetchNodes();
+    }
+  }, [currentOrganization?.id, hasCrossProjectAccess]);
 
-  const addNode = async (nodeData: Omit<HierarchyNode, 'id' | 'children' | 'level_info'>) => {
+  const addNode = async (nodeData: Omit<HierarchyNode, 'id' | 'children' | 'level_info' | 'organization_id'>) => {
     try {
       console.log('Adding new node:', nodeData);
+      const dataWithOrg = {
+        ...nodeData,
+        organization_id: currentOrganization?.id
+      };
+
       const { data, error } = await supabase
         .from('hierarchy_nodes')
-        .insert([nodeData])
+        .insert([dataWithOrg])
         .select()
         .single();
 

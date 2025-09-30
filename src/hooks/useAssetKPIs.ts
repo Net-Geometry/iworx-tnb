@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AssetKPI {
   totalAssets: number;
@@ -17,6 +18,7 @@ export function useAssetKPIs() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
 
   useEffect(() => {
     const fetchKPIs = async () => {
@@ -25,9 +27,16 @@ export function useAssetKPIs() {
         setError(null);
 
         // Fetch all assets data
-        const { data: assets, error: assetsError } = await supabase
+        let assetsQuery = supabase
           .from('assets')
           .select('criticality, health_score');
+
+        // Filter by organization unless user has cross-project access
+        if (!hasCrossProjectAccess && currentOrganization) {
+          assetsQuery = assetsQuery.eq('organization_id', currentOrganization.id);
+        }
+
+        const { data: assets, error: assetsError } = await assetsQuery;
 
         if (assetsError) throw assetsError;
 
@@ -68,8 +77,10 @@ export function useAssetKPIs() {
       }
     };
 
-    fetchKPIs();
-  }, []);
+    if (currentOrganization || hasCrossProjectAccess) {
+      fetchKPIs();
+    }
+  }, [currentOrganization?.id, hasCrossProjectAccess]);
 
   return { kpis, loading, error, refetch: () => setLoading(true) };
 }
