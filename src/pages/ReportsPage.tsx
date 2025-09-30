@@ -181,8 +181,8 @@ const ReportsPage = () => {
       {/* Organization Selector */}
       <Card className="bg-gradient-card border-border/50">
         <CardHeader>
-          <CardTitle className="text-lg">Select Organization</CardTitle>
-          <CardDescription>Choose which organization to generate reports for</CardDescription>
+          <CardTitle className="text-lg">Select Vertical</CardTitle>
+          <CardDescription>Choose which vertical to generate reports for</CardDescription>
         </CardHeader>
         <CardContent>
           <Select
@@ -190,7 +190,7 @@ const ReportsPage = () => {
             onValueChange={setSelectedOrgId}
           >
             <SelectTrigger className="w-full md:w-96">
-              <SelectValue placeholder="Select organization" />
+              <SelectValue placeholder="Select vertical" />
             </SelectTrigger>
             <SelectContent>
               {organizations.map(org => (
@@ -274,7 +274,7 @@ const ReportsPage = () => {
       <Card className="bg-gradient-card border-border/50">
         <CardHeader>
           <CardTitle>Available Reports</CardTitle>
-          <CardDescription>Select and generate reports for your organization</CardDescription>
+          <CardDescription>Select and generate reports for your vertical</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="assets" className="w-full">

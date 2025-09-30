@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, Calendar, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-export default function MyOrganizations() {
+export default function MyVerticals() {
   const { userOrganizations, currentOrganization, switchOrganization } = useAuth();
 
   return (
@@ -12,10 +12,10 @@ export default function MyOrganizations() {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <Building2 className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">My Organizations</h1>
+          <h1 className="text-3xl font-bold">My Verticals</h1>
         </div>
         <p className="text-muted-foreground">
-          Organizations you have access to
+          Verticals you have access to
         </p>
       </div>
 
@@ -23,9 +23,9 @@ export default function MyOrganizations() {
         <Card>
           <CardContent className="py-12 text-center">
             <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No Organizations Assigned</h3>
+            <h3 className="text-lg font-semibold mb-2">No Verticals Assigned</h3>
             <p className="text-muted-foreground">
-              You are not assigned to any organizations yet. Please contact your administrator.
+              You are not assigned to any verticals yet. Please contact your administrator.
             </p>
           </CardContent>
         </Card>
@@ -82,7 +82,7 @@ export default function MyOrganizations() {
                       className="w-full"
                       variant="outline"
                     >
-                      Switch to This Organization
+                      Switch to This Vertical
                     </Button>
                   )}
                 </CardContent>

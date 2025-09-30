@@ -49,7 +49,7 @@ import PeopleLaborPage from "./pages/people-labor/PeopleLaborPage";
 import PeopleManagementPage from "./pages/people-labor/PeopleManagementPage";
 import TeamsManagementPage from "./pages/people-labor/TeamsManagementPage";
 import SkillsLibraryPage from "./pages/people-labor/SkillsLibraryPage";
-import MyOrganizations from "./pages/MyOrganizations";
+import MyVerticals from "./pages/MyVerticals";
 import CrossProjectAnalytics from "./pages/CrossProjectAnalytics";
 
 const queryClient = new QueryClient();
@@ -342,10 +342,10 @@ const App = () => (
                 </Layout>
               </AdminGuard>
             } />
-            <Route path="/my-organizations" element={
+            <Route path="/my-verticals" element={
               <AuthGuard>
                 <Layout>
-                  <MyOrganizations />
+                  <MyVerticals />
                 </Layout>
               </AuthGuard>
             } />

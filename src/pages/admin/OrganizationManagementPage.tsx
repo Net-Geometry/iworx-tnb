@@ -86,24 +86,24 @@ export default function OrganizationManagementPage() {
         <div className="flex items-center gap-3">
           <Building2 className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold">Organization Management</h1>
-            <p className="text-muted-foreground">Manage projects and organizations</p>
+            <h1 className="text-3xl font-bold">Vertical Management</h1>
+            <p className="text-muted-foreground">Manage TNB verticals</p>
           </div>
         </div>
         <Button onClick={() => handleOpenDialog()} className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Organization
+          Add Vertical
         </Button>
       </div>
 
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Organizations</CardTitle>
+            <CardTitle>Verticals</CardTitle>
             <div className="relative w-64">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search organizations..."
+                placeholder="Search verticals..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -116,7 +116,7 @@ export default function OrganizationManagementPage() {
             <div className="text-center py-8 text-muted-foreground">Loading...</div>
           ) : filteredOrganizations.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No organizations found
+              No verticals found
             </div>
           ) : (
             <Table>
@@ -169,21 +169,21 @@ export default function OrganizationManagementPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingOrg ? "Edit Organization" : "Create Organization"}
+              {editingOrg ? "Edit Vertical" : "Create Vertical"}
             </DialogTitle>
             <DialogDescription>
               {editingOrg
-                ? "Update organization details"
-                : "Add a new organization to the system"}
+                ? "Update vertical details"
+                : "Add a new vertical to the system"}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Organization Name *</Label>
+                <Label htmlFor="name">Vertical Name *</Label>
                 <Input
                   id="name"
-                  placeholder="e.g., TNB Perak"
+                  placeholder="e.g., MSMS - Meter & Service Management"
                   required
                   value={formData.name}
                   onChange={(e) =>
@@ -192,10 +192,10 @@ export default function OrganizationManagementPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="code">Organization Code *</Label>
+                <Label htmlFor="code">Vertical Code *</Label>
                 <Input
                   id="code"
-                  placeholder="e.g., PERAK"
+                  placeholder="e.g., MSMS"
                   required
                   value={formData.code}
                   onChange={(e) =>
@@ -214,7 +214,7 @@ export default function OrganizationManagementPage() {
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
-                  placeholder="Brief description of the organization"
+                  placeholder="Brief description of the vertical"
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
@@ -225,7 +225,7 @@ export default function OrganizationManagementPage() {
                 <div className="space-y-0.5">
                   <Label htmlFor="is_active">Active Status</Label>
                   <p className="text-xs text-muted-foreground">
-                    Inactive organizations won't be accessible
+                    Inactive verticals won't be accessible
                   </p>
                 </div>
                 <Switch

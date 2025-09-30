@@ -227,7 +227,7 @@ export default function UserRegistrationPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Assign to Organizations *</Label>
+              <Label>Assign to Verticals *</Label>
               <Card>
                 <CardContent className="p-4">
                   <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -264,7 +264,7 @@ export default function UserRegistrationPage() {
                 </CardContent>
               </Card>
               <p className="text-xs text-muted-foreground">
-                User will have access to selected organizations. At least one required.
+                User will have access to selected verticals. At least one required.
               </p>
             </div>
 

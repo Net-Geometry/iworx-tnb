@@ -146,7 +146,7 @@ const CrossProjectAnalytics = () => {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">Cross-Project Analytics</h1>
-            <p className="text-muted-foreground">Aggregated insights across all organizations</p>
+            <p className="text-muted-foreground">Multi-vertical overview and insights</p>
           </div>
         </div>
         <Button variant="outline" className="gap-2">
@@ -158,7 +158,7 @@ const CrossProjectAnalytics = () => {
       {/* Organization Filter */}
       <Card className="bg-gradient-card border-border/50">
         <CardHeader>
-          <CardTitle className="text-lg">Filter Organizations</CardTitle>
+          <CardTitle className="text-lg">Filter Verticals</CardTitle>
         </CardHeader>
         <CardContent>
           <Select
@@ -172,10 +172,10 @@ const CrossProjectAnalytics = () => {
             }}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="All Organizations" />
+              <SelectValue placeholder="All Verticals" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Organizations</SelectItem>
+              <SelectItem value="all">All Verticals</SelectItem>
               {organizations.map(org => (
                 <SelectItem key={org.id} value={org.id}>
                   {org.name} ({org.code})
@@ -201,12 +201,12 @@ const CrossProjectAnalytics = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-gradient-card border-border/50">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Organizations</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Verticals</CardTitle>
               <Building2 className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">{organizations.length}</div>
-              <p className="text-xs text-muted-foreground">Active projects</p>
+              <p className="text-xs text-muted-foreground">Active verticals</p>
             </CardContent>
           </Card>
 
@@ -217,7 +217,7 @@ const CrossProjectAnalytics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-foreground">{totalAssets}</div>
-              <p className="text-xs text-muted-foreground">Across all organizations</p>
+              <p className="text-xs text-muted-foreground">Across all verticals</p>
             </CardContent>
           </Card>
 
@@ -250,8 +250,8 @@ const CrossProjectAnalytics = () => {
         {/* Assets by Organization */}
         <Card className="bg-gradient-card border-border/50">
           <CardHeader>
-            <CardTitle>Assets by Organization</CardTitle>
-            <CardDescription>Total asset count per project</CardDescription>
+            <CardTitle>Assets by Vertical</CardTitle>
+            <CardDescription>Total asset count per vertical</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -279,7 +279,7 @@ const CrossProjectAnalytics = () => {
         {/* Work Orders by Organization */}
         <Card className="bg-gradient-card border-border/50">
           <CardHeader>
-            <CardTitle>Work Orders by Organization</CardTitle>
+            <CardTitle>Work Orders by Vertical</CardTitle>
             <CardDescription>Active vs total work orders</CardDescription>
           </CardHeader>
           <CardContent>
@@ -310,8 +310,8 @@ const CrossProjectAnalytics = () => {
         {/* Safety Incidents */}
         <Card className="bg-gradient-card border-border/50">
           <CardHeader>
-            <CardTitle>Safety Incidents by Organization</CardTitle>
-            <CardDescription>Incident count per project</CardDescription>
+            <CardTitle>Safety Incidents by Vertical</CardTitle>
+            <CardDescription>Incident count per vertical</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -340,7 +340,7 @@ const CrossProjectAnalytics = () => {
         <Card className="bg-gradient-card border-border/50">
           <CardHeader>
             <CardTitle>Inventory Overview</CardTitle>
-            <CardDescription>Stock levels across organizations</CardDescription>
+            <CardDescription>Stock levels across verticals</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -371,8 +371,8 @@ const CrossProjectAnalytics = () => {
       {/* Organization Details Table */}
       <Card className="bg-gradient-card border-border/50">
         <CardHeader>
-          <CardTitle>Organization Details</CardTitle>
-          <CardDescription>Detailed breakdown by organization</CardDescription>
+          <CardTitle>Vertical Details</CardTitle>
+          <CardDescription>Detailed breakdown by vertical</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -382,7 +382,7 @@ const CrossProjectAnalytics = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Organization</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Vertical</th>
                     <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Assets</th>
                     <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Work Orders</th>
                     <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Active WOs</th>

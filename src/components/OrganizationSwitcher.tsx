@@ -47,7 +47,7 @@ export const OrganizationSwitcher = () => {
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuLabel className="flex items-center gap-2">
           <Building2 className="h-4 w-4" />
-          Switch Project
+          Switch Vertical
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         
