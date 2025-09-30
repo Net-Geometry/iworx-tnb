@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreVertical, Eye, Edit, Trash2 } from "lucide-react";
 import { WorkOrder } from "@/hooks/useWorkOrders";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 interface WorkOrderTableProps {
   workOrders: WorkOrder[];
@@ -14,6 +15,8 @@ interface WorkOrderTableProps {
 }
 
 export const WorkOrderTable = ({ workOrders, onView, onEdit, onDelete }: WorkOrderTableProps) => {
+  const navigate = useNavigate();
+  
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       scheduled: "outline",
@@ -94,7 +97,7 @@ export const WorkOrderTable = ({ workOrders, onView, onEdit, onDelete }: WorkOrd
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onView(workOrder)}>
+                      <DropdownMenuItem onClick={() => navigate(`/work-orders/${workOrder.id}`)}>
                         <Eye className="mr-2 h-4 w-4" />
                         View Details
                       </DropdownMenuItem>

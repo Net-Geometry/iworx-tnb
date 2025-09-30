@@ -23,7 +23,6 @@ const WorkOrdersPage = () => {
   // State for dialogs and modals
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrder | null>(null);
   
   // State for filters
@@ -60,11 +59,6 @@ const WorkOrdersPage = () => {
     if (confirm("Are you sure you want to delete this work order?")) {
       await deleteWorkOrder(id);
     }
-  };
-
-  const handleViewWorkOrder = (workOrder: WorkOrder) => {
-    setSelectedWorkOrder(workOrder);
-    setShowDetailsModal(true);
   };
 
   const handleEditWorkOrder = (workOrder: WorkOrder) => {
@@ -159,12 +153,12 @@ const WorkOrdersPage = () => {
 
         <TabsContent value="list" className="mt-6">
           <div className="bg-gradient-card rounded-xl p-6 shadow-card border border-border/50">
-            <WorkOrderTable
-              workOrders={filteredWorkOrders}
-              onView={handleViewWorkOrder}
-              onEdit={handleEditWorkOrder}
-              onDelete={handleDeleteWorkOrder}
-            />
+                <WorkOrderTable
+                  workOrders={filteredWorkOrders}
+                  onView={() => {}} // No longer used, navigation happens in table
+                  onEdit={handleEditWorkOrder}
+                  onDelete={handleDeleteWorkOrder}
+                />
           </div>
         </TabsContent>
 
@@ -207,20 +201,6 @@ const WorkOrdersPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Work Order Details Modal */}
-      <WorkOrderDetailsModal
-        workOrder={selectedWorkOrder}
-        open={showDetailsModal}
-        onOpenChange={setShowDetailsModal}
-        onEdit={(workOrder) => {
-          setSelectedWorkOrder(workOrder);
-          setShowEditDialog(true);
-        }}
-        onStatusUpdate={() => {
-          refetch();
-          setShowDetailsModal(false);
-        }}
-      />
     </div>
   );
 };

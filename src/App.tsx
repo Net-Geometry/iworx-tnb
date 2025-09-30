@@ -16,6 +16,7 @@ import AssetsPage from "./pages/AssetsPage";
 import AssetDetailPage from "./pages/AssetDetailPage";
 import CreateAssetPage from "./pages/CreateAssetPage";
 import WorkOrdersPage from "./pages/WorkOrdersPage";
+import WorkOrderDetailPage from "./pages/WorkOrderDetailPage";
 import JobPlansPage from "./pages/JobPlansPage";
 import PreventiveMaintenancePage from "./pages/PreventiveMaintenancePage";
 import CreatePMSchedulePage from "./pages/CreatePMSchedulePage";
@@ -93,13 +94,20 @@ const App = () => (
                 </Layout>
               </AuthGuard>
             } />
-            <Route path="/work-orders" element={
-              <AuthGuard>
-                <Layout>
-                  <WorkOrdersPage />
-                </Layout>
-              </AuthGuard>
-            } />
+          <Route path="/work-orders/:id" element={
+            <AuthGuard>
+              <Layout>
+                <WorkOrderDetailPage />
+              </Layout>
+            </AuthGuard>
+          } />
+          <Route path="/work-orders" element={
+            <AuthGuard>
+              <Layout>
+                <WorkOrdersPage />
+              </Layout>
+            </AuthGuard>
+          } />
             <Route path="/job-plans" element={
               <AuthGuard>
                 <Layout>
