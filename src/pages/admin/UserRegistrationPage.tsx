@@ -7,15 +7,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UserPlus, Mail, Lock, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useRoles } from "@/hooks/useRoles";
 
 export default function UserRegistrationPage() {
   const { toast } = useToast();
+  const { roles, isLoading: rolesLoading } = useRoles();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     displayName: "",
-    role: "user"
+    roleId: ""
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,13 +38,13 @@ export default function UserRegistrationPage() {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Assign role - cast to any temporarily while types are being regenerated
+        // Assign role
         const { error: roleError } = await supabase
           .from('user_roles')
           .insert({
             user_id: authData.user.id,
-            role: formData.role
-          } as any);
+            role_id: formData.roleId
+          });
 
         if (roleError) throw roleError;
 
@@ -56,7 +58,7 @@ export default function UserRegistrationPage() {
           email: "",
           password: "",
           displayName: "",
-          role: "user"
+          roleId: ""
         });
       }
     } catch (error: any) {
@@ -143,19 +145,28 @@ export default function UserRegistrationPage() {
             <div className="space-y-2">
               <Label htmlFor="role">User Role *</Label>
               <Select
-                value={formData.role}
-                onValueChange={(value) => setFormData({ ...formData, role: value })}
+                value={formData.roleId}
+                onValueChange={(value) => setFormData({ ...formData, roleId: value })}
+                disabled={rolesLoading}
               >
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                <SelectContent className="bg-background z-50">
+                  {roles.filter(role => role.is_active).map((role) => (
+                    <SelectItem key={role.id} value={role.id}>
+                      <div>
+                        <div className="font-medium">{role.display_name}</div>
+                        {role.description && (
+                          <div className="text-xs text-muted-foreground">{role.description}</div>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Admins have full system access including user management
+                Select the role that defines this user's permissions
               </p>
             </div>
 
@@ -163,7 +174,7 @@ export default function UserRegistrationPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setFormData({ email: "", password: "", displayName: "", role: "user" })}
+                onClick={() => setFormData({ email: "", password: "", displayName: "", roleId: "" })}
               >
                 Clear
               </Button>

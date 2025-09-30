@@ -134,7 +134,8 @@ const inventorySubModules = [
 // System Administration modules
 const systemAdminModules = [
   { title: "System Settings", url: "/admin/settings", icon: Settings },
-  { title: "User Management", url: "/admin/users/register", icon: UserPlus },
+  { title: "User Registration", url: "/admin/users/register", icon: UserPlus },
+  { title: "Role Management", url: "/admin/roles", icon: Shield },
 ];
 
 export function AppSidebar() {

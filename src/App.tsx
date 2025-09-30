@@ -42,6 +42,8 @@ import SafetyReportsPage from "./pages/safety/SafetyReportsPage";
 import { AdminGuard } from "./components/auth/AdminGuard";
 import SystemSettingsPage from "./pages/admin/SystemSettingsPage";
 import UserRegistrationPage from "./pages/admin/UserRegistrationPage";
+import RoleManagementPage from "./pages/admin/RoleManagementPage";
+import RoleFormPage from "./pages/admin/RoleFormPage";
 
 const queryClient = new QueryClient();
 
@@ -265,6 +267,27 @@ const App = () => (
               <AdminGuard>
                 <Layout>
                   <UserRegistrationPage />
+                </Layout>
+              </AdminGuard>
+            } />
+            <Route path="/admin/roles" element={
+              <AdminGuard>
+                <Layout>
+                  <RoleManagementPage />
+                </Layout>
+              </AdminGuard>
+            } />
+            <Route path="/admin/roles/new" element={
+              <AdminGuard>
+                <Layout>
+                  <RoleFormPage />
+                </Layout>
+              </AdminGuard>
+            } />
+            <Route path="/admin/roles/:id/edit" element={
+              <AdminGuard>
+                <Layout>
+                  <RoleFormPage />
                 </Layout>
               </AdminGuard>
             } />

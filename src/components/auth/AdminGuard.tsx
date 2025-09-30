@@ -11,36 +11,33 @@ interface AdminGuardProps {
 export const AdminGuard = ({ children }: AdminGuardProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
-  const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [checkingRole, setCheckingRole] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const checkAdminRole = async () => {
       if (!user) {
-        setCheckingRole(false);
+        setIsAdmin(false);
         return;
       }
 
       try {
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'admin')
-          .maybeSingle();
+        // Check if user has admin role using the has_role function
+        const { data, error } = await supabase.rpc('has_role', {
+          _user_id: user.id,
+          _role_name: 'admin'
+        });
 
         if (error) {
           console.error('Error checking admin role:', error);
           setIsAdmin(false);
-        } else {
-          setIsAdmin(!!data);
+          return;
         }
+
+        setIsAdmin(data === true);
       } catch (error) {
-        console.error('Error checking admin role:', error);
+        console.error('Error in admin check:', error);
         setIsAdmin(false);
-      } finally {
-        setCheckingRole(false);
       }
     };
 
@@ -48,16 +45,16 @@ export const AdminGuard = ({ children }: AdminGuardProps) => {
   }, [user]);
 
   useEffect(() => {
-    if (!checkingRole && isAdmin === false && user) {
+    if (isAdmin === false && user) {
       toast({
         variant: "destructive",
         title: "Access Denied",
         description: "You don't have permission to access this page."
       });
     }
-  }, [checkingRole, isAdmin, user, toast]);
+  }, [isAdmin, user, toast]);
 
-  if (loading || checkingRole) {
+  if (loading || isAdmin === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-dashboard">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
