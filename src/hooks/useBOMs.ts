@@ -52,16 +52,23 @@ export const useBOMs = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
 
   const fetchBOMs = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('bill_of_materials')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+
+      // Filter by organization unless user has cross-project access
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq('organization_id', currentOrganization.id);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       setBOMs(data || []);
@@ -82,7 +89,10 @@ export const useBOMs = () => {
     try {
       const { data, error } = await supabase
         .from('bill_of_materials')
-        .insert([bomData])
+        .insert([{
+          ...bomData,
+          organization_id: currentOrganization?.id
+        }])
         .select()
         .single();
 
@@ -161,8 +171,10 @@ export const useBOMs = () => {
   };
 
   useEffect(() => {
-    fetchBOMs();
-  }, []);
+    if (currentOrganization || hasCrossProjectAccess) {
+      fetchBOMs();
+    }
+  }, [currentOrganization?.id, hasCrossProjectAccess]);
 
   return {
     boms,
@@ -180,6 +192,7 @@ export const useBOMItems = (bomId?: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { currentOrganization } = useAuth();
 
   const fetchBOMItems = async () => {
     if (!bomId) {
@@ -218,7 +231,10 @@ export const useBOMItems = (bomId?: string) => {
     try {
       const { data, error } = await supabase
         .from('bom_items')
-        .insert([itemData])
+        .insert([{
+          ...itemData,
+          organization_id: currentOrganization?.id
+        } as any])
         .select()
         .single();
 

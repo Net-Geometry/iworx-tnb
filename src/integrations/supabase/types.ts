@@ -240,6 +240,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          organization_id: string
           status: Database["public"]["Enums"]["bom_status"] | null
           updated_at: string
           version: string | null
@@ -253,6 +254,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          organization_id: string
           status?: Database["public"]["Enums"]["bom_status"] | null
           updated_at?: string
           version?: string | null
@@ -266,6 +268,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          organization_id?: string
           status?: Database["public"]["Enums"]["bom_status"] | null
           updated_at?: string
           version?: string | null
@@ -285,6 +288,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "bill_of_materials_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       bom_items: {
@@ -301,6 +311,7 @@ export type Database = {
           lead_time_days: number | null
           level: number | null
           notes: string | null
+          organization_id: string
           parent_item_id: string | null
           quantity: number
           supplier: string | null
@@ -320,6 +331,7 @@ export type Database = {
           lead_time_days?: number | null
           level?: number | null
           notes?: string | null
+          organization_id: string
           parent_item_id?: string | null
           quantity?: number
           supplier?: string | null
@@ -339,6 +351,7 @@ export type Database = {
           lead_time_days?: number | null
           level?: number | null
           notes?: string | null
+          organization_id?: string
           parent_item_id?: string | null
           quantity?: number
           supplier?: string | null
@@ -358,6 +371,13 @@ export type Database = {
             columns: ["inventory_item_id"]
             isOneToOne: false
             referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bom_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
