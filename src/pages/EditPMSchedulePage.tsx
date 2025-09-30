@@ -55,6 +55,7 @@ import { useEffect } from "react";
 import SafetyPrecautionsSelector from "@/components/pm/SafetyPrecautionsSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PMPlannedTab } from "@/components/pm/PMPlannedTab";
+import { calculateNextDueDate } from "@/lib/pmScheduleUtils";
 
 // ============================================================================
 // Form Validation Schema
@@ -155,6 +156,13 @@ const EditPMSchedulePage = () => {
 
   const onSubmit = async (values: PMScheduleFormValues) => {
     try {
+      // Calculate next due date based on start date and frequency
+      const nextDueDate = calculateNextDueDate(
+        values.start_date,
+        values.frequency_type,
+        values.frequency_value
+      );
+
       const scheduleData: PMScheduleInsert = {
         schedule_number: values.schedule_number,
         title: values.title,
@@ -165,6 +173,7 @@ const EditPMSchedulePage = () => {
         frequency_value: values.frequency_value,
         frequency_unit: values.frequency_unit,
         start_date: format(values.start_date, 'yyyy-MM-dd'),
+        next_due_date: format(nextDueDate, 'yyyy-MM-dd'),
         lead_time_days: values.lead_time_days,
         assigned_to: values.assigned_to,
         priority: values.priority,
