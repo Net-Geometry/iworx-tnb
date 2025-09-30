@@ -51,7 +51,8 @@ const navigationItems = [
   },
 ];
 
-const moduleItems = [
+// Asset & Maintenance modules
+const assetMaintenanceModules = [
   {
     title: "Asset Management",
     url: "/assets",
@@ -77,11 +78,29 @@ const moduleItems = [
     url: "/bom",
     icon: FileSpreadsheet,
   },
+];
+
+// Analytics & Intelligence modules
+const analyticsModules = [
   {
     title: "Advanced Analytics & AI",
     url: "/analytics",
     icon: Brain,
   },
+  {
+    title: "Reporting & BI",
+    url: "/reports",
+    icon: BarChart3,
+  },
+  {
+    title: "Spatial Intelligence",
+    url: "/spatial",
+    icon: MapPin,
+  },
+];
+
+// Platform & Integration modules
+const platformModules = [
   {
     title: "Mobile & Field Operations",
     url: "/mobile-operations",
@@ -91,16 +110,6 @@ const moduleItems = [
     title: "Integration Platform",
     url: "/integrations",
     icon: Link,
-  },
-  {
-    title: "Spatial Intelligence",
-    url: "/spatial",
-    icon: MapPin,
-  },
-  {
-    title: "Reporting & BI",
-    url: "/reports",
-    icon: BarChart3,
   },
 ];
 
@@ -138,7 +147,9 @@ export function AppSidebar() {
     return currentPath.startsWith(path);
   };
 
-  const isModulesExpanded = moduleItems.some((item) => isActive(item.url));
+  const isAssetMaintenanceExpanded = assetMaintenanceModules.some((item) => isActive(item.url));
+  const isAnalyticsExpanded = analyticsModules.some((item) => isActive(item.url));
+  const isPlatformExpanded = platformModules.some((item) => isActive(item.url));
   const isInventoryExpanded = currentPath.startsWith('/inventory');
   const isSafetyExpanded = currentPath.startsWith('/safety');
 
@@ -181,19 +192,22 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Modules Section */}
-        <Collapsible defaultOpen={isModulesExpanded} className="group/collapsible">
+        {/* Asset & Maintenance */}
+        <Collapsible defaultOpen={isAssetMaintenanceExpanded} className="group/collapsible">
           <SidebarGroup>
             <SidebarGroupLabel asChild>
               <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
-                Functional Modules
+                <div className="flex items-center gap-2">
+                  <Wrench className="w-4 h-4" />
+                  Asset & Maintenance
+                </div>
                 <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
               </CollapsibleTrigger>
             </SidebarGroupLabel>
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {moduleItems.map((item) => (
+                  {assetMaintenanceModules.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
@@ -201,7 +215,77 @@ export function AppSidebar() {
                         tooltip={state === "collapsed" ? item.title : undefined}
                       >
                         <NavLink to={item.url}>
-                          <item.icon className="w-5 h-5" />
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+
+        {/* Analytics & Intelligence */}
+        <Collapsible defaultOpen={isAnalyticsExpanded} className="group/collapsible">
+          <SidebarGroup>
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-4 h-4" />
+                  Analytics & Intelligence
+                </div>
+                <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {analyticsModules.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.url)}
+                        tooltip={state === "collapsed" ? item.title : undefined}
+                      >
+                        <NavLink to={item.url}>
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+
+        {/* Platform & Integration */}
+        <Collapsible defaultOpen={isPlatformExpanded} className="group/collapsible">
+          <SidebarGroup>
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
+                <div className="flex items-center gap-2">
+                  <Link className="w-4 h-4" />
+                  Platform & Integration
+                </div>
+                <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {platformModules.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.url)}
+                        tooltip={state === "collapsed" ? item.title : undefined}
+                      >
+                        <NavLink to={item.url}>
+                          <item.icon className="w-4 h-4" />
                           <span>{item.title}</span>
                         </NavLink>
                       </SidebarMenuButton>
