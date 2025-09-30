@@ -2302,7 +2302,13 @@ export type Database = {
         Returns: boolean
       }
       import_user_as_person: {
-        Args: { _employee_number: string; _user_id: string }
+        Args:
+          | {
+              _employee_number: string
+              _organization_id?: string
+              _user_id: string
+            }
+          | { _employee_number: string; _user_id: string }
         Returns: string
       }
     }

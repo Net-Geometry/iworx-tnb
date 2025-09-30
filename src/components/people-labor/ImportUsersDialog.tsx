@@ -60,7 +60,7 @@ export function ImportUsersDialog({ open, onOpenChange, existingUserIds }: Impor
         _user_id: userId,
         _employee_number: employeeNumber,
         _organization_id: currentOrganization?.id,
-      });
+      } as any);
 
       if (error) throw error;
 
