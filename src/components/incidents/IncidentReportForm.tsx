@@ -128,14 +128,17 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
           render={({ field }) => (
             <FormItem>
               <FormLabel>Asset Involved (if applicable)</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select 
+                onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} 
+                value={field.value || "none"}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select asset" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">No asset involved</SelectItem>
+                  <SelectItem value="none">No asset involved</SelectItem>
                   {assets.map((asset) => (
                     <SelectItem key={asset.id} value={asset.id}>
                       {asset.name} - {asset.asset_number}
