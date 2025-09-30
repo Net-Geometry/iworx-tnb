@@ -26,33 +26,24 @@ export default function UserRegistrationPage() {
     setLoading(true);
 
     try {
-      // Create user using admin API
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: formData.password,
-        email_confirm: true,
-        user_metadata: {
-          display_name: formData.displayName
+      // Create user via edge function
+      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: formData.email,
+          password: formData.password,
+          displayName: formData.displayName,
+          roleId: formData.roleId
         }
       });
 
-      if (authError) throw authError;
+      if (edgeError) throw edgeError;
 
-      if (authData.user) {
-        // Assign role
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({
-            user_id: authData.user.id,
-            role_id: formData.roleId
-          });
-
-        if (roleError) throw roleError;
+      if (edgeData?.userId) {
 
         // Create corresponding people record
         if (formData.employeeNumber) {
           const { error: personError } = await supabase.rpc('import_user_as_person', {
-            _user_id: authData.user.id,
+            _user_id: edgeData.userId,
             _employee_number: formData.employeeNumber
           });
 

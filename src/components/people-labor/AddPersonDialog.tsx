@@ -118,25 +118,17 @@ export function AddPersonDialog({ open, onOpenChange }: AddPersonDialogProps) {
 
       // Step 1: Create system account if requested
       if (data.createSystemAccount && data.email && data.password && data.roleId) {
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email: data.email,
-          password: data.password,
-          email_confirm: true,
-          user_metadata: {
-            display_name: `${data.first_name} ${data.last_name}`
+        const { data: edgeData, error: edgeError } = await supabase.functions.invoke('create-user', {
+          body: {
+            email: data.email,
+            password: data.password,
+            displayName: `${data.first_name} ${data.last_name}`,
+            roleId: data.roleId
           }
         });
 
-        if (authError) throw authError;
-        userId = authData.user?.id;
-
-        // Assign role
-        if (userId) {
-          await assignRole.mutateAsync({
-            userId: userId,
-            roleId: data.roleId
-          });
-        }
+        if (edgeError) throw edgeError;
+        userId = edgeData?.userId;
       }
 
       // Step 2: Create person record
