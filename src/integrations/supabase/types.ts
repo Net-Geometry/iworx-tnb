@@ -1367,6 +1367,39 @@ export type Database = {
         }
         Relationships: []
       }
+      organizations: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          settings: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          settings?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          settings?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       people: {
         Row: {
           certifications: string[] | null
@@ -2084,6 +2117,38 @@ export type Database = {
           },
         ]
       }
+      user_organizations: {
+        Row: {
+          created_at: string | null
+          id: string
+          organization_id: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          organization_id: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          organization_id?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_organizations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -2169,9 +2234,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_organizations: {
+        Args: { _user_id: string }
+        Returns: string[]
+      }
       get_user_permissions: {
         Args: { _user_id: string }
         Returns: Json
+      }
+      has_cross_project_access: {
+        Args: { _user_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: { _role_name: string; _user_id: string }

@@ -4,6 +4,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { OrganizationSwitcher } from "@/components/OrganizationSwitcher";
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
@@ -42,6 +43,7 @@ const Header = () => {
               <p className="text-xs text-muted-foreground">Enterprise Asset Management</p>
             </div>
           </div>
+          <OrganizationSwitcher />
         </div>
 
 

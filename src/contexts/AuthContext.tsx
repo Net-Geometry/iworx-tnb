@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Organization, UserOrganization } from '@/types/organization';
 
 interface Profile {
   id: string;
@@ -16,6 +17,10 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  currentOrganization: Organization | null;
+  userOrganizations: UserOrganization[];
+  hasCrossProjectAccess: boolean;
+  switchOrganization: (orgId: string) => void;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
@@ -41,6 +46,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null);
+  const [userOrganizations, setUserOrganizations] = useState<UserOrganization[]>([]);
+  const [hasCrossProjectAccess, setHasCrossProjectAccess] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -51,12 +59,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
+          // Fetch user profile and organizations
           setTimeout(() => {
             fetchUserProfile(session.user.id);
+            fetchUserOrganizations(session.user.id);
           }, 0);
         } else {
           setProfile(null);
+          setUserOrganizations([]);
+          setCurrentOrganization(null);
+          setHasCrossProjectAccess(false);
         }
         
         setLoading(false);
@@ -70,6 +82,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       if (session?.user) {
         fetchUserProfile(session.user.id);
+        fetchUserOrganizations(session.user.id);
       }
       setLoading(false);
     });
@@ -93,6 +106,73 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
+    }
+  };
+
+  const fetchUserOrganizations = async (userId: string) => {
+    try {
+      // Fetch user's organizations
+      const { data: userOrgs, error: userOrgsError } = await supabase
+        .from('user_organizations')
+        .select('*, organization:organizations(*)')
+        .eq('user_id', userId);
+
+      if (userOrgsError) {
+        console.error('Error fetching user organizations:', userOrgsError);
+        return;
+      }
+
+      setUserOrganizations(userOrgs || []);
+
+      // Check if user has cross-project access
+      const { data: hasAccess, error: accessError } = await supabase
+        .rpc('has_cross_project_access', { _user_id: userId });
+
+      if (!accessError) {
+        setHasCrossProjectAccess(hasAccess || false);
+      }
+
+      // Set current organization from localStorage or default to first org
+      const savedOrgId = localStorage.getItem('currentOrganizationId');
+      if (savedOrgId && userOrgs?.some(uo => uo.organization?.id === savedOrgId)) {
+        const org = userOrgs.find(uo => uo.organization?.id === savedOrgId)?.organization;
+        if (org) {
+          setCurrentOrganization(org);
+          return;
+        }
+      }
+
+      // Default to first organization
+      if (userOrgs && userOrgs.length > 0 && userOrgs[0].organization) {
+        setCurrentOrganization(userOrgs[0].organization);
+        localStorage.setItem('currentOrganizationId', userOrgs[0].organization.id);
+      }
+    } catch (error) {
+      console.error('Error fetching organizations:', error);
+    }
+  };
+
+  const switchOrganization = (orgId: string) => {
+    if (orgId === 'all' && hasCrossProjectAccess) {
+      // Special case for "All Projects" view
+      setCurrentOrganization({
+        id: 'all',
+        name: 'All Projects',
+        code: 'ALL',
+        description: 'Cross-project view',
+        is_active: true,
+        settings: {},
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+      localStorage.setItem('currentOrganizationId', 'all');
+      return;
+    }
+
+    const userOrg = userOrganizations.find(uo => uo.organization?.id === orgId);
+    if (userOrg?.organization) {
+      setCurrentOrganization(userOrg.organization);
+      localStorage.setItem('currentOrganizationId', orgId);
     }
   };
 
@@ -195,6 +275,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     session,
     profile,
     loading,
+    currentOrganization,
+    userOrganizations,
+    hasCrossProjectAccess,
+    switchOrganization,
     signUp,
     signIn,
     signOut,
