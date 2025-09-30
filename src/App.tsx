@@ -27,7 +27,6 @@ import PurchaseOrdersPage from "./pages/inventory/PurchaseOrdersPage";
 import SuppliersPage from "./pages/inventory/SuppliersPage";
 import InventoryReportsPage from "./pages/inventory/InventoryReportsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
-import MobileOperationsPage from "./pages/MobileOperationsPage";
 import IntegrationsPage from "./pages/IntegrationsPage";
 import SafetyPage from "./pages/SafetyPage";
 import SpatialPage from "./pages/SpatialPage";
@@ -161,13 +160,6 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <AnalyticsPage />
-                </Layout>
-              </AuthGuard>
-            } />
-            <Route path="/mobile-operations" element={
-              <AuthGuard>
-                <Layout>
-                  <MobileOperationsPage />
                 </Layout>
               </AuthGuard>
             } />

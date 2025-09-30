@@ -102,11 +102,6 @@ const analyticsModules = [
 // Platform & Integration modules
 const platformModules = [
   {
-    title: "Mobile & Field Operations",
-    url: "/mobile-operations",
-    icon: Smartphone,
-  },
-  {
     title: "Integration Platform",
     url: "/integrations",
     icon: Link,
