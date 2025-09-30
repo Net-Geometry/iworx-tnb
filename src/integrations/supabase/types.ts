@@ -401,6 +401,7 @@ export type Database = {
           effectiveness_review: string | null
           effectiveness_verified: boolean | null
           id: string
+          organization_id: string
           preventive_actions: string | null
           priority: number
           responsible_person: string
@@ -425,6 +426,7 @@ export type Database = {
           effectiveness_review?: string | null
           effectiveness_verified?: boolean | null
           id?: string
+          organization_id: string
           preventive_actions?: string | null
           priority?: number
           responsible_person: string
@@ -449,6 +451,7 @@ export type Database = {
           effectiveness_review?: string | null
           effectiveness_verified?: boolean | null
           id?: string
+          organization_id?: string
           preventive_actions?: string | null
           priority?: number
           responsible_person?: string
@@ -462,7 +465,15 @@ export type Database = {
           verified_by?: string | null
           verified_date?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "capa_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hierarchy_levels: {
         Row: {
@@ -1455,6 +1466,7 @@ export type Database = {
           id: string
           lockout_points: string[]
           next_review_date: string | null
+          organization_id: string
           procedure_number: string
           procedure_steps: Json
           required_ppe: string[] | null
@@ -1478,6 +1490,7 @@ export type Database = {
           id?: string
           lockout_points: string[]
           next_review_date?: string | null
+          organization_id: string
           procedure_number: string
           procedure_steps: Json
           required_ppe?: string[] | null
@@ -1501,6 +1514,7 @@ export type Database = {
           id?: string
           lockout_points?: string[]
           next_review_date?: string | null
+          organization_id?: string
           procedure_number?: string
           procedure_steps?: Json
           required_ppe?: string[] | null
@@ -1511,7 +1525,15 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "loto_procedures_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       maintenance_records: {
         Row: {
@@ -1991,6 +2013,7 @@ export type Database = {
           likelihood: number
           location: string
           mitigation_measures: string | null
+          organization_id: string
           responsible_person: string | null
           review_date: string | null
           risk_level: Database["public"]["Enums"]["risk_level"] | null
@@ -2012,6 +2035,7 @@ export type Database = {
           likelihood: number
           location: string
           mitigation_measures?: string | null
+          organization_id: string
           responsible_person?: string | null
           review_date?: string | null
           risk_level?: Database["public"]["Enums"]["risk_level"] | null
@@ -2033,6 +2057,7 @@ export type Database = {
           likelihood?: number
           location?: string
           mitigation_measures?: string | null
+          organization_id?: string
           responsible_person?: string | null
           review_date?: string | null
           risk_level?: Database["public"]["Enums"]["risk_level"] | null
@@ -2043,7 +2068,15 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "safety_hazards_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       safety_incidents: {
         Row: {
@@ -2059,6 +2092,7 @@ export type Database = {
           investigation_notes: string | null
           investigator_name: string | null
           location: string
+          organization_id: string
           regulatory_report_number: string | null
           regulatory_reporting_required: boolean | null
           reporter_email: string | null
@@ -2083,6 +2117,7 @@ export type Database = {
           investigation_notes?: string | null
           investigator_name?: string | null
           location: string
+          organization_id: string
           regulatory_report_number?: string | null
           regulatory_reporting_required?: boolean | null
           reporter_email?: string | null
@@ -2107,6 +2142,7 @@ export type Database = {
           investigation_notes?: string | null
           investigator_name?: string | null
           location?: string
+          organization_id?: string
           regulatory_report_number?: string | null
           regulatory_reporting_required?: boolean | null
           reporter_email?: string | null
@@ -2118,7 +2154,15 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "safety_incidents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       safety_precautions: {
         Row: {
@@ -2129,6 +2173,7 @@ export type Database = {
           created_by: string | null
           description: string
           id: string
+          organization_id: string
           precaution_code: string
           regulatory_references: string[] | null
           required_actions: string[] | null
@@ -2148,6 +2193,7 @@ export type Database = {
           created_by?: string | null
           description: string
           id?: string
+          organization_id: string
           precaution_code: string
           regulatory_references?: string[] | null
           required_actions?: string[] | null
@@ -2167,6 +2213,7 @@ export type Database = {
           created_by?: string | null
           description?: string
           id?: string
+          organization_id?: string
           precaution_code?: string
           regulatory_references?: string[] | null
           required_actions?: string[] | null
@@ -2178,7 +2225,15 @@ export type Database = {
           updated_by?: string | null
           usage_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "safety_precautions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       skills: {
         Row: {

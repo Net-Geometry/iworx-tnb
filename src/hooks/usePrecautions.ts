@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Database } from '@/integrations/supabase/types';
 
 type SafetyPrecaution = Database['public']['Tables']['safety_precautions']['Row'];
@@ -19,6 +20,7 @@ export const usePrecautions = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
 
   const fetchPrecautions = async (filters?: PrecautionFilters) => {
     try {
@@ -29,6 +31,11 @@ export const usePrecautions = () => {
         .from('safety_precautions')
         .select('*')
         .order('updated_at', { ascending: false });
+
+      // Filter by organization unless user has cross-project access
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq('organization_id', currentOrganization.id);
+      }
 
       // Apply filters
       if (filters?.category && filters.category !== 'all') {
@@ -59,9 +66,14 @@ export const usePrecautions = () => {
 
   const addPrecaution = async (precautionData: SafetyPrecautionInsert) => {
     try {
+      const dataWithOrg = {
+        ...precautionData,
+        organization_id: currentOrganization?.id
+      };
+
       const { data, error } = await supabase
         .from('safety_precautions')
-        .insert([precautionData])
+        .insert([dataWithOrg])
         .select()
         .single();
 
@@ -168,8 +180,10 @@ export const usePrecautions = () => {
   };
 
   useEffect(() => {
-    fetchPrecautions();
-  }, []);
+    if (currentOrganization || hasCrossProjectAccess) {
+      fetchPrecautions();
+    }
+  }, [currentOrganization?.id, hasCrossProjectAccess]);
 
   return {
     precautions,
