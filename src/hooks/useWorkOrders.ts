@@ -17,6 +17,8 @@ export interface WorkOrder {
   estimated_cost?: number;
   notes?: string;
   organization_id: string;
+  pm_schedule_id?: string;
+  generation_type?: 'manual' | 'automatic';
   created_at: string;
   updated_at: string;
 }
@@ -61,7 +63,8 @@ export const useWorkOrders = () => {
         ...order,
         maintenance_type: order.maintenance_type as WorkOrder['maintenance_type'],
         priority: order.priority as WorkOrder['priority'],
-        status: order.status as WorkOrder['status']
+        status: order.status as WorkOrder['status'],
+        generation_type: order.generation_type as WorkOrder['generation_type']
       }));
 
       setWorkOrders(typedData);

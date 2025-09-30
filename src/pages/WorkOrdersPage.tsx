@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 
 const WorkOrdersPage = () => {
-  const { workOrders, stats, loading, createWorkOrder, updateWorkOrder, deleteWorkOrder } = useWorkOrders();
+  const { workOrders, stats, loading, createWorkOrder, updateWorkOrder, deleteWorkOrder, refetch } = useWorkOrders();
   
   // State for dialogs and modals
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -212,6 +212,14 @@ const WorkOrdersPage = () => {
         workOrder={selectedWorkOrder}
         open={showDetailsModal}
         onOpenChange={setShowDetailsModal}
+        onEdit={(workOrder) => {
+          setSelectedWorkOrder(workOrder);
+          setShowEditDialog(true);
+        }}
+        onStatusUpdate={() => {
+          refetch();
+          setShowDetailsModal(false);
+        }}
       />
     </div>
   );
