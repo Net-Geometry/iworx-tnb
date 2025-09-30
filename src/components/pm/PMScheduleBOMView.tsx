@@ -22,7 +22,7 @@ interface PMScheduleBOMViewProps {
 
 export const PMScheduleBOMView = ({ assetId, onMaterialsChange }: PMScheduleBOMViewProps) => {
   const { assetBOMs, loading: bomsLoading } = useAssetBOMs(assetId);
-  const primaryBOM = assetBOMs?.find(ab => ab.is_primary)?.bom;
+  const primaryBOM = assetBOMs?.find(ab => ab.is_primary)?.bom || assetBOMs?.[0]?.bom;
   const { items: bomItems, loading: itemsLoading } = useBOMItems(primaryBOM?.id);
   const { data: inventoryItems = [] } = useInventoryItems();
   
