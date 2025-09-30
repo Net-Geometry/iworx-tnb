@@ -2155,6 +2155,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           notes: string | null
+          organization_id: string
           payment_terms: number | null
           phone: string | null
           rating: number | null
@@ -2171,6 +2172,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           notes?: string | null
+          organization_id: string
           payment_terms?: number | null
           phone?: string | null
           rating?: number | null
@@ -2187,6 +2189,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           notes?: string | null
+          organization_id?: string
           payment_terms?: number | null
           phone?: string | null
           rating?: number | null
@@ -2194,7 +2197,15 @@ export type Database = {
           updated_at?: string
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_members: {
         Row: {

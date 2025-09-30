@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface Supplier {
   id: string;
@@ -14,6 +15,7 @@ export interface Supplier {
   rating?: number;
   is_active: boolean;
   notes?: string;
+  organization_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -31,17 +33,22 @@ export interface CreateSupplierData {
   notes?: string | null;
 }
 
-// TODO: Add organization_id to suppliers table and update this hook
 export const useSuppliers = () => {
   const queryClient = useQueryClient();
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
 
   const suppliersQuery = useQuery({
-    queryKey: ["suppliers"],
+    queryKey: ["suppliers", currentOrganization?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let supplierQuery = supabase
         .from("suppliers")
-        .select("*")
-        .order("name");
+        .select("*");
+
+      if (!hasCrossProjectAccess && currentOrganization) {
+        supplierQuery = supplierQuery.eq("organization_id", currentOrganization.id);
+      }
+
+      const { data, error } = await supplierQuery.order("name");
 
       if (error) {
         console.error("Error fetching suppliers:", error);
@@ -50,13 +57,17 @@ export const useSuppliers = () => {
 
       return data as Supplier[];
     },
+    enabled: !!currentOrganization || hasCrossProjectAccess,
   });
 
   const addSupplier = useMutation({
     mutationFn: async (supplierData: CreateSupplierData) => {
       const { data, error } = await supabase
         .from("suppliers")
-        .insert([supplierData])
+        .insert([{
+          ...supplierData,
+          organization_id: currentOrganization?.id,
+        }])
         .select()
         .single();
 
