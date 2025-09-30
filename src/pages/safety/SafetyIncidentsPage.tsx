@@ -1,14 +1,13 @@
-import { useState } from "react";
-import { Shield, Plus, AlertTriangle } from "lucide-react";
+import { Plus, AlertTriangle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIncidents } from "@/hooks/useIncidents";
-import { IncidentReportDialog } from "@/components/incidents/IncidentReportDialog";
 import { IncidentTable } from "@/components/incidents/IncidentTable";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const SafetyIncidentsPage = () => {
-  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const navigate = useNavigate();
   const { incidents, stats, loading } = useIncidents();
 
   const handleViewDetails = (incident: any) => {
@@ -46,7 +45,7 @@ const SafetyIncidentsPage = () => {
             <p className="text-muted-foreground">Report and track safety incidents</p>
           </div>
         </div>
-        <Button onClick={() => setReportDialogOpen(true)}>
+        <Button onClick={() => navigate("/safety/incidents/report")}>
           <Plus className="w-4 h-4 mr-2" />
           Report Incident
         </Button>
@@ -104,12 +103,6 @@ const SafetyIncidentsPage = () => {
           <IncidentTable incidents={incidents} onViewDetails={handleViewDetails} />
         </CardContent>
       </Card>
-
-      {/* Report Dialog */}
-      <IncidentReportDialog
-        open={reportDialogOpen}
-        onOpenChange={setReportDialogOpen}
-      />
     </div>
   );
 };
