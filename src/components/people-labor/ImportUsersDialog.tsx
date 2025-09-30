@@ -56,11 +56,11 @@ export function ImportUsersDialog({ open, onOpenChange, existingUserIds }: Impor
 
     setImporting(userId);
     try {
-      const { error } = await supabase.rpc("import_user_as_person", {
+      const { error } = await (supabase.rpc as any)("import_user_as_person", {
         _user_id: userId,
         _employee_number: employeeNumber,
         _organization_id: currentOrganization?.id,
-      } as any);
+      });
 
       if (error) throw error;
 
