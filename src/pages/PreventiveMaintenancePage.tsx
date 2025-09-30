@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import PMKPICards from "@/components/pm/PMKPICards";
 import PMScheduleCard from "@/components/pm/PMScheduleCard";
+import { PMCalendarView } from "@/components/pm/PMCalendarView";
 import { usePMSchedules, useDeletePMSchedule, usePausePMSchedule, PMSchedule } from "@/hooks/usePMSchedules";
 
 // ============================================================================
@@ -221,15 +222,16 @@ const PreventiveMaintenancePage = () => {
           )}
         </TabsContent>
 
-        {/* Calendar View Tab Content (Coming Soon) */}
+        {/* Calendar View Tab Content */}
         <TabsContent value="calendar" className="py-6">
-          <div className="text-center py-12 bg-muted/30 rounded-lg">
-            <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Calendar View</h3>
-            <p className="text-muted-foreground">
-              Calendar view coming soon - visualize PM schedules on a calendar
-            </p>
-          </div>
+          <PMCalendarView
+            schedules={filteredSchedules || []}
+            onScheduleClick={(schedule) => handleView(schedule)}
+            onEdit={(id) => {
+              const schedule = schedules?.find(s => s.id === id);
+              if (schedule) handleEdit(schedule);
+            }}
+          />
         </TabsContent>
 
         {/* By Asset Tab Content (Coming Soon) */}
