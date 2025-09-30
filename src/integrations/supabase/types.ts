@@ -1889,6 +1889,51 @@ export type Database = {
           },
         ]
       }
+      pm_schedule_assignments: {
+        Row: {
+          assigned_person_id: string
+          assignment_role: string | null
+          created_at: string
+          id: string
+          organization_id: string
+          pm_schedule_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_person_id: string
+          assignment_role?: string | null
+          created_at?: string
+          id?: string
+          organization_id: string
+          pm_schedule_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_person_id?: string
+          assignment_role?: string | null
+          created_at?: string
+          id?: string
+          organization_id?: string
+          pm_schedule_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pm_schedule_assignments_assigned_person_id_fkey"
+            columns: ["assigned_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_schedule_assignments_pm_schedule_id_fkey"
+            columns: ["pm_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "pm_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pm_schedule_history: {
         Row: {
           completed_date: string | null

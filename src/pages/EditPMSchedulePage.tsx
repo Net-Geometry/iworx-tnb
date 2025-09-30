@@ -710,7 +710,7 @@ const EditPMSchedulePage = () => {
             <TabsContent value="planned" className="space-y-6">
               <PMPlannedTab
                 assetId={form.watch("asset_id")}
-                assignedPersonId={form.watch("assigned_to")}
+                assignedPersonIds={form.watch("assigned_to") ? [form.watch("assigned_to")] : []}
                 estimatedDurationHours={form.watch("estimated_duration_hours") || 0}
                 onCostUpdate={(costs) => {
                   form.setValue("estimated_material_cost", costs.materialCost);

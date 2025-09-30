@@ -11,14 +11,14 @@ import { PMCostSummary } from "./PMCostSummary";
 
 interface PMPlannedTabProps {
   assetId?: string;
-  assignedPersonId?: string;
+  assignedPersonIds?: string[];
   estimatedDurationHours?: number;
   onCostUpdate?: (costs: { materialCost: number; laborCost: number; totalCost: number }) => void;
 }
 
 export const PMPlannedTab = ({ 
   assetId, 
-  assignedPersonId, 
+  assignedPersonIds, 
   estimatedDurationHours,
   onCostUpdate 
 }: PMPlannedTabProps) => {
@@ -56,7 +56,7 @@ export const PMPlannedTab = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Labor Planning Section */}
         <PMLaborPlanning
-          assignedPersonId={assignedPersonId}
+          assignedPersonIds={assignedPersonIds}
           estimatedDurationHours={estimatedDurationHours}
           onLaborCostChange={handleLaborCostChange}
         />

@@ -39,12 +39,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { PMScheduleInsert, useCreatePMSchedule } from "@/hooks/usePMSchedules";
+import { useBulkUpdatePMScheduleAssignments } from "@/hooks/usePMScheduleAssignments";
 import { useAssets } from "@/hooks/useAssets";
 import { useJobPlans } from "@/hooks/useJobPlans";
 import { usePeople } from "@/hooks/usePeople";
@@ -69,7 +72,7 @@ const pmScheduleSchema = z.object({
   frequency_unit: z.enum(['days', 'weeks', 'months', 'years']).optional(),
   start_date: z.date({ required_error: "Start date is required" }),
   lead_time_days: z.coerce.number().min(0, "Lead time must be 0 or greater"),
-  assigned_to: z.string().optional(),
+  assigned_person_ids: z.array(z.string()).default([]),
   priority: z.enum(['low', 'medium', 'high']),
   estimated_duration_hours: z.coerce.number().optional(),
   auto_generate_wo: z.boolean(),
@@ -89,6 +92,7 @@ const CreatePMSchedulePage = () => {
   const navigate = useNavigate();
   const { currentOrganization } = useAuth();
   const createPMSchedule = useCreatePMSchedule();
+  const bulkUpdateAssignments = useBulkUpdatePMScheduleAssignments();
   
   // Data hooks for dropdown selections
   const { assets } = useAssets();
@@ -109,7 +113,7 @@ const CreatePMSchedulePage = () => {
       frequency_unit: "months",
       start_date: new Date(),
       lead_time_days: 7,
-      assigned_to: "",
+      assigned_person_ids: [],
       priority: "medium",
       estimated_duration_hours: undefined,
       auto_generate_wo: true,
@@ -135,7 +139,7 @@ const CreatePMSchedulePage = () => {
         frequency_unit: values.frequency_unit,
         start_date: format(values.start_date, 'yyyy-MM-dd'),
         lead_time_days: values.lead_time_days,
-        assigned_to: values.assigned_to,
+        assigned_to: values.assigned_person_ids?.[0] || null,
         priority: values.priority,
         estimated_duration_hours: values.estimated_duration_hours,
         auto_generate_wo: values.auto_generate_wo,
@@ -144,7 +148,15 @@ const CreatePMSchedulePage = () => {
         organization_id: currentOrganization!.id,
       };
 
-      await createPMSchedule.mutateAsync(scheduleData);
+      const newSchedule = await createPMSchedule.mutateAsync(scheduleData);
+      
+      // Handle multi-user assignments
+      if (values.assigned_person_ids && values.assigned_person_ids.length > 0) {
+        await bulkUpdateAssignments.mutateAsync({
+          scheduleId: newSchedule.id,
+          assignedPersonIds: values.assigned_person_ids,
+        });
+      }
       
       toast({
         title: "Success",
@@ -562,24 +574,32 @@ const CreatePMSchedulePage = () => {
                   <CardContent>
                     <FormField
                       control={form.control}
-                      name="assigned_to"
+                      name="assigned_person_ids"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Assigned Person (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select person" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {people?.map((person) => (
-                                <SelectItem key={person.id} value={person.id}>
+                          <FormLabel>Assigned People (Multiple)</FormLabel>
+                          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                            {people?.map((person) => (
+                              <div key={person.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  checked={field.value?.includes(person.id)}
+                                  onCheckedChange={(checked) => {
+                                    const currentValue = field.value || [];
+                                    if (checked) {
+                                      field.onChange([...currentValue, person.id]);
+                                    } else {
+                                      field.onChange(currentValue.filter((id) => id !== person.id));
+                                    }
+                                  }}
+                                />
+                                <Label className="text-sm font-normal cursor-pointer">
                                   {person.first_name} {person.last_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                                  {person.job_title && ` - ${person.job_title}`}
+                                  {person.employee_number && ` (${person.employee_number})`}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -650,7 +670,7 @@ const CreatePMSchedulePage = () => {
             <TabsContent value="planned" className="space-y-6">
               <PMPlannedTab
                 assetId={form.watch("asset_id")}
-                assignedPersonId={form.watch("assigned_to")}
+                assignedPersonIds={form.watch("assigned_person_ids") || []}
                 estimatedDurationHours={form.watch("estimated_duration_hours") || 0}
                 onCostUpdate={(costs) => {
                   form.setValue("estimated_material_cost", costs.materialCost);

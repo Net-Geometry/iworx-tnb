@@ -1,36 +1,42 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { Users, Clock } from "lucide-react";
 import { usePeople } from "@/hooks/usePeople";
+import { useEffect } from "react";
 
 /**
  * PMLaborPlanning Component
- * Displays labor planning information including time and cost estimation
+ * Displays labor planning information including time and cost estimation for multiple assigned people
  */
 
 interface PMLaborPlanningProps {
-  assignedPersonId?: string;
+  assignedPersonIds?: string[];
   estimatedDurationHours?: number;
   onLaborCostChange?: (cost: number) => void;
 }
 
 export const PMLaborPlanning = ({ 
-  assignedPersonId, 
+  assignedPersonIds = [], 
   estimatedDurationHours = 0,
   onLaborCostChange 
 }: PMLaborPlanningProps) => {
   const { people } = usePeople();
   
-  const assignedPerson = people.find(p => p.id === assignedPersonId);
-  const hourlyRate = assignedPerson?.hourly_rate || 0;
-  const laborCost = estimatedDurationHours * hourlyRate;
+  // Find all assigned people
+  const assignedPeople = people.filter(p => assignedPersonIds.includes(p.id));
+  
+  // Calculate total hourly rate (sum of all assigned people's rates)
+  const totalHourlyRate = assignedPeople.reduce((sum, person) => sum + (person.hourly_rate || 0), 0);
+  const laborCost = estimatedDurationHours * totalHourlyRate;
 
-  // Notify parent of labor cost
-  if (onLaborCostChange && laborCost > 0) {
-    onLaborCostChange(laborCost);
-  }
+  // Notify parent of labor cost changes
+  useEffect(() => {
+    if (onLaborCostChange && laborCost > 0) {
+      onLaborCostChange(laborCost);
+    }
+  }, [laborCost, onLaborCostChange]);
 
   return (
     <Card>
@@ -41,33 +47,38 @@ export const PMLaborPlanning = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Assigned Person Info */}
-        <div className="space-y-2">
-          <Label>Assigned Person</Label>
-          <div className="p-3 rounded-lg bg-muted">
-            {assignedPerson ? (
-              <div className="space-y-1">
-                <div className="font-medium">
-                  {assignedPerson.first_name} {assignedPerson.last_name}
+        {/* Assigned People Info */}
+        {assignedPeople.length > 0 ? (
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold">
+              Assigned People ({assignedPeople.length})
+            </Label>
+            <div className="space-y-2 max-h-[200px] overflow-y-auto">
+              {assignedPeople.map((person) => (
+                <div key={person.id} className="p-3 bg-muted rounded-lg">
+                  <div className="font-medium">
+                    {person.first_name} {person.last_name}
+                  </div>
+                  {person.job_title && (
+                    <div className="text-sm text-muted-foreground">{person.job_title}</div>
+                  )}
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>Emp #: {person.employee_number}</span>
+                    {person.hourly_rate && (
+                      <span className="font-medium">${person.hourly_rate}/hr</span>
+                    )}
+                  </div>
                 </div>
-                {assignedPerson.job_title && (
-                  <div className="text-sm text-muted-foreground">
-                    {assignedPerson.job_title}
-                  </div>
-                )}
-                {assignedPerson.employee_number && (
-                  <div className="text-xs text-muted-foreground">
-                    Employee #: {assignedPerson.employee_number}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-sm text-muted-foreground">
-                No person assigned
-              </div>
-            )}
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground">
+            No people assigned to this schedule
+          </div>
+        )}
+
+        <Separator />
 
         {/* Time Estimation */}
         <div className="grid grid-cols-2 gap-4">
@@ -84,10 +95,10 @@ export const PMLaborPlanning = ({
             />
           </div>
           <div className="space-y-2">
-            <Label>Hourly Rate</Label>
+            <Label>Total Hourly Rate</Label>
             <Input
               type="number"
-              value={hourlyRate}
+              value={totalHourlyRate.toFixed(2)}
               disabled
               className="bg-muted"
               placeholder="Not set"
@@ -103,27 +114,17 @@ export const PMLaborPlanning = ({
               ${laborCost.toFixed(2)}
             </span>
           </div>
-          {!hourlyRate && assignedPerson && (
+          {assignedPeople.length === 0 && (
             <p className="text-xs text-muted-foreground mt-2">
-              ⚠️ Hourly rate not set for this person
+              Assign people to calculate labor cost
             </p>
           )}
-          {!assignedPerson && (
-            <p className="text-xs text-muted-foreground mt-2">
-              Assign a person to calculate labor cost
+          {assignedPeople.length > 0 && totalHourlyRate === 0 && (
+            <p className="text-xs text-amber-600 mt-2">
+              ⚠️ No hourly rates set for assigned people
             </p>
           )}
         </div>
-
-        {/* Department Info */}
-        {assignedPerson?.department && (
-          <div className="space-y-2">
-            <Label>Department</Label>
-            <div className="p-2 rounded-lg bg-muted text-sm">
-              {assignedPerson.department}
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
