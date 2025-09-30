@@ -1387,6 +1387,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           certifications?: string[] | null
@@ -1400,13 +1401,14 @@ export type Database = {
           first_name: string
           hire_date?: string | null
           hourly_rate?: number | null
-          id: string
+          id?: string
           is_active?: boolean | null
           job_title?: string | null
           last_name: string
           notes?: string | null
           phone?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           certifications?: string[] | null
@@ -1427,11 +1429,19 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "people_id_fkey"
             columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "people_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2175,6 +2185,10 @@ export type Database = {
           | { _role: Database["public"]["Enums"]["app_role"]; _user_id: string }
           | { _role_name: string; _user_id: string }
         Returns: boolean
+      }
+      import_user_as_person: {
+        Args: { _employee_number: string; _user_id: string }
+        Returns: string
       }
     }
     Enums: {

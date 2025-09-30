@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export interface Person {
   id: string;
+  user_id?: string;
   employee_number: string;
   first_name: string;
   last_name: string;
