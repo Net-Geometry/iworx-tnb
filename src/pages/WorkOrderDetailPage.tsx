@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useWorkOrders } from '@/hooks/useWorkOrders';
+import { usePMSchedule } from '@/hooks/usePMSchedules';
+import { useJobPlan } from '@/hooks/useJobPlans';
+import { usePMScheduleAssignments } from '@/hooks/usePMScheduleAssignments';
+import { usePMScheduleMaterials } from '@/hooks/usePMScheduleMaterials';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -20,7 +24,14 @@ import {
   FileText,
   CheckCircle2,
   XCircle,
-  Package
+  Package,
+  ClipboardList,
+  Shield,
+  Users,
+  HardHat,
+  FileCheck,
+  ExternalLink,
+  Zap
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -29,7 +40,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { WorkOrderForm } from '@/components/work-orders/WorkOrderForm';
 
-// Asset and PM Schedule interfaces
+import type { Database } from '@/integrations/supabase/types';
+
+// Asset and Safety Precaution interfaces
 interface Asset {
   id: string;
   name: string;
@@ -42,13 +55,7 @@ interface Asset {
   };
 }
 
-interface PMSchedule {
-  id: string;
-  title: string;
-  frequency_type?: string;
-  frequency_value?: number;
-  status?: string;
-}
+type SafetyPrecaution = Database['public']['Tables']['safety_precautions']['Row'];
 
 /**
  * WorkOrderDetailPage - Dedicated page for viewing work order details
@@ -61,14 +68,26 @@ const WorkOrderDetailPage: React.FC = () => {
   const { toast } = useToast();
   const { workOrders, loading, updateWorkOrder } = useWorkOrders();
   const [asset, setAsset] = useState<Asset | null>(null);
-  const [pmSchedule, setPMSchedule] = useState<PMSchedule | null>(null);
+  const [safetyPrecautions, setSafetyPrecautions] = useState<SafetyPrecaution[]>([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
 
   const workOrder = workOrders.find(wo => wo.id === id);
+  
+  // Fetch PM Schedule details if work order is linked to one
+  const { data: pmSchedule } = usePMSchedule(workOrder?.pm_schedule_id || '');
+  
+  // Fetch job plan if PM schedule has one
+  const { data: jobPlan } = useJobPlan(pmSchedule?.job_plan_id || '');
+  
+  // Fetch PM schedule assignments
+  const { data: assignments } = usePMScheduleAssignments(workOrder?.pm_schedule_id);
+  
+  // Fetch PM schedule materials
+  const { data: materials } = usePMScheduleMaterials(workOrder?.pm_schedule_id);
 
-  // Fetch related asset and PM schedule details
+  // Fetch related asset and safety precautions details
   React.useEffect(() => {
     const fetchDetails = async () => {
       if (!workOrder) return;
@@ -88,16 +107,15 @@ const WorkOrderDetailPage: React.FC = () => {
           }
         }
 
-        // Fetch PM schedule details if pm_schedule_id exists
-        if (workOrder.pm_schedule_id) {
-          const { data: pmData, error: pmError } = await supabase
-            .from('pm_schedules')
-            .select('id, title, frequency_type, frequency_value, status')
-            .eq('id', workOrder.pm_schedule_id)
-            .single();
+        // Fetch safety precautions if PM schedule has them
+        if (pmSchedule?.safety_precaution_ids && pmSchedule.safety_precaution_ids.length > 0) {
+          const { data: precautionsData, error: precautionsError } = await supabase
+            .from('safety_precautions')
+            .select('*')
+            .in('id', pmSchedule.safety_precaution_ids);
 
-          if (!pmError && pmData) {
-            setPMSchedule(pmData);
+          if (!precautionsError && precautionsData) {
+            setSafetyPrecautions(precautionsData);
           }
         }
       } catch (error) {
@@ -108,7 +126,7 @@ const WorkOrderDetailPage: React.FC = () => {
     };
 
     fetchDetails();
-  }, [workOrder]);
+  }, [workOrder, pmSchedule]);
 
   // Handle status update
   const handleStatusUpdate = async (newStatus: "scheduled" | "in_progress" | "completed" | "cancelled") => {
@@ -517,68 +535,406 @@ const WorkOrderDetailPage: React.FC = () => {
         </TabsContent>
 
         {/* PM Schedule Tab */}
-        <TabsContent value="pm-schedule" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                PM Schedule
-              </CardTitle>
-              <CardDescription>Preventive maintenance schedule information</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loadingDetails ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-              ) : pmSchedule ? (
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2 flex-1">
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Schedule Title</label>
-                        <p className="text-sm text-foreground mt-1 font-medium">{pmSchedule.title}</p>
-                      </div>
-                      
-                      {pmSchedule.frequency_type && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Frequency</label>
-                          <p className="text-sm text-foreground mt-1">
-                            {pmSchedule.frequency_type} 
-                            {pmSchedule.frequency_value && ` - Every ${pmSchedule.frequency_value} ${pmSchedule.frequency_type}`}
-                          </p>
-                        </div>
-                      )}
-                      
-                      {pmSchedule.status && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Status</label>
-                          <div className="mt-1">
-                            <Badge variant="outline">{pmSchedule.status}</Badge>
-                          </div>
-                        </div>
-                      )}
+        <TabsContent value="pm-schedule" className="space-y-6">
+          {pmSchedule ? (
+            <>
+              {/* PM Schedule Basic Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    PM Schedule Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Schedule Number</p>
+                      <p className="font-medium">{pmSchedule.schedule_number}</p>
                     </div>
-                    
+                    <div>
+                      <p className="text-sm text-muted-foreground">Title</p>
+                      <p className="font-medium">{pmSchedule.title}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Status</p>
+                      <Badge variant={
+                        pmSchedule.status === 'active' ? 'default' : 
+                        pmSchedule.status === 'paused' ? 'secondary' : 
+                        'outline'
+                      }>
+                        {pmSchedule.status}
+                      </Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Frequency</p>
+                      <p className="font-medium">
+                        Every {pmSchedule.frequency_value} {pmSchedule.frequency_type}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Priority</p>
+                      {getPriorityBadge(pmSchedule.priority || 'medium')}
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Next Due Date</p>
+                      <p className="font-medium">{formatDate(pmSchedule.next_due_date)}</p>
+                    </div>
+                  </div>
+                  {pmSchedule.description && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Description</p>
+                      <p className="text-sm">{pmSchedule.description}</p>
+                    </div>
+                  )}
+                  <div className="flex gap-2 pt-2">
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => navigate(`/preventive-maintenance/edit/${pmSchedule.id}`)}
                     >
-                      View Schedule
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      View Full Schedule
                     </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">This work order was not generated from a PM schedule</p>
-                </div>
+                </CardContent>
+              </Card>
+
+              {/* Job Plan Details */}
+              {jobPlan && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ClipboardList className="h-5 w-5" />
+                      Job Plan: {jobPlan.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Job Plan Overview */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Job Plan Number</p>
+                        <p className="font-medium">{jobPlan.job_plan_number}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Type</p>
+                        <Badge variant="outline">{jobPlan.job_type}</Badge>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Estimated Duration</p>
+                        <p className="font-medium">{jobPlan.estimated_duration_hours}h</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Skill Level</p>
+                        <Badge variant="secondary">{jobPlan.skill_level_required}</Badge>
+                      </div>
+                    </div>
+
+                    {/* Tasks */}
+                    {jobPlan.tasks && jobPlan.tasks.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4" />
+                          Tasks ({jobPlan.tasks.length})
+                        </h4>
+                        <div className="space-y-2">
+                          {jobPlan.tasks.sort((a, b) => a.task_sequence - b.task_sequence).map((task, idx) => (
+                            <div key={task.id} className="border rounded-lg p-3">
+                              <div className="flex items-start gap-3">
+                                <Badge variant="outline" className="mt-0.5">{idx + 1}</Badge>
+                                <div className="flex-1">
+                                  <p className="font-medium">{task.task_title}</p>
+                                  {task.task_description && (
+                                    <p className="text-sm text-muted-foreground mt-1">{task.task_description}</p>
+                                  )}
+                                  <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                                    {task.estimated_duration_minutes && (
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        {task.estimated_duration_minutes} min
+                                      </span>
+                                    )}
+                                    {task.skill_required && (
+                                      <span className="flex items-center gap-1">
+                                        <User className="h-3 w-3" />
+                                        {task.skill_required}
+                                      </span>
+                                    )}
+                                    {task.is_critical_step && (
+                                      <Badge variant="destructive" className="h-5">Critical</Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tools */}
+                    {jobPlan.tools && jobPlan.tools.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2">
+                          <Wrench className="h-4 w-4" />
+                          Required Tools ({jobPlan.tools.length})
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {jobPlan.tools.map((tool) => (
+                            <div key={tool.id} className="border rounded p-2 flex items-start gap-2">
+                              <Wrench className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                              <div className="flex-1">
+                                <p className="font-medium text-sm">{tool.tool_name}</p>
+                                <p className="text-xs text-muted-foreground">Qty: {tool.quantity_required}</p>
+                                {tool.is_specialized_tool && (
+                                  <Badge variant="outline" className="mt-1 h-5 text-xs">Specialized</Badge>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Parts */}
+                    {jobPlan.parts && jobPlan.parts.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2">
+                          <Package className="h-4 w-4" />
+                          Required Parts ({jobPlan.parts.length})
+                        </h4>
+                        <div className="space-y-2">
+                          {jobPlan.parts.map((part) => (
+                            <div key={part.id} className="border rounded p-3 flex items-start justify-between">
+                              <div className="flex-1">
+                                <p className="font-medium">{part.part_name}</p>
+                                {part.part_number && (
+                                  <p className="text-sm text-muted-foreground">PN: {part.part_number}</p>
+                                )}
+                                <p className="text-xs text-muted-foreground mt-1">Qty: {part.quantity_required}</p>
+                              </div>
+                              {part.is_critical_part && (
+                                <Badge variant="destructive">Critical</Badge>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Documents */}
+                    {jobPlan.documents && jobPlan.documents.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2">
+                          <FileCheck className="h-4 w-4" />
+                          Documents & Procedures ({jobPlan.documents.length})
+                        </h4>
+                        <div className="space-y-2">
+                          {jobPlan.documents.map((doc) => (
+                            <div key={doc.id} className="border rounded p-2 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-muted-foreground" />
+                                <div>
+                                  <p className="font-medium text-sm">{doc.document_name}</p>
+                                  <p className="text-xs text-muted-foreground">{doc.document_type}</p>
+                                </div>
+                              </div>
+                              {doc.is_required && (
+                                <Badge variant="outline">Required</Badge>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate(`/job-plans?id=${jobPlan.id}`)}
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      View Complete Job Plan
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
-            </CardContent>
-          </Card>
+
+              {/* Safety Precautions */}
+              {safetyPrecautions.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Shield className="h-5 w-5" />
+                      Safety Precautions ({safetyPrecautions.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {safetyPrecautions.map((precaution) => (
+                        <div key={precaution.id} className="border rounded-lg p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <HardHat className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">{precaution.precaution_code}</span>
+                            </div>
+                            <Badge variant={
+                              precaution.severity_level === 'critical' ? 'destructive' :
+                              precaution.severity_level === 'high' ? 'default' :
+                              precaution.severity_level === 'medium' ? 'secondary' :
+                              'outline'
+                            }>
+                              {precaution.severity_level}
+                            </Badge>
+                          </div>
+                          <p className="text-sm mb-2">{precaution.description}</p>
+                          {precaution.required_actions && (
+                            <div className="bg-muted/50 rounded p-2 mt-2">
+                              <p className="text-xs font-medium text-muted-foreground mb-1">Required Actions:</p>
+                              <p className="text-sm">{precaution.required_actions}</p>
+                            </div>
+                          )}
+                          <Badge variant="outline" className="mt-2">{precaution.category}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Assigned Personnel */}
+              {assignments && assignments.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Assigned Personnel ({assignments.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {assignments.map((assignment) => (
+                        <div key={assignment.id} className="flex items-center justify-between border rounded p-3">
+                          <div className="flex items-center gap-3">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <p className="font-medium">
+                                {assignment.person?.first_name} {assignment.person?.last_name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {assignment.person?.job_title || 'Technician'}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge variant={assignment.assignment_role === 'primary' ? 'default' : 'secondary'}>
+                            {assignment.assignment_role}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Planned Materials */}
+              {materials && materials.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Package className="h-5 w-5" />
+                      Planned Materials ({materials.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {materials.map((material) => (
+                        <div key={material.id} className="border rounded p-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="font-medium">{material.bom_items?.item_name}</p>
+                              {material.bom_items?.item_number && (
+                                <p className="text-sm text-muted-foreground">
+                                  Item #: {material.bom_items.item_number}
+                                </p>
+                              )}
+                              <div className="flex gap-4 mt-2 text-sm">
+                                <span>Qty: {material.planned_quantity}</span>
+                                {material.estimated_unit_cost && (
+                                  <span className="text-muted-foreground">
+                                    Cost: {formatCurrency(Number(material.estimated_unit_cost) * Number(material.planned_quantity))}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="border-t pt-3 mt-3">
+                        <div className="flex justify-between font-semibold">
+                          <span>Total Material Cost:</span>
+                          <span>
+                            {formatCurrency(
+                              materials.reduce((sum, m) => sum + (Number(m.estimated_unit_cost || 0) * Number(m.planned_quantity)), 0)
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Cost Summary from Materials */}
+              {materials && materials.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <DollarSign className="h-5 w-5" />
+                      Estimated Cost Summary
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Material Cost:</span>
+                        <span className="font-medium">
+                          {formatCurrency(
+                            materials.reduce((sum, m) => sum + (Number(m.estimated_unit_cost || 0) * Number(m.planned_quantity)), 0)
+                          )}
+                        </span>
+                      </div>
+                      {pmSchedule.estimated_duration_hours && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Estimated Duration:</span>
+                          <span className="font-medium">{pmSchedule.estimated_duration_hours} hours</span>
+                        </div>
+                      )}
+                      {workOrder.estimated_cost && (
+                        <>
+                          <Separator />
+                          <div className="flex justify-between font-semibold text-lg">
+                            <span>Work Order Budget:</span>
+                            <span>{formatCurrency(workOrder.estimated_cost)}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          ) : (
+            <Card>
+              <CardContent className="py-8">
+                <div className="text-center">
+                  <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">
+                    This work order was not generated from a PM schedule
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* Tasks & Notes Tab */}
