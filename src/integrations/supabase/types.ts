@@ -1367,6 +1367,140 @@ export type Database = {
         }
         Relationships: []
       }
+      people: {
+        Row: {
+          certifications: string[] | null
+          created_at: string | null
+          department: string | null
+          email: string | null
+          employee_number: string
+          employment_status:
+            | Database["public"]["Enums"]["employment_status"]
+            | null
+          first_name: string
+          hire_date: string | null
+          hourly_rate: number | null
+          id: string
+          is_active: boolean | null
+          job_title: string | null
+          last_name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          certifications?: string[] | null
+          created_at?: string | null
+          department?: string | null
+          email?: string | null
+          employee_number: string
+          employment_status?:
+            | Database["public"]["Enums"]["employment_status"]
+            | null
+          first_name: string
+          hire_date?: string | null
+          hourly_rate?: number | null
+          id: string
+          is_active?: boolean | null
+          job_title?: string | null
+          last_name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          certifications?: string[] | null
+          created_at?: string | null
+          department?: string | null
+          email?: string | null
+          employee_number?: string
+          employment_status?:
+            | Database["public"]["Enums"]["employment_status"]
+            | null
+          first_name?: string
+          hire_date?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          job_title?: string | null
+          last_name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "people_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      person_skills: {
+        Row: {
+          certification_date: string | null
+          certification_expiry: string | null
+          certified: boolean | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          person_id: string
+          proficiency_level:
+            | Database["public"]["Enums"]["proficiency_level"]
+            | null
+          skill_id: string
+          updated_at: string | null
+          years_experience: number | null
+        }
+        Insert: {
+          certification_date?: string | null
+          certification_expiry?: string | null
+          certified?: boolean | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          person_id: string
+          proficiency_level?:
+            | Database["public"]["Enums"]["proficiency_level"]
+            | null
+          skill_id: string
+          updated_at?: string | null
+          years_experience?: number | null
+        }
+        Update: {
+          certification_date?: string | null
+          certification_expiry?: string | null
+          certified?: boolean | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          person_id?: string
+          proficiency_level?:
+            | Database["public"]["Enums"]["proficiency_level"]
+            | null
+          skill_id?: string
+          updated_at?: string | null
+          years_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_skills_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1768,6 +1902,42 @@ export type Database = {
         }
         Relationships: []
       }
+      skills: {
+        Row: {
+          category: Database["public"]["Enums"]["skill_category"] | null
+          certification_required: boolean | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          skill_code: string
+          skill_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["skill_category"] | null
+          certification_required?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          skill_code: string
+          skill_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["skill_category"] | null
+          certification_required?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          skill_code?: string
+          skill_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       suppliers: {
         Row: {
           address: string | null
@@ -1818,6 +1988,98 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      team_members: {
+        Row: {
+          assigned_date: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          person_id: string
+          role_in_team: Database["public"]["Enums"]["team_role"] | null
+          team_id: string
+        }
+        Insert: {
+          assigned_date?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          person_id: string
+          role_in_team?: Database["public"]["Enums"]["team_role"] | null
+          team_id: string
+        }
+        Update: {
+          assigned_date?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          person_id?: string
+          role_in_team?: Database["public"]["Enums"]["team_role"] | null
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          shift: Database["public"]["Enums"]["team_shift"] | null
+          team_code: string
+          team_leader_id: string | null
+          team_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          shift?: Database["public"]["Enums"]["team_shift"] | null
+          team_code: string
+          team_leader_id?: string | null
+          team_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          shift?: Database["public"]["Enums"]["team_shift"] | null
+          team_code?: string
+          team_leader_id?: string | null
+          team_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_team_leader_id_fkey"
+            columns: ["team_leader_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -1922,6 +2184,7 @@ export type Database = {
       bom_type: "manufacturing" | "maintenance" | "spare_parts"
       capa_status: "open" | "in_progress" | "completed" | "overdue" | "closed"
       document_type: "manual" | "schematic" | "checklist" | "image" | "video"
+      employment_status: "active" | "inactive" | "on_leave" | "terminated"
       frequency_type: "time_based" | "usage_based" | "condition_based"
       incident_severity: "low" | "medium" | "high" | "critical"
       incident_status: "reported" | "investigating" | "resolved" | "closed"
@@ -1935,8 +2198,20 @@ export type Database = {
       loto_status: "draft" | "approved" | "active" | "expired" | "archived"
       precaution_severity: "critical" | "high" | "medium" | "low"
       precaution_status: "active" | "under_review" | "archived"
+      proficiency_level: "beginner" | "intermediate" | "advanced" | "expert"
       risk_level: "very_low" | "low" | "medium" | "high" | "very_high"
+      skill_category:
+        | "mechanical"
+        | "electrical"
+        | "plumbing"
+        | "hvac"
+        | "instrumentation"
+        | "safety"
+        | "software"
+        | "other"
       skill_level: "basic" | "intermediate" | "advanced" | "specialist"
+      team_role: "leader" | "member" | "supervisor"
+      team_shift: "day" | "night" | "swing" | "rotating"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2070,6 +2345,7 @@ export const Constants = {
       bom_type: ["manufacturing", "maintenance", "spare_parts"],
       capa_status: ["open", "in_progress", "completed", "overdue", "closed"],
       document_type: ["manual", "schematic", "checklist", "image", "video"],
+      employment_status: ["active", "inactive", "on_leave", "terminated"],
       frequency_type: ["time_based", "usage_based", "condition_based"],
       incident_severity: ["low", "medium", "high", "critical"],
       incident_status: ["reported", "investigating", "resolved", "closed"],
@@ -2084,8 +2360,21 @@ export const Constants = {
       loto_status: ["draft", "approved", "active", "expired", "archived"],
       precaution_severity: ["critical", "high", "medium", "low"],
       precaution_status: ["active", "under_review", "archived"],
+      proficiency_level: ["beginner", "intermediate", "advanced", "expert"],
       risk_level: ["very_low", "low", "medium", "high", "very_high"],
+      skill_category: [
+        "mechanical",
+        "electrical",
+        "plumbing",
+        "hvac",
+        "instrumentation",
+        "safety",
+        "software",
+        "other",
+      ],
       skill_level: ["basic", "intermediate", "advanced", "specialist"],
+      team_role: ["leader", "member", "supervisor"],
+      team_shift: ["day", "night", "swing", "rotating"],
     },
   },
 } as const

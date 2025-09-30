@@ -24,6 +24,9 @@ import {
   CheckCircle,
   BookOpen,
   UserPlus,
+  Users,
+  UserCheck,
+  GraduationCap,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -131,6 +134,14 @@ const inventorySubModules = [
   { title: "Reports", url: "/inventory/reports", icon: FileBarChart },
 ];
 
+// People & Labor modules
+const peopleAndLaborModules = [
+  { title: "People & Labor Overview", url: "/people-labor", icon: Users },
+  { title: "People Management", url: "/people-labor/people", icon: UserCheck },
+  { title: "Teams & Groups", url: "/people-labor/teams", icon: Users },
+  { title: "Skills Library", url: "/people-labor/skills", icon: GraduationCap },
+];
+
 // System Administration modules
 const systemAdminModules = [
   { title: "System Settings", url: "/admin/settings", icon: Settings },
@@ -155,6 +166,7 @@ export function AppSidebar() {
   const isPlatformExpanded = platformModules.some((item) => isActive(item.url));
   const isInventoryExpanded = currentPath.startsWith('/inventory');
   const isSafetyExpanded = currentPath.startsWith('/safety');
+  const isPeopleAndLaborExpanded = currentPath.startsWith('/people-labor');
   const isAdminExpanded = currentPath.startsWith('/admin');
 
   return (
@@ -352,6 +364,41 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {inventorySubModules.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.url)}
+                        tooltip={state === "collapsed" ? item.title : undefined}
+                      >
+                        <NavLink to={item.url}>
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+
+        {/* People & Labor */}
+        <Collapsible defaultOpen={isPeopleAndLaborExpanded} className="group/collapsible">
+          <SidebarGroup>
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  People & Labor
+                </div>
+                <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {peopleAndLaborModules.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild

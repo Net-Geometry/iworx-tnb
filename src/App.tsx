@@ -44,6 +44,10 @@ import SystemSettingsPage from "./pages/admin/SystemSettingsPage";
 import UserRegistrationPage from "./pages/admin/UserRegistrationPage";
 import RoleManagementPage from "./pages/admin/RoleManagementPage";
 import RoleFormPage from "./pages/admin/RoleFormPage";
+import PeopleLaborPage from "./pages/people-labor/PeopleLaborPage";
+import PeopleManagementPage from "./pages/people-labor/PeopleManagementPage";
+import TeamsManagementPage from "./pages/people-labor/TeamsManagementPage";
+import SkillsLibraryPage from "./pages/people-labor/SkillsLibraryPage";
 
 const queryClient = new QueryClient();
 
@@ -254,6 +258,36 @@ const App = () => (
                     </Layout>
                   </AuthGuard>
                 } />
+
+            {/* People & Labor Routes */}
+            <Route path="/people-labor" element={
+              <AuthGuard>
+                <Layout>
+                  <PeopleLaborPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/people-labor/people" element={
+              <AuthGuard>
+                <Layout>
+                  <PeopleManagementPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/people-labor/teams" element={
+              <AuthGuard>
+                <Layout>
+                  <TeamsManagementPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/people-labor/skills" element={
+              <AuthGuard>
+                <Layout>
+                  <SkillsLibraryPage />
+                </Layout>
+              </AuthGuard>
+            } />
 
             {/* System Administration Routes */}
             <Route path="/admin/settings" element={
