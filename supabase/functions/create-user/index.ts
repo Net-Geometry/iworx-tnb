@@ -20,7 +20,7 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { email, password, displayName, roleId } = await req.json();
+    const { email, password, displayName, roleId, organizationIds } = await req.json();
 
     // Validate required fields
     if (!email || !password || !roleId) {
@@ -82,6 +82,46 @@ serve(async (req) => {
     }
 
     console.log('Role assigned successfully');
+
+    // Assign user to organizations
+    if (organizationIds && Array.isArray(organizationIds) && organizationIds.length > 0) {
+      for (const orgId of organizationIds) {
+        const { error: orgError } = await supabaseAdmin
+          .from('user_organizations')
+          .insert({
+            user_id: authData.user.id,
+            organization_id: orgId
+          });
+
+        if (orgError) {
+          console.error('Organization assignment error:', orgError);
+          throw orgError;
+        }
+      }
+      console.log('Organizations assigned successfully');
+    } else {
+      // Default to MSMS if no organizations specified
+      const { data: msmsOrg, error: msmsError } = await supabaseAdmin
+        .from('organizations')
+        .select('id')
+        .eq('code', 'MSMS')
+        .single();
+
+      if (!msmsError && msmsOrg) {
+        const { error: orgError } = await supabaseAdmin
+          .from('user_organizations')
+          .insert({
+            user_id: authData.user.id,
+            organization_id: msmsOrg.id
+          });
+
+        if (orgError) {
+          console.error('Default organization assignment error:', orgError);
+        } else {
+          console.log('Assigned to default MSMS organization');
+        }
+      }
+    }
 
     return new Response(
       JSON.stringify({ 

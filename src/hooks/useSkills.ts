@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface Skill {
   id: string;
@@ -10,6 +11,7 @@ export interface Skill {
   description?: string;
   certification_required: boolean;
   is_active: boolean;
+  organization_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -17,25 +19,37 @@ export interface Skill {
 export const useSkills = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
 
   const { data: skills = [], isLoading } = useQuery({
-    queryKey: ["skills"],
+    queryKey: ["skills", currentOrganization?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("skills")
         .select("*")
         .order("skill_name");
 
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq("organization_id", currentOrganization.id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as Skill[];
     },
+    enabled: !!currentOrganization || hasCrossProjectAccess,
   });
 
   const createSkill = useMutation({
     mutationFn: async (skillData: Partial<Skill>) => {
+      const dataWithOrg = {
+        ...skillData,
+        organization_id: currentOrganization?.id,
+      };
+      
       const { data, error } = await supabase
         .from("skills")
-        .insert([skillData as any])
+        .insert([dataWithOrg as any])
         .select()
         .single();
 

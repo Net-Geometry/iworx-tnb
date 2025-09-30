@@ -17,6 +17,7 @@ import { useRoles } from "@/hooks/useRoles";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { User, Briefcase, ShieldCheck, Lock, FileText, CheckCircle2, Circle, HelpCircle } from "lucide-react";
 
 const personSchema = z.object({
@@ -81,6 +82,7 @@ export function AddPersonDialog({ open, onOpenChange }: AddPersonDialogProps) {
   const { roles, isLoading: rolesLoading } = useRoles();
   const { assignRole } = useUserRoles();
   const { toast } = useToast();
+  const { currentOrganization } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -125,7 +127,8 @@ export function AddPersonDialog({ open, onOpenChange }: AddPersonDialogProps) {
             email: data.email,
             password: data.password,
             displayName: `${data.first_name} ${data.last_name}`,
-            roleId: data.roleId
+            roleId: data.roleId,
+            organizationIds: currentOrganization?.id ? [currentOrganization.id] : undefined,
           }
         });
 

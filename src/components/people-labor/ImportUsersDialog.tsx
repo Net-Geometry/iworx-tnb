@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ImportUsersDialogProps {
   open: boolean;
@@ -20,6 +21,7 @@ interface ImportUsersDialogProps {
 export function ImportUsersDialog({ open, onOpenChange, existingUserIds }: ImportUsersDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currentOrganization } = useAuth();
   const [importing, setImporting] = useState<string | null>(null);
   const [employeeNumbers, setEmployeeNumbers] = useState<Record<string, string>>({});
 
@@ -57,6 +59,7 @@ export function ImportUsersDialog({ open, onOpenChange, existingUserIds }: Impor
       const { error } = await supabase.rpc("import_user_as_person", {
         _user_id: userId,
         _employee_number: employeeNumber,
+        _organization_id: currentOrganization?.id,
       });
 
       if (error) throw error;

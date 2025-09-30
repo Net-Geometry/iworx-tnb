@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface Person {
   id: string;
@@ -18,6 +19,7 @@ export interface Person {
   certifications?: string[];
   notes?: string;
   is_active: boolean;
+  organization_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -25,25 +27,37 @@ export interface Person {
 export const usePeople = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
 
   const { data: people = [], isLoading } = useQuery({
-    queryKey: ["people"],
+    queryKey: ["people", currentOrganization?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("people")
         .select("*")
         .order("last_name");
 
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq("organization_id", currentOrganization.id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as Person[];
     },
+    enabled: !!currentOrganization || hasCrossProjectAccess,
   });
 
   const createPerson = useMutation({
     mutationFn: async (personData: Partial<Person>) => {
+      const dataWithOrg = {
+        ...personData,
+        organization_id: currentOrganization?.id,
+      };
+      
       const { data, error } = await supabase
         .from("people")
-        .insert([personData as any])
+        .insert([dataWithOrg as any])
         .select()
         .single();
 

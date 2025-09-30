@@ -1418,6 +1418,7 @@ export type Database = {
           job_title: string | null
           last_name: string
           notes: string | null
+          organization_id: string
           phone: string | null
           updated_at: string | null
           user_id: string | null
@@ -1439,6 +1440,7 @@ export type Database = {
           job_title?: string | null
           last_name: string
           notes?: string | null
+          organization_id: string
           phone?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -1460,11 +1462,19 @@ export type Database = {
           job_title?: string | null
           last_name?: string
           notes?: string | null
+          organization_id?: string
           phone?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "people_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "people_user_id_fkey"
             columns: ["user_id"]
@@ -1482,6 +1492,7 @@ export type Database = {
           created_at: string | null
           id: string
           notes: string | null
+          organization_id: string
           person_id: string
           proficiency_level:
             | Database["public"]["Enums"]["proficiency_level"]
@@ -1497,6 +1508,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           notes?: string | null
+          organization_id: string
           person_id: string
           proficiency_level?:
             | Database["public"]["Enums"]["proficiency_level"]
@@ -1512,6 +1524,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           notes?: string | null
+          organization_id?: string
           person_id?: string
           proficiency_level?:
             | Database["public"]["Enums"]["proficiency_level"]
@@ -1521,6 +1534,13 @@ export type Database = {
           years_experience?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "person_skills_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "person_skills_person_id_fkey"
             columns: ["person_id"]
@@ -1946,6 +1966,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean | null
+          organization_id: string
           skill_code: string
           skill_name: string
           updated_at: string | null
@@ -1957,6 +1978,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
+          organization_id: string
           skill_code: string
           skill_name: string
           updated_at?: string | null
@@ -1968,11 +1990,20 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
+          organization_id?: string
           skill_code?: string
           skill_name?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "skills_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppliers: {
         Row: {
@@ -2031,6 +2062,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_active: boolean | null
+          organization_id: string
           person_id: string
           role_in_team: Database["public"]["Enums"]["team_role"] | null
           team_id: string
@@ -2040,6 +2072,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          organization_id: string
           person_id: string
           role_in_team?: Database["public"]["Enums"]["team_role"] | null
           team_id: string
@@ -2049,11 +2082,19 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          organization_id?: string
           person_id?: string
           role_in_team?: Database["public"]["Enums"]["team_role"] | null
           team_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "team_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "team_members_person_id_fkey"
             columns: ["person_id"]
@@ -2077,6 +2118,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean | null
+          organization_id: string
           shift: Database["public"]["Enums"]["team_shift"] | null
           team_code: string
           team_leader_id: string | null
@@ -2089,6 +2131,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
+          organization_id: string
           shift?: Database["public"]["Enums"]["team_shift"] | null
           team_code: string
           team_leader_id?: string | null
@@ -2101,6 +2144,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
+          organization_id?: string
           shift?: Database["public"]["Enums"]["team_shift"] | null
           team_code?: string
           team_leader_id?: string | null
@@ -2108,6 +2152,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "teams_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "teams_team_leader_id_fkey"
             columns: ["team_leader_id"]
