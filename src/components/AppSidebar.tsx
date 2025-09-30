@@ -93,11 +93,6 @@ const moduleItems = [
     icon: Link,
   },
   {
-    title: "Safety & HSE",
-    url: "/safety",
-    icon: Shield,
-  },
-  {
     title: "Spatial Intelligence",
     url: "/spatial",
     icon: MapPin,
