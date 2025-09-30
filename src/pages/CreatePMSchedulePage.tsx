@@ -2,21 +2,22 @@
  * CreatePMSchedulePage
  * 
  * This page provides a dedicated interface for creating new preventive maintenance schedules.
- * Users can define schedule parameters, assign assets, set frequencies, and configure automation.
+ * Uses a tab-based layout for better organization and user experience.
  * 
  * Features:
+ * - Tab-based organization for complex form sections
  * - Form validation using react-hook-form and zod
  * - Asset and job plan selection
+ * - Safety precautions integration
  * - Flexible frequency configuration
  * - Assignment and notification settings
- * - Breadcrumb navigation
  */
 
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -50,6 +51,7 @@ import { usePeople } from "@/hooks/usePeople";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import SafetyPrecautionsSelector from "@/components/pm/SafetyPrecautionsSelector";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // ============================================================================
 // Form Validation Schema
@@ -162,7 +164,7 @@ const CreatePMSchedulePage = () => {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      {/* Page Header with Breadcrumb */}
+      {/* Page Header */}
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -179,444 +181,467 @@ const CreatePMSchedulePage = () => {
         </div>
       </div>
 
-      {/* Main Form */}
+      {/* Main Form with Tabs */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          
-          {/* Basic Information Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>
-                Essential details about the PM schedule
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="schedule_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Schedule Number</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="PM-001" />
-                    </FormControl>
-                    <FormDescription>
-                      Unique identifier for this PM schedule
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <Tabs defaultValue="details" className="w-full">
+            {/* Tab Navigation */}
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="details">Schedule Details</TabsTrigger>
+              <TabsTrigger value="asset">Asset & Job Plan</TabsTrigger>
+              <TabsTrigger value="safety">Safety & Frequency</TabsTrigger>
+              <TabsTrigger value="assignment">Assignment & Options</TabsTrigger>
+            </TabsList>
 
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Monthly Pump Inspection" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        {...field} 
-                        placeholder="Detailed description of the PM schedule"
-                        rows={4}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Priority</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select priority" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Asset & Job Plan Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Asset & Job Plan</CardTitle>
-              <CardDescription>
-                Link this schedule to an asset and optionally a job plan
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="asset_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Asset</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select asset" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {assets?.map((asset) => (
-                          <SelectItem key={asset.id} value={asset.id}>
-                            {asset.name} {asset.asset_number && `(${asset.asset_number})`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="job_plan_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Job Plan (Optional)</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select job plan" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {jobPlans?.map((plan) => (
-                          <SelectItem key={plan.id} value={plan.id}>
-                            {plan.title} ({plan.job_plan_number})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Optional: Link to a job plan for detailed procedures
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Safety Precautions Section (Optional) */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Safety Precautions (Optional)</CardTitle>
-              <CardDescription>
-                Select applicable safety precautions for this maintenance schedule
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name="safety_precaution_ids"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Safety Precautions</FormLabel>
-                    <FormControl>
-                      <SafetyPrecautionsSelector
-                        value={field.value || []}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      These precautions will be referenced when work orders are generated
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Frequency Configuration Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Frequency Configuration</CardTitle>
-              <CardDescription>
-                Define how often this maintenance should occur
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="frequency_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Frequency Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+            {/* Tab 1: Schedule Details */}
+            <TabsContent value="details">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Basic Information</CardTitle>
+                  <CardDescription>
+                    Essential details about the PM schedule
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="schedule_number"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Schedule Number</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
+                          <Input {...field} placeholder="PM-001" />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="daily">Daily</SelectItem>
-                          <SelectItem value="weekly">Weekly</SelectItem>
-                          <SelectItem value="monthly">Monthly</SelectItem>
-                          <SelectItem value="quarterly">Quarterly</SelectItem>
-                          <SelectItem value="yearly">Yearly</SelectItem>
-                          <SelectItem value="custom">Custom</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormDescription>
+                          Unique identifier for this PM schedule
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="frequency_value"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Interval Value</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="1" {...field} />
-                      </FormControl>
-                      <FormDescription>E.g., "3" for every 3 months</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Show frequency unit selector only for custom frequency */}
-              {form.watch('frequency_type') === 'custom' && (
-                <FormField
-                  control={form.control}
-                  name="frequency_unit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Frequency Unit</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select unit" />
-                          </SelectTrigger>
+                          <Input {...field} placeholder="Monthly Pump Inspection" />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="days">Days</SelectItem>
-                          <SelectItem value="weeks">Weeks</SelectItem>
-                          <SelectItem value="months">Months</SelectItem>
-                          <SelectItem value="years">Years</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-            </CardContent>
-          </Card>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-          {/* Scheduling Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Scheduling</CardTitle>
-              <CardDescription>
-                Configure when this maintenance should start and duration
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="start_date"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Start Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                            className={cn("p-3")}
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            {...field} 
+                            placeholder="Detailed description of the PM schedule"
+                            rows={4}
                           />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="lead_time_days"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Lead Time (days)</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="0" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Days before due date to generate work order
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="priority"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Priority</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select priority" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="low">Low</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="high">High</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Tab 2: Asset & Job Plan */}
+            <TabsContent value="asset">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Asset & Job Plan</CardTitle>
+                  <CardDescription>
+                    Link this schedule to an asset and optionally a job plan
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="asset_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Asset</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select asset" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {assets?.map((asset) => (
+                              <SelectItem key={asset.id} value={asset.id}>
+                                {asset.name} {asset.asset_number && `(${asset.asset_number})`}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="job_plan_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Job Plan (Optional)</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select job plan" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {jobPlans?.map((plan) => (
+                              <SelectItem key={plan.id} value={plan.id}>
+                                {plan.title} ({plan.job_plan_number})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Optional: Link to a job plan for detailed procedures
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Tab 3: Safety & Frequency */}
+            <TabsContent value="safety">
+              <div className="space-y-6">
+                {/* Safety Precautions */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Safety Precautions (Optional)</CardTitle>
+                    <CardDescription>
+                      Select applicable safety precautions for this maintenance schedule
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <FormField
+                      control={form.control}
+                      name="safety_precaution_ids"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Safety Precautions</FormLabel>
+                          <FormControl>
+                            <SafetyPrecautionsSelector
+                              value={field.value || []}
+                              onChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            These precautions will be referenced when work orders are generated
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Frequency Configuration */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Frequency Configuration</CardTitle>
+                    <CardDescription>
+                      Define how often this maintenance should occur
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="frequency_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Frequency Type</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="daily">Daily</SelectItem>
+                                <SelectItem value="weekly">Weekly</SelectItem>
+                                <SelectItem value="monthly">Monthly</SelectItem>
+                                <SelectItem value="quarterly">Quarterly</SelectItem>
+                                <SelectItem value="yearly">Yearly</SelectItem>
+                                <SelectItem value="custom">Custom</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="frequency_value"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Interval Value</FormLabel>
+                            <FormControl>
+                              <Input type="number" min="1" {...field} />
+                            </FormControl>
+                            <FormDescription>E.g., "3" for every 3 months</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Show frequency unit selector only for custom frequency */}
+                    {form.watch('frequency_type') === 'custom' && (
+                      <FormField
+                        control={form.control}
+                        name="frequency_unit"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Frequency Unit</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select unit" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="days">Days</SelectItem>
+                                <SelectItem value="weeks">Weeks</SelectItem>
+                                <SelectItem value="months">Months</SelectItem>
+                                <SelectItem value="years">Years</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Scheduling */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Scheduling</CardTitle>
+                    <CardDescription>
+                      Configure when this maintenance should start and duration
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="start_date"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Start Date</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "pl-3 text-left font-normal",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                  >
+                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={field.onChange}
+                                  initialFocus
+                                  className={cn("p-3")}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="lead_time_days"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Lead Time (days)</FormLabel>
+                            <FormControl>
+                              <Input type="number" min="0" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Days before due date to generate work order
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="estimated_duration_hours"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Estimated Duration (hours)</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="0" step="0.5" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Expected time to complete this maintenance
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
               </div>
+            </TabsContent>
 
-              <FormField
-                control={form.control}
-                name="estimated_duration_hours"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Estimated Duration (hours)</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" step="0.5" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Expected time to complete this maintenance
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+            {/* Tab 4: Assignment & Options */}
+            <TabsContent value="assignment">
+              <div className="space-y-6">
+                {/* Assignment */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Assignment</CardTitle>
+                    <CardDescription>
+                      Assign this schedule to a team member
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <FormField
+                      control={form.control}
+                      name="assigned_to"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Assigned Person (Optional)</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select person" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {people?.map((person) => (
+                                <SelectItem key={person.id} value={person.id}>
+                                  {person.first_name} {person.last_name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
 
-          {/* Assignment Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Assignment</CardTitle>
-              <CardDescription>
-                Assign this schedule to a team member
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name="assigned_to"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Assigned Person (Optional)</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select person" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {people?.map((person) => (
-                          <SelectItem key={person.id} value={person.id}>
-                            {person.first_name} {person.last_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+                {/* Settings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Settings</CardTitle>
+                    <CardDescription>
+                      Configure automation and notification preferences
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="auto_generate_wo"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">
+                              Auto-Generate Work Orders
+                            </FormLabel>
+                            <FormDescription>
+                              Automatically create work orders based on this schedule
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
 
-          {/* Settings Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Settings</CardTitle>
-              <CardDescription>
-                Configure automation and notification preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="auto_generate_wo"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">
-                        Auto-Generate Work Orders
-                      </FormLabel>
-                      <FormDescription>
-                        Automatically create work orders based on this schedule
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="notification_enabled"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">
-                        Enable Notifications
-                      </FormLabel>
-                      <FormDescription>
-                        Send notifications when work orders are due
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+                    <FormField
+                      control={form.control}
+                      name="notification_enabled"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">
+                              Enable Notifications
+                            </FormLabel>
+                            <FormDescription>
+                              Send notifications when work orders are due
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
 
           {/* Form Actions */}
           <div className="flex justify-end gap-4">
@@ -627,11 +652,11 @@ const CreatePMSchedulePage = () => {
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={createPMSchedule.isPending}
-            >
-              {createPMSchedule.isPending ? "Creating..." : "Create PM Schedule"}
+            <Button type="submit" disabled={createPMSchedule.isPending}>
+              {createPMSchedule.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Create PM Schedule
             </Button>
           </div>
         </form>
