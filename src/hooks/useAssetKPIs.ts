@@ -44,11 +44,18 @@ export function useAssetKPIs() {
         const thirtyDaysFromNow = new Date();
         thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-        const { data: workOrders, error: workOrdersError } = await supabase
+        let workOrdersQuery = supabase
           .from('work_orders')
           .select('id')
           .lte('scheduled_date', thirtyDaysFromNow.toISOString().split('T')[0])
           .in('status', ['scheduled', 'in_progress']);
+
+        // Filter by organization unless user has cross-project access
+        if (!hasCrossProjectAccess && currentOrganization) {
+          workOrdersQuery = workOrdersQuery.eq('organization_id', currentOrganization.id);
+        }
+
+        const { data: workOrders, error: workOrdersError } = await workOrdersQuery;
 
         if (workOrdersError) throw workOrdersError;
 

@@ -32,6 +32,7 @@ export interface WorkOrder {
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
   estimated_cost?: number;
   notes?: string;
+  organization_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -77,11 +78,17 @@ export const useAssetMaintenance = (assetId: string) => {
 
   const fetchUpcomingWorkOrders = async () => {
     try {
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('work_orders')
         .select('*')
         .eq('asset_id', assetId)
-        .in('status', ['scheduled', 'in_progress'])
+        .in('status', ['scheduled', 'in_progress']);
+
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq('organization_id', currentOrganization.id);
+      }
+
+      const { data, error: fetchError } = await query
         .order('scheduled_date', { ascending: true })
         .limit(10);
 
@@ -118,7 +125,7 @@ export const useAssetMaintenance = (assetId: string) => {
 
   useEffect(() => {
     fetchAll();
-  }, [assetId]);
+  }, [assetId, currentOrganization?.id, hasCrossProjectAccess]);
 
   return {
     maintenanceHistory,

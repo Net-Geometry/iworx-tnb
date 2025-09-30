@@ -2528,6 +2528,7 @@ export type Database = {
           id: string
           maintenance_type: string
           notes: string | null
+          organization_id: string
           priority: string
           scheduled_date: string
           status: string
@@ -2544,6 +2545,7 @@ export type Database = {
           id?: string
           maintenance_type: string
           notes?: string | null
+          organization_id: string
           priority?: string
           scheduled_date: string
           status?: string
@@ -2560,13 +2562,22 @@ export type Database = {
           id?: string
           maintenance_type?: string
           notes?: string | null
+          organization_id?: string
           priority?: string
           scheduled_date?: string
           status?: string
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "work_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
