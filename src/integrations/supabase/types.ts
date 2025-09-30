@@ -1631,6 +1631,7 @@ export type Database = {
           cost_center: string | null
           cost_center_text: string | null
           created_at: string | null
+          default_labor_cost_center: string | null
           department: string | null
           division: string | null
           email: string | null
@@ -1673,6 +1674,7 @@ export type Database = {
           cost_center?: string | null
           cost_center_text?: string | null
           created_at?: string | null
+          default_labor_cost_center?: string | null
           department?: string | null
           division?: string | null
           email?: string | null
@@ -1715,6 +1717,7 @@ export type Database = {
           cost_center?: string | null
           cost_center_text?: string | null
           created_at?: string | null
+          default_labor_cost_center?: string | null
           department?: string | null
           division?: string | null
           email?: string | null
@@ -1937,6 +1940,64 @@ export type Database = {
           },
         ]
       }
+      pm_schedule_materials: {
+        Row: {
+          bom_item_id: string
+          created_at: string
+          estimated_unit_cost: number | null
+          id: string
+          notes: string | null
+          organization_id: string
+          planned_quantity: number
+          pm_schedule_id: string
+          updated_at: string
+        }
+        Insert: {
+          bom_item_id: string
+          created_at?: string
+          estimated_unit_cost?: number | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          planned_quantity?: number
+          pm_schedule_id: string
+          updated_at?: string
+        }
+        Update: {
+          bom_item_id?: string
+          created_at?: string
+          estimated_unit_cost?: number | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          planned_quantity?: number
+          pm_schedule_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pm_schedule_materials_bom_item_id_fkey"
+            columns: ["bom_item_id"]
+            isOneToOne: false
+            referencedRelation: "bom_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_schedule_materials_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_schedule_materials_pm_schedule_id_fkey"
+            columns: ["pm_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "pm_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pm_schedules: {
         Row: {
           asset_id: string
@@ -1946,6 +2007,8 @@ export type Database = {
           created_at: string | null
           description: string | null
           estimated_duration_hours: number | null
+          estimated_labor_cost: number | null
+          estimated_material_cost: number | null
           frequency_type: Database["public"]["Enums"]["pm_frequency_type"]
           frequency_unit:
             | Database["public"]["Enums"]["pm_frequency_unit"]
@@ -1959,7 +2022,9 @@ export type Database = {
           next_due_date: string | null
           notification_enabled: boolean | null
           organization_id: string
+          other_costs: number | null
           priority: string | null
+          safety_precaution_ids: string[] | null
           schedule_number: string
           start_date: string
           status: Database["public"]["Enums"]["pm_status"] | null
@@ -1974,6 +2039,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           estimated_duration_hours?: number | null
+          estimated_labor_cost?: number | null
+          estimated_material_cost?: number | null
           frequency_type: Database["public"]["Enums"]["pm_frequency_type"]
           frequency_unit?:
             | Database["public"]["Enums"]["pm_frequency_unit"]
@@ -1987,7 +2054,9 @@ export type Database = {
           next_due_date?: string | null
           notification_enabled?: boolean | null
           organization_id: string
+          other_costs?: number | null
           priority?: string | null
+          safety_precaution_ids?: string[] | null
           schedule_number: string
           start_date: string
           status?: Database["public"]["Enums"]["pm_status"] | null
@@ -2002,6 +2071,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           estimated_duration_hours?: number | null
+          estimated_labor_cost?: number | null
+          estimated_material_cost?: number | null
           frequency_type?: Database["public"]["Enums"]["pm_frequency_type"]
           frequency_unit?:
             | Database["public"]["Enums"]["pm_frequency_unit"]
@@ -2015,7 +2086,9 @@ export type Database = {
           next_due_date?: string | null
           notification_enabled?: boolean | null
           organization_id?: string
+          other_costs?: number | null
           priority?: string | null
+          safety_precaution_ids?: string[] | null
           schedule_number?: string
           start_date?: string
           status?: Database["public"]["Enums"]["pm_status"] | null

@@ -52,6 +52,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import SafetyPrecautionsSelector from "@/components/pm/SafetyPrecautionsSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PMPlannedTab } from "@/components/pm/PMPlannedTab";
 
 // ============================================================================
 // Form Validation Schema
@@ -74,6 +75,8 @@ const pmScheduleSchema = z.object({
   auto_generate_wo: z.boolean(),
   notification_enabled: z.boolean(),
   safety_precaution_ids: z.array(z.string()).optional(),
+  estimated_material_cost: z.coerce.number().optional(),
+  estimated_labor_cost: z.coerce.number().optional(),
 });
 
 type PMScheduleFormValues = z.infer<typeof pmScheduleSchema>;
@@ -640,6 +643,19 @@ const CreatePMSchedulePage = () => {
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+
+            {/* Planned Tab */}
+            <TabsContent value="planned" className="space-y-6">
+              <PMPlannedTab
+                assetId={form.watch("asset_id")}
+                assignedPersonId={form.watch("assigned_to")}
+                estimatedDurationHours={form.watch("estimated_duration_hours") || 0}
+                onCostUpdate={(costs) => {
+                  form.setValue("estimated_material_cost", costs.materialCost);
+                  form.setValue("estimated_labor_cost", costs.laborCost);
+                }}
+              />
             </TabsContent>
           </Tabs>
 
