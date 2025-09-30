@@ -8,7 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import { usePeople } from "@/hooks/usePeople";
+import { useRoles } from "@/hooks/useRoles";
+import { useUserRoles } from "@/hooks/useUserRoles";
+import { supabase } from "@/integrations/supabase/client";
 
 const personSchema = z.object({
   employee_number: z.string().min(1, "Employee number is required"),
@@ -22,6 +27,42 @@ const personSchema = z.object({
   department: z.string().optional(),
   hourly_rate: z.string().optional(),
   notes: z.string().optional(),
+  createSystemAccount: z.boolean().default(false),
+  password: z.string().optional(),
+  confirmPassword: z.string().optional(),
+  roleId: z.string().optional(),
+}).refine((data) => {
+  if (data.createSystemAccount) {
+    return data.password && data.password.length >= 6;
+  }
+  return true;
+}, {
+  message: "Password must be at least 6 characters when creating system account",
+  path: ["password"],
+}).refine((data) => {
+  if (data.createSystemAccount) {
+    return data.password === data.confirmPassword;
+  }
+  return true;
+}, {
+  message: "Passwords must match",
+  path: ["confirmPassword"],
+}).refine((data) => {
+  if (data.createSystemAccount) {
+    return data.email && data.email.length > 0;
+  }
+  return true;
+}, {
+  message: "Email is required when creating system account",
+  path: ["email"],
+}).refine((data) => {
+  if (data.createSystemAccount) {
+    return data.roleId && data.roleId.length > 0;
+  }
+  return true;
+}, {
+  message: "Role is required when creating system account",
+  path: ["roleId"],
 });
 
 type PersonFormData = z.infer<typeof personSchema>;
@@ -33,6 +74,8 @@ interface AddPersonDialogProps {
 
 export function AddPersonDialog({ open, onOpenChange }: AddPersonDialogProps) {
   const { createPerson } = usePeople();
+  const { roles, isLoading: rolesLoading } = useRoles();
+  const { assignRole } = useUserRoles();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -46,19 +89,58 @@ export function AddPersonDialog({ open, onOpenChange }: AddPersonDialogProps) {
     resolver: zodResolver(personSchema),
     defaultValues: {
       employment_status: "active",
+      createSystemAccount: false,
     },
   });
 
   const employmentStatus = watch("employment_status");
+  const createSystemAccount = watch("createSystemAccount");
 
   const onSubmit = async (data: PersonFormData) => {
     setIsSubmitting(true);
     try {
+      let userId: string | undefined = undefined;
+
+      // Step 1: Create system account if requested
+      if (data.createSystemAccount && data.email && data.password && data.roleId) {
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email: data.email,
+          password: data.password,
+          email_confirm: true,
+          user_metadata: {
+            display_name: `${data.first_name} ${data.last_name}`
+          }
+        });
+
+        if (authError) throw authError;
+        userId = authData.user?.id;
+
+        // Assign role
+        if (userId) {
+          await assignRole.mutateAsync({
+            userId: userId,
+            roleId: data.roleId
+          });
+        }
+      }
+
+      // Step 2: Create person record
       await createPerson.mutateAsync({
-        ...data,
+        user_id: userId,
+        employee_number: data.employee_number,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email || undefined,
+        phone: data.phone || undefined,
+        job_title: data.job_title || undefined,
+        department: data.department || undefined,
+        hire_date: data.hire_date || undefined,
         hourly_rate: data.hourly_rate ? parseFloat(data.hourly_rate) : undefined,
+        employment_status: data.employment_status,
+        notes: data.notes || undefined,
         is_active: true,
       });
+
       reset();
       onOpenChange(false);
     } catch (error) {
@@ -72,7 +154,7 @@ export function AddPersonDialog({ open, onOpenChange }: AddPersonDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Person</DialogTitle>
+          <DialogTitle>Add New Employee</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -177,6 +259,83 @@ export function AddPersonDialog({ open, onOpenChange }: AddPersonDialogProps) {
             <Textarea id="notes" {...register("notes")} rows={3} />
           </div>
 
+          <Separator className="my-6" />
+
+          {/* System Account Section */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="createSystemAccount"
+                checked={createSystemAccount}
+                onCheckedChange={(checked) => setValue("createSystemAccount", checked as boolean)}
+              />
+              <Label htmlFor="createSystemAccount" className="font-semibold cursor-pointer">
+                Create System Account (Optional)
+              </Label>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Enable this to give the employee access to log into the system
+            </p>
+
+            {createSystemAccount && (
+              <div className="space-y-4 pl-6 border-l-2 border-primary/20">
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password *</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    {...register("password")}
+                    placeholder="Minimum 6 characters"
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-destructive">{errors.password.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    {...register("confirmPassword")}
+                    placeholder="Re-enter password"
+                  />
+                  {errors.confirmPassword && (
+                    <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="roleId">System Role *</Label>
+                  <Select
+                    value={watch("roleId")}
+                    onValueChange={(value) => setValue("roleId", value)}
+                    disabled={rolesLoading}
+                  >
+                    <SelectTrigger id="roleId">
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      {roles.filter(role => role.is_active).map((role) => (
+                        <SelectItem key={role.id} value={role.id}>
+                          <div>
+                            <div className="font-medium">{role.display_name}</div>
+                            {role.description && (
+                              <div className="text-xs text-muted-foreground">{role.description}</div>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.roleId && (
+                    <p className="text-sm text-destructive">{errors.roleId.message}</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="flex justify-end gap-2 pt-4">
             <Button
               type="button"
@@ -186,7 +345,7 @@ export function AddPersonDialog({ open, onOpenChange }: AddPersonDialogProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Person"}
+              {isSubmitting ? "Creating..." : "Create Employee"}
             </Button>
           </div>
         </form>

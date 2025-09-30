@@ -17,7 +17,8 @@ export default function UserRegistrationPage() {
     email: "",
     password: "",
     displayName: "",
-    roleId: ""
+    roleId: "",
+    employeeNumber: ""
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,9 +49,26 @@ export default function UserRegistrationPage() {
 
         if (roleError) throw roleError;
 
+        // Create corresponding people record
+        if (formData.employeeNumber) {
+          const { error: personError } = await supabase.rpc('import_user_as_person', {
+            _user_id: authData.user.id,
+            _employee_number: formData.employeeNumber
+          });
+
+          if (personError) {
+            console.error("Error creating person record:", personError);
+            toast({
+              variant: "destructive",
+              title: "Warning",
+              description: "User created but employee record failed. You can link them manually from People Management."
+            });
+          }
+        }
+
         toast({
           title: "User Created",
-          description: `${formData.email} has been registered successfully.`
+          description: `${formData.email} has been registered successfully with system access and employee record.`
         });
 
         // Reset form
@@ -58,7 +76,8 @@ export default function UserRegistrationPage() {
           email: "",
           password: "",
           displayName: "",
-          roleId: ""
+          roleId: "",
+          employeeNumber: ""
         });
       }
     } catch (error: any) {
@@ -84,9 +103,9 @@ export default function UserRegistrationPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Create New User</CardTitle>
+          <CardTitle>Create New User & Employee</CardTitle>
           <CardDescription>
-            Enter user details to create a new account. An email will be sent to the user with login instructions.
+            Creates both a system user account and an employee record. For employees without system access, use the People Management page.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -108,7 +127,7 @@ export default function UserRegistrationPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name</Label>
+              <Label htmlFor="displayName">Display Name *</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -116,10 +135,26 @@ export default function UserRegistrationPage() {
                   type="text"
                   placeholder="John Doe"
                   className="pl-9"
+                  required
                   value={formData.displayName}
                   onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="employeeNumber">Employee Number *</Label>
+              <Input
+                id="employeeNumber"
+                type="text"
+                placeholder="EMP001"
+                required
+                value={formData.employeeNumber}
+                onChange={(e) => setFormData({ ...formData, employeeNumber: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                This will be used to create the employee record
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -174,7 +209,7 @@ export default function UserRegistrationPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setFormData({ email: "", password: "", displayName: "", roleId: "" })}
+                onClick={() => setFormData({ email: "", password: "", displayName: "", roleId: "", employeeNumber: "" })}
               >
                 Clear
               </Button>
@@ -192,9 +227,9 @@ export default function UserRegistrationPage() {
           <CardTitle>Important Notes</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>• This page creates both a system user account AND an employee record automatically</p>
+          <p>• For employees who don't need system access, use the <strong>People Management</strong> page instead</p>
           <p>• Users will need to confirm their email address before they can log in (if email confirmation is enabled in settings)</p>
-          <p>• Admin users have access to all system features including this user management section</p>
-          <p>• Regular users can only access standard features based on their permissions</p>
           <p>• You can manage existing users and their roles from the User Management page</p>
         </CardContent>
       </Card>
