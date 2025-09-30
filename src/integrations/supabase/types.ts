@@ -2915,10 +2915,12 @@ export type Database = {
           description: string | null
           estimated_cost: number | null
           estimated_duration_hours: number | null
+          generation_type: string | null
           id: string
           maintenance_type: string
           notes: string | null
           organization_id: string
+          pm_schedule_id: string | null
           priority: string
           scheduled_date: string
           status: string
@@ -2932,10 +2934,12 @@ export type Database = {
           description?: string | null
           estimated_cost?: number | null
           estimated_duration_hours?: number | null
+          generation_type?: string | null
           id?: string
           maintenance_type: string
           notes?: string | null
           organization_id: string
+          pm_schedule_id?: string | null
           priority?: string
           scheduled_date: string
           status?: string
@@ -2949,10 +2953,12 @@ export type Database = {
           description?: string | null
           estimated_cost?: number | null
           estimated_duration_hours?: number | null
+          generation_type?: string | null
           id?: string
           maintenance_type?: string
           notes?: string | null
           organization_id?: string
+          pm_schedule_id?: string | null
           priority?: string
           scheduled_date?: string
           status?: string
@@ -2965,6 +2971,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_pm_schedule_id_fkey"
+            columns: ["pm_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "pm_schedules"
             referencedColumns: ["id"]
           },
         ]

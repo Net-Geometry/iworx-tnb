@@ -340,3 +340,73 @@ export const usePausePMSchedule = () => {
     },
   });
 };
+
+/**
+ * Hook to generate a work order from a PM schedule
+ */
+export const useGenerateWorkOrder = () => {
+  const queryClient = useQueryClient();
+  const { currentOrganization, user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (scheduleId: string) => {
+      // First, fetch the full PM schedule details
+      const { data: schedule, error: scheduleError } = await supabase
+        .from("pm_schedules")
+        .select(`
+          *,
+          asset:assets(id, name, asset_number),
+          job_plan:job_plans(id, title, job_plan_number, description, estimated_duration_hours)
+        `)
+        .eq("id", scheduleId)
+        .single();
+
+      if (scheduleError) throw scheduleError;
+      if (!schedule) throw new Error("PM schedule not found");
+
+      // Check if work order already exists for this schedule and due date
+      const { data: existingWO } = await supabase
+        .from("work_orders")
+        .select("id, title")
+        .eq("pm_schedule_id", scheduleId)
+        .eq("scheduled_date", schedule.next_due_date)
+        .maybeSingle();
+
+      if (existingWO) {
+        throw new Error(`Work order already exists for this schedule`);
+      }
+
+      // Create work order from PM schedule
+      const { data: workOrder, error: woError } = await supabase
+        .from("work_orders")
+        .insert([{
+          title: schedule.title,
+          description: schedule.description || `Generated from PM schedule ${schedule.schedule_number}`,
+          asset_id: schedule.asset_id,
+          maintenance_type: "preventive",
+          priority: schedule.priority || "medium",
+          scheduled_date: schedule.next_due_date,
+          estimated_duration_hours: schedule.estimated_duration_hours,
+          assigned_technician: schedule.assigned_to,
+          status: "scheduled",
+          pm_schedule_id: scheduleId,
+          generation_type: "manual",
+          organization_id: currentOrganization?.id,
+        }])
+        .select()
+        .single();
+
+      if (woError) throw woError;
+      return workOrder;
+    },
+    onSuccess: (workOrder) => {
+      queryClient.invalidateQueries({ queryKey: ["work_orders"] });
+      queryClient.invalidateQueries({ queryKey: ["pm_schedules"] });
+      toast.success(`Work order "${workOrder.title}" created successfully`);
+    },
+    onError: (error: Error) => {
+      console.error("Error generating work order:", error);
+      toast.error(error.message || "Failed to generate work order");
+    },
+  });
+};

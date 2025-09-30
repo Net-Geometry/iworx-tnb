@@ -8,8 +8,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar, MoreVertical, Play, Pause, Edit, Trash2, Clock, Shield } from "lucide-react";
-import { PMSchedule } from "@/hooks/usePMSchedules";
+import { Calendar, MoreVertical, Play, Pause, Edit, Trash2, Clock, Shield, FileText } from "lucide-react";
+import { PMSchedule, useGenerateWorkOrder } from "@/hooks/usePMSchedules";
 import { format, differenceInDays, parseISO } from "date-fns";
 
 interface PMScheduleCardProps {
@@ -25,6 +25,8 @@ interface PMScheduleCardProps {
  * Displays a single PM schedule in card format
  */
 const PMScheduleCard = ({ schedule, onEdit, onDelete, onPause, onView }: PMScheduleCardProps) => {
+  const generateWorkOrder = useGenerateWorkOrder();
+
   // Calculate due date status
   const getDueDateStatus = (dueDate?: string) => {
     if (!dueDate) return { color: "text-muted-foreground", label: "Not scheduled", bgColor: "bg-muted" };
@@ -86,6 +88,17 @@ const PMScheduleCard = ({ schedule, onEdit, onDelete, onPause, onView }: PMSched
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
               </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  generateWorkOrder.mutate(schedule.id);
+                }}
+                disabled={!schedule.next_due_date || generateWorkOrder.isPending}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Generate Work Order
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={(e) => { 
                   e.stopPropagation(); 

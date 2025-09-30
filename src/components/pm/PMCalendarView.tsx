@@ -9,9 +9,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { format, isSameDay, isPast, isThisWeek, isThisMonth } from "date-fns";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PMSchedule } from "@/hooks/usePMSchedules";
+import { useGenerateWorkOrder } from "@/hooks/usePMSchedules";
 
 interface PMCalendarViewProps {
   schedules: PMSchedule[];
@@ -26,6 +27,7 @@ interface PMCalendarViewProps {
 export function PMCalendarView({ schedules, onScheduleClick, onEdit }: PMCalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const generateWorkOrder = useGenerateWorkOrder();
 
   // Get schedules for a specific date
   const getSchedulesForDate = (date: Date) => {
@@ -278,7 +280,7 @@ export function PMCalendarView({ schedules, onScheduleClick, onEdit }: PMCalenda
                           </p>
                         )}
 
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <Button
                             variant="outline"
                             size="sm"
@@ -300,6 +302,19 @@ export function PMCalendarView({ schedules, onScheduleClick, onEdit }: PMCalenda
                             }}
                           >
                             View Details
+                          </Button>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="text-xs h-7"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              generateWorkOrder.mutate(schedule.id);
+                            }}
+                            disabled={generateWorkOrder.isPending}
+                          >
+                            <FileText className="w-3 h-3 mr-1" />
+                            Generate WO
                           </Button>
                         </div>
                       </div>
