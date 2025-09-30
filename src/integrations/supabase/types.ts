@@ -1841,6 +1841,218 @@ export type Database = {
           },
         ]
       }
+      pm_generated_work_orders: {
+        Row: {
+          created_at: string | null
+          due_date: string
+          generation_date: string | null
+          id: string
+          organization_id: string
+          pm_schedule_id: string
+          work_order_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          due_date: string
+          generation_date?: string | null
+          id?: string
+          organization_id: string
+          pm_schedule_id: string
+          work_order_id: string
+        }
+        Update: {
+          created_at?: string | null
+          due_date?: string
+          generation_date?: string | null
+          id?: string
+          organization_id?: string
+          pm_schedule_id?: string
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pm_generated_work_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_generated_work_orders_pm_schedule_id_fkey"
+            columns: ["pm_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "pm_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pm_schedule_history: {
+        Row: {
+          completed_date: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          pm_schedule_id: string
+          scheduled_date: string
+          status: string
+          work_order_id: string | null
+        }
+        Insert: {
+          completed_date?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          pm_schedule_id: string
+          scheduled_date: string
+          status: string
+          work_order_id?: string | null
+        }
+        Update: {
+          completed_date?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          pm_schedule_id?: string
+          scheduled_date?: string
+          status?: string
+          work_order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pm_schedule_history_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_schedule_history_pm_schedule_id_fkey"
+            columns: ["pm_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "pm_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pm_schedules: {
+        Row: {
+          asset_id: string
+          assigned_team_id: string | null
+          assigned_to: string | null
+          auto_generate_wo: boolean | null
+          created_at: string | null
+          description: string | null
+          estimated_duration_hours: number | null
+          frequency_type: Database["public"]["Enums"]["pm_frequency_type"]
+          frequency_unit:
+            | Database["public"]["Enums"]["pm_frequency_unit"]
+            | null
+          frequency_value: number
+          id: string
+          is_active: boolean | null
+          job_plan_id: string | null
+          last_completed_date: string | null
+          lead_time_days: number | null
+          next_due_date: string | null
+          notification_enabled: boolean | null
+          organization_id: string
+          priority: string | null
+          schedule_number: string
+          start_date: string
+          status: Database["public"]["Enums"]["pm_status"] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          asset_id: string
+          assigned_team_id?: string | null
+          assigned_to?: string | null
+          auto_generate_wo?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          estimated_duration_hours?: number | null
+          frequency_type: Database["public"]["Enums"]["pm_frequency_type"]
+          frequency_unit?:
+            | Database["public"]["Enums"]["pm_frequency_unit"]
+            | null
+          frequency_value?: number
+          id?: string
+          is_active?: boolean | null
+          job_plan_id?: string | null
+          last_completed_date?: string | null
+          lead_time_days?: number | null
+          next_due_date?: string | null
+          notification_enabled?: boolean | null
+          organization_id: string
+          priority?: string | null
+          schedule_number: string
+          start_date: string
+          status?: Database["public"]["Enums"]["pm_status"] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          asset_id?: string
+          assigned_team_id?: string | null
+          assigned_to?: string | null
+          auto_generate_wo?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          estimated_duration_hours?: number | null
+          frequency_type?: Database["public"]["Enums"]["pm_frequency_type"]
+          frequency_unit?:
+            | Database["public"]["Enums"]["pm_frequency_unit"]
+            | null
+          frequency_value?: number
+          id?: string
+          is_active?: boolean | null
+          job_plan_id?: string | null
+          last_completed_date?: string | null
+          lead_time_days?: number | null
+          next_due_date?: string | null
+          notification_enabled?: boolean | null
+          organization_id?: string
+          priority?: string | null
+          schedule_number?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["pm_status"] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pm_schedules_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_schedules_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_schedules_job_plan_id_fkey"
+            columns: ["job_plan_id"]
+            isOneToOne: false
+            referencedRelation: "job_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_schedules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2690,6 +2902,15 @@ export type Database = {
         | "emergency"
         | "shutdown"
       loto_status: "draft" | "approved" | "active" | "expired" | "archived"
+      pm_frequency_type:
+        | "daily"
+        | "weekly"
+        | "monthly"
+        | "quarterly"
+        | "yearly"
+        | "custom"
+      pm_frequency_unit: "days" | "weeks" | "months" | "years"
+      pm_status: "active" | "paused" | "suspended" | "completed"
       precaution_severity: "critical" | "high" | "medium" | "low"
       precaution_status: "active" | "under_review" | "archived"
       proficiency_level: "beginner" | "intermediate" | "advanced" | "expert"
@@ -2852,6 +3073,16 @@ export const Constants = {
         "shutdown",
       ],
       loto_status: ["draft", "approved", "active", "expired", "archived"],
+      pm_frequency_type: [
+        "daily",
+        "weekly",
+        "monthly",
+        "quarterly",
+        "yearly",
+        "custom",
+      ],
+      pm_frequency_unit: ["days", "weeks", "months", "years"],
+      pm_status: ["active", "paused", "suspended", "completed"],
       precaution_severity: ["critical", "high", "medium", "low"],
       precaution_status: ["active", "under_review", "archived"],
       proficiency_level: ["beginner", "intermediate", "advanced", "expert"],
