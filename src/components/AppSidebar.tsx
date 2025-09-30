@@ -23,6 +23,7 @@ import {
   Lock,
   CheckCircle,
   BookOpen,
+  UserPlus,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -130,6 +131,12 @@ const inventorySubModules = [
   { title: "Reports", url: "/inventory/reports", icon: FileBarChart },
 ];
 
+// System Administration modules
+const systemAdminModules = [
+  { title: "System Settings", url: "/admin/settings", icon: Settings },
+  { title: "User Management", url: "/admin/users/register", icon: UserPlus },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
@@ -147,6 +154,7 @@ export function AppSidebar() {
   const isPlatformExpanded = platformModules.some((item) => isActive(item.url));
   const isInventoryExpanded = currentPath.startsWith('/inventory');
   const isSafetyExpanded = currentPath.startsWith('/safety');
+  const isAdminExpanded = currentPath.startsWith('/admin');
 
   return (
     <Sidebar className="border-r border-border/50 bg-sidebar">
@@ -343,6 +351,41 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {inventorySubModules.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.url)}
+                        tooltip={state === "collapsed" ? item.title : undefined}
+                      >
+                        <NavLink to={item.url}>
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+
+        {/* System Administration */}
+        <Collapsible defaultOpen={isAdminExpanded} className="group/collapsible">
+          <SidebarGroup>
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-4 h-4" />
+                  System Administration
+                </div>
+                <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {systemAdminModules.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild

@@ -39,6 +39,9 @@ import LOTOProceduresPage from "./pages/safety/LOTOProceduresPage";
 import PrecautionLibraryPage from "./pages/safety/PrecautionLibraryPage";
 import CAPAManagementPage from "./pages/safety/CAPAManagementPage";
 import SafetyReportsPage from "./pages/safety/SafetyReportsPage";
+import { AdminGuard } from "./components/auth/AdminGuard";
+import SystemSettingsPage from "./pages/admin/SystemSettingsPage";
+import UserRegistrationPage from "./pages/admin/UserRegistrationPage";
 
 const queryClient = new QueryClient();
 
@@ -249,6 +252,22 @@ const App = () => (
                     </Layout>
                   </AuthGuard>
                 } />
+
+            {/* System Administration Routes */}
+            <Route path="/admin/settings" element={
+              <AdminGuard>
+                <Layout>
+                  <SystemSettingsPage />
+                </Layout>
+              </AdminGuard>
+            } />
+            <Route path="/admin/users/register" element={
+              <AdminGuard>
+                <Layout>
+                  <UserRegistrationPage />
+                </Layout>
+              </AdminGuard>
+            } />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -1,0 +1,192 @@
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { UserPlus, Mail, Lock, User } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+export default function UserRegistrationPage() {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    displayName: "",
+    role: "user"
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Create user using admin API
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: formData.email,
+        password: formData.password,
+        email_confirm: true,
+        user_metadata: {
+          display_name: formData.displayName
+        }
+      });
+
+      if (authError) throw authError;
+
+      if (authData.user) {
+        // Assign role - cast to any temporarily while types are being regenerated
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: authData.user.id,
+            role: formData.role
+          } as any);
+
+        if (roleError) throw roleError;
+
+        toast({
+          title: "User Created",
+          description: `${formData.email} has been registered successfully.`
+        });
+
+        // Reset form
+        setFormData({
+          email: "",
+          password: "",
+          displayName: "",
+          role: "user"
+        });
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: error.message || "Failed to register user. Please try again."
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="container mx-auto p-6 max-w-2xl">
+      <div className="flex items-center gap-3 mb-6">
+        <UserPlus className="h-8 w-8 text-primary" />
+        <div>
+          <h1 className="text-3xl font-bold">User Registration</h1>
+          <p className="text-muted-foreground">Register new users in the system</p>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Create New User</CardTitle>
+          <CardDescription>
+            Enter user details to create a new account. An email will be sent to the user with login instructions.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address *</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="user@example.com"
+                  className="pl-9"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Display Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="displayName"
+                  type="text"
+                  placeholder="John Doe"
+                  className="pl-9"
+                  value={formData.displayName}
+                  onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password *</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  className="pl-9"
+                  required
+                  minLength={6}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Password must be at least 6 characters long
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="role">User Role *</Label>
+              <Select
+                value={formData.role}
+                onValueChange={(value) => setFormData({ ...formData, role: value })}
+              >
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Admins have full system access including user management
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setFormData({ email: "", password: "", displayName: "", role: "user" })}
+              >
+                Clear
+              </Button>
+              <Button type="submit" disabled={loading} className="gap-2">
+                <UserPlus className="h-4 w-4" />
+                {loading ? "Creating..." : "Create User"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Important Notes</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>• Users will need to confirm their email address before they can log in (if email confirmation is enabled in settings)</p>
+          <p>• Admin users have access to all system features including this user management section</p>
+          <p>• Regular users can only access standard features based on their permissions</p>
+          <p>• You can manage existing users and their roles from the User Management page</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
