@@ -1627,69 +1627,129 @@ export type Database = {
       people: {
         Row: {
           certifications: string[] | null
+          complemented: string | null
+          cost_center: string | null
+          cost_center_text: string | null
           created_at: string | null
           department: string | null
+          division: string | null
           email: string | null
+          employee_category: string | null
           employee_number: string
           employment_status:
             | Database["public"]["Enums"]["employment_status"]
             | null
           first_name: string
           hire_date: string | null
+          holiday_calendar: string | null
           hourly_rate: number | null
           id: string
+          immediate_manager_id: string | null
+          immediate_manager_name: string | null
+          immediate_manager_position: string | null
           is_active: boolean | null
+          job_grade: string | null
+          job_text: string | null
           job_title: string | null
           last_name: string
           notes: string | null
+          org_unit_code: string | null
+          org_unit_text: string | null
           organization_id: string
+          pa_text: string | null
           phone: string | null
+          position_abbr: string | null
+          position_code: string | null
+          position_grade_desc: string | null
+          position_text: string | null
+          psa_text: string | null
           updated_at: string | null
           user_id: string | null
+          vacancy_status: string | null
         }
         Insert: {
           certifications?: string[] | null
+          complemented?: string | null
+          cost_center?: string | null
+          cost_center_text?: string | null
           created_at?: string | null
           department?: string | null
+          division?: string | null
           email?: string | null
+          employee_category?: string | null
           employee_number: string
           employment_status?:
             | Database["public"]["Enums"]["employment_status"]
             | null
           first_name: string
           hire_date?: string | null
+          holiday_calendar?: string | null
           hourly_rate?: number | null
           id?: string
+          immediate_manager_id?: string | null
+          immediate_manager_name?: string | null
+          immediate_manager_position?: string | null
           is_active?: boolean | null
+          job_grade?: string | null
+          job_text?: string | null
           job_title?: string | null
           last_name: string
           notes?: string | null
+          org_unit_code?: string | null
+          org_unit_text?: string | null
           organization_id: string
+          pa_text?: string | null
           phone?: string | null
+          position_abbr?: string | null
+          position_code?: string | null
+          position_grade_desc?: string | null
+          position_text?: string | null
+          psa_text?: string | null
           updated_at?: string | null
           user_id?: string | null
+          vacancy_status?: string | null
         }
         Update: {
           certifications?: string[] | null
+          complemented?: string | null
+          cost_center?: string | null
+          cost_center_text?: string | null
           created_at?: string | null
           department?: string | null
+          division?: string | null
           email?: string | null
+          employee_category?: string | null
           employee_number?: string
           employment_status?:
             | Database["public"]["Enums"]["employment_status"]
             | null
           first_name?: string
           hire_date?: string | null
+          holiday_calendar?: string | null
           hourly_rate?: number | null
           id?: string
+          immediate_manager_id?: string | null
+          immediate_manager_name?: string | null
+          immediate_manager_position?: string | null
           is_active?: boolean | null
+          job_grade?: string | null
+          job_text?: string | null
           job_title?: string | null
           last_name?: string
           notes?: string | null
+          org_unit_code?: string | null
+          org_unit_text?: string | null
           organization_id?: string
+          pa_text?: string | null
           phone?: string | null
+          position_abbr?: string | null
+          position_code?: string | null
+          position_grade_desc?: string | null
+          position_text?: string | null
+          psa_text?: string | null
           updated_at?: string | null
           user_id?: string | null
+          vacancy_status?: string | null
         }
         Relationships: [
           {
