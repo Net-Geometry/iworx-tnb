@@ -51,7 +51,10 @@ import UserRolesPage from "@/pages/admin/UserRolesPage";
 import RoleManagementPage from "@/pages/admin/RoleManagementPage";
 import RoleFormPage from "@/pages/admin/RoleFormPage";
 import OrganizationManagementPage from "./pages/admin/OrganizationManagementPage";
+import ReferenceDataPage from "./pages/admin/ReferenceDataPage";
 import CraftsManagementPage from "./pages/admin/CraftsManagementPage";
+import SkillsManagementPage from "./pages/admin/SkillsManagementPage";
+import BusinessAreasManagementPage from "./pages/admin/BusinessAreasManagementPage";
 import PeopleLaborPage from "./pages/people-labor/PeopleLaborPage";
 import PeopleManagementPage from "./pages/people-labor/PeopleManagementPage";
 import PersonDetailPage from "./pages/people-labor/PersonDetailPage";
@@ -407,6 +410,35 @@ const App = () => (
                 </Layout>
               </AdminGuard>
             } />
+            <Route path="/admin/reference-data" element={
+              <AdminGuard>
+                <Layout>
+                  <ReferenceDataPage />
+                </Layout>
+              </AdminGuard>
+            } />
+            <Route path="/admin/reference-data/crafts" element={
+              <AdminGuard>
+                <Layout>
+                  <CraftsManagementPage />
+                </Layout>
+              </AdminGuard>
+            } />
+            <Route path="/admin/reference-data/skills" element={
+              <AdminGuard>
+                <Layout>
+                  <SkillsManagementPage />
+                </Layout>
+              </AdminGuard>
+            } />
+            <Route path="/admin/reference-data/business-areas" element={
+              <AdminGuard>
+                <Layout>
+                  <BusinessAreasManagementPage />
+                </Layout>
+              </AdminGuard>
+            } />
+            {/* Legacy route - redirect to new location */}
             <Route path="/admin/crafts" element={
               <AdminGuard>
                 <Layout>

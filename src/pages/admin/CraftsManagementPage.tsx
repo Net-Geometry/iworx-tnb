@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Edit, Trash2, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useCrafts } from "@/hooks/useCrafts";
 import {
   Table,
@@ -17,8 +18,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -32,25 +31,21 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/contexts/AuthContext";
 
 /**
- * CraftsManagementPage - Admin page for managing organizational crafts/teams
- * 
- * This page allows administrators to:
- * - View all crafts in the organization
- * - Create new crafts
- * - Edit existing crafts
- * - Delete crafts
- * - Search and filter crafts
+ * Crafts Management Page
+ * Centralized location for managing organizational crafts
  */
 const CraftsManagementPage = () => {
+  const navigate = useNavigate();
+  const { currentOrganization } = useAuth();
   const { crafts, isLoading, createCraft, updateCraft, deleteCraft } = useCrafts();
   const [searchTerm, setSearchTerm] = useState("");
-  const [open, setOpen] = useState(false);
-  const [editingCraft, setEditingCraft] = useState<any>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [craftToDelete, setCraftToDelete] = useState<string | null>(null);
+  const [editingCraft, setEditingCraft] = useState<any>(null);
+  const [deletingCraftId, setDeletingCraftId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -60,14 +55,13 @@ const CraftsManagementPage = () => {
   });
 
   // Filter crafts based on search term
-  const filteredCrafts = crafts.filter((craft) => {
-    const matchesSearch = 
+  const filteredCrafts = crafts.filter(
+    (craft) =>
       craft.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (craft.code && craft.code.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesSearch;
-  });
+      craft.code?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  // Reset form to default values
+  // Reset form to initial state
   const resetForm = () => {
     setFormData({
       name: "",
@@ -78,7 +72,7 @@ const CraftsManagementPage = () => {
     setEditingCraft(null);
   };
 
-  // Handle opening dialog for editing
+  // Handle edit button click
   const handleEdit = (craft: any) => {
     setEditingCraft(craft);
     setFormData({
@@ -87,45 +81,45 @@ const CraftsManagementPage = () => {
       description: craft.description || "",
       is_active: craft.is_active ?? true,
     });
-    setOpen(true);
+    setDialogOpen(true);
   };
 
-  // Handle form submission (create or update)
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (editingCraft) {
-      await updateCraft.mutateAsync({
-        id: editingCraft.id,
-        ...formData,
-      });
+      await updateCraft.mutateAsync({ id: editingCraft.id, ...formData });
     } else {
-      await createCraft.mutateAsync(formData as any);
+      await createCraft.mutateAsync({
+        ...formData,
+        organization_id: currentOrganization?.id!,
+      });
     }
-    
-    setOpen(false);
+
+    setDialogOpen(false);
     resetForm();
   };
 
-  // Handle delete confirmation
+  // Handle delete click
   const handleDeleteClick = (craftId: string) => {
-    setCraftToDelete(craftId);
+    setDeletingCraftId(craftId);
     setDeleteDialogOpen(true);
   };
 
-  // Confirm delete action
+  // Handle delete confirmation
   const handleDeleteConfirm = async () => {
-    if (craftToDelete) {
-      await deleteCraft.mutateAsync(craftToDelete);
+    if (deletingCraftId) {
+      await deleteCraft.mutateAsync(deletingCraftId);
       setDeleteDialogOpen(false);
-      setCraftToDelete(null);
+      setDeletingCraftId(null);
     }
   };
 
   // Handle dialog close
-  const handleDialogClose = (isOpen: boolean) => {
-    setOpen(isOpen);
-    if (!isOpen) {
+  const handleDialogClose = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
       resetForm();
     }
   };
@@ -133,91 +127,35 @@ const CraftsManagementPage = () => {
   return (
     <div className="container mx-auto p-6">
       {/* Page Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Crafts Management</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage organizational crafts, teams, and job classifications
-          </p>
+      <div className="mb-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/admin/reference-data")}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Reference Data
+        </Button>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Crafts Management</h1>
+            <p className="text-muted-foreground mt-2">
+              Manage craft types and specializations for labor management
+            </p>
+          </div>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Craft
+          </Button>
         </div>
-        
-        {/* Add Craft Dialog */}
-        <Dialog open={open} onOpenChange={handleDialogClose}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Craft
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingCraft ? "Edit Craft" : "Add New Craft"}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Craft Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Electrician, Civil Technician"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="code">Craft Code</Label>
-                <Input
-                  id="code"
-                  value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                  placeholder="e.g., ELCTCIAN, CIVILADT"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe this craft and its responsibilities"
-                  rows={3}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <Label htmlFor="is_active">Active Status</Label>
-                <Switch
-                  id="is_active"
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => 
-                    setFormData({ ...formData, is_active: checked })
-                  }
-                />
-              </div>
-              
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => handleDialogClose(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {editingCraft ? "Update Craft" : "Create Craft"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
 
-      {/* Search Bar */}
+      {/* Search Control */}
       <div className="mb-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search crafts by name or code..."
+            placeholder="Search crafts..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -231,7 +169,7 @@ const CraftsManagementPage = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Code</TableHead>
-              <TableHead>Craft Name</TableHead>
+              <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -241,31 +179,27 @@ const CraftsManagementPage = () => {
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center">
-                  Loading crafts...
+                  Loading...
                 </TableCell>
               </TableRow>
             ) : filteredCrafts.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center">
-                  No crafts found. Add your first craft to get started.
+                  No crafts found
                 </TableCell>
               </TableRow>
             ) : (
               filteredCrafts.map((craft) => (
                 <TableRow key={craft.id}>
-                  <TableCell className="font-medium">
-                    {craft.code || "-"}
-                  </TableCell>
-                  <TableCell className="font-semibold">{craft.name}</TableCell>
+                  <TableCell className="font-medium">{craft.code || "-"}</TableCell>
+                  <TableCell>{craft.name}</TableCell>
                   <TableCell className="max-w-md truncate">
                     {craft.description || "-"}
                   </TableCell>
                   <TableCell>
-                    {craft.is_active ? (
-                      <Badge>Active</Badge>
-                    ) : (
-                      <Badge variant="secondary">Inactive</Badge>
-                    )}
+                    <Badge variant={craft.is_active ? "default" : "secondary"}>
+                      {craft.is_active ? "Active" : "Inactive"}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
@@ -274,14 +208,14 @@ const CraftsManagementPage = () => {
                         size="icon"
                         onClick={() => handleEdit(craft)}
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDeleteClick(craft.id)}
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -292,6 +226,45 @@ const CraftsManagementPage = () => {
         </Table>
       </div>
 
+      {/* Create/Edit Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingCraft ? "Edit Craft" : "Add New Craft"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Craft Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="code">Code</Label>
+              <Input
+                id="code"
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+            </div>
+            <Button type="submit" className="w-full">
+              {editingCraft ? "Update Craft" : "Create Craft"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
@@ -299,16 +272,11 @@ const CraftsManagementPage = () => {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete this craft. This action cannot be undone.
-              People assigned to this craft will lose their craft assignment.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setCraftToDelete(null)}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>
-              Delete
-            </AlertDialogAction>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
