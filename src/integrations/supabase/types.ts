@@ -2905,7 +2905,15 @@ export type Database = {
           sequence_order?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "route_assets_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_routes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       route_assignments: {
         Row: {

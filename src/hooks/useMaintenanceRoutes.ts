@@ -33,24 +33,30 @@ export const useMaintenanceRoutes = () => {
     queryFn: async () => {
       let query = supabase
         .from("maintenance_routes")
-        .select(`
-          *,
-          route_assets(count)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (!hasCrossProjectAccess && currentOrganization?.id) {
         query = query.eq("organization_id", currentOrganization.id);
       }
 
-      const { data, error } = await query;
+      const { data: routesData, error } = await query;
 
       if (error) throw error;
 
-      return (data || []).map((route: any) => ({
-        ...route,
-        asset_count: route.route_assets?.[0]?.count || 0,
-      })) as MaintenanceRoute[];
+      // Fetch asset counts for each route
+      const routesWithCounts = await Promise.all(
+        (routesData || []).map(async (route) => {
+          const { count } = await supabase
+            .from("route_assets")
+            .select("*", { count: "exact", head: true })
+            .eq("route_id", route.id);
+
+          return { ...route, asset_count: count || 0 } as MaintenanceRoute;
+        })
+      );
+
+      return routesWithCounts;
     },
     enabled: !!currentOrganization,
   });
