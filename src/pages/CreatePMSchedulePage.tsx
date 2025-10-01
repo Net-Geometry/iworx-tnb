@@ -52,6 +52,8 @@ import { useAssets } from "@/hooks/useAssets";
 import { useJobPlans } from "@/hooks/useJobPlans";
 import { usePeople } from "@/hooks/usePeople";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMaintenanceRoutes } from "@/hooks/useMaintenanceRoutes";
+import { useRouteAssets } from "@/hooks/useRouteAssets";
 import { toast } from "@/hooks/use-toast";
 import SafetyPrecautionsSelector from "@/components/pm/SafetyPrecautionsSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -68,6 +70,7 @@ const pmScheduleSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   asset_id: z.string().min(1, "Asset is required"),
+  route_id: z.string().optional(),
   job_plan_id: z.string().optional(),
   frequency_type: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'yearly', 'custom']),
   frequency_value: z.coerce.number().min(1, "Frequency value must be at least 1"),
@@ -100,6 +103,7 @@ const CreatePMSchedulePage = () => {
   const { assets } = useAssets();
   const { data: jobPlans } = useJobPlans();
   const { people } = usePeople();
+  const { routes } = useMaintenanceRoutes();
 
   // Initialize form with default values
   const form = useForm<PMScheduleFormValues>({
@@ -109,6 +113,7 @@ const CreatePMSchedulePage = () => {
       title: "",
       description: "",
       asset_id: "",
+      route_id: "",
       job_plan_id: "",
       frequency_type: "monthly",
       frequency_value: 1,
@@ -123,6 +128,15 @@ const CreatePMSchedulePage = () => {
       safety_precaution_ids: [],
     },
   });
+  
+  // Get selected route for filtering assets
+  const selectedRouteId = form.watch("route_id");
+  const { routeAssets } = useRouteAssets(selectedRouteId || "");
+  
+  // Filter assets based on selected route
+  const filteredAssets = selectedRouteId && routeAssets.length > 0
+    ? assets?.filter(asset => routeAssets.some(ra => ra.asset_id === asset.id))
+    : assets;
 
   // ============================================================================
   // Form Submission Handler
@@ -142,6 +156,7 @@ const CreatePMSchedulePage = () => {
         title: values.title,
         description: values.description,
         asset_id: values.asset_id,
+        route_id: values.route_id || undefined,
         job_plan_id: values.job_plan_id,
         frequency_type: values.frequency_type,
         frequency_value: values.frequency_value,
@@ -316,6 +331,44 @@ const CreatePMSchedulePage = () => {
                 <CardContent className="space-y-4">
                   <FormField
                     control={form.control}
+                    name="route_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Maintenance Route (Optional)</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Clear asset selection when route changes
+                            form.setValue("asset_id", "");
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a route (optional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="">No Route</SelectItem>
+                            {routes?.map((route) => (
+                              <SelectItem key={route.id} value={route.id}>
+                                {route.route_number} - {route.name} ({route.asset_count || 0} assets)
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          {selectedRouteId 
+                            ? "Work orders will be generated for all assets in this route"
+                            : "Optional: Select a route to generate work orders for multiple assets"}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
                     name="asset_id"
                     render={({ field }) => (
                       <FormItem>
@@ -327,13 +380,18 @@ const CreatePMSchedulePage = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {assets?.map((asset) => (
+                            {filteredAssets?.map((asset) => (
                               <SelectItem key={asset.id} value={asset.id}>
                                 {asset.name} {asset.asset_number && `(${asset.asset_number})`}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
+                        {selectedRouteId && (
+                          <FormDescription>
+                            Showing only assets from selected route
+                          </FormDescription>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}

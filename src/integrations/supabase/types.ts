@@ -2678,6 +2678,7 @@ export type Database = {
           organization_id: string
           other_costs: number | null
           priority: string | null
+          route_id: string | null
           safety_precaution_ids: string[] | null
           schedule_number: string
           start_date: string
@@ -2710,6 +2711,7 @@ export type Database = {
           organization_id: string
           other_costs?: number | null
           priority?: string | null
+          route_id?: string | null
           safety_precaution_ids?: string[] | null
           schedule_number: string
           start_date: string
@@ -2742,6 +2744,7 @@ export type Database = {
           organization_id?: string
           other_costs?: number | null
           priority?: string | null
+          route_id?: string | null
           safety_precaution_ids?: string[] | null
           schedule_number?: string
           start_date?: string
@@ -2776,6 +2779,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_schedules_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_routes"
             referencedColumns: ["id"]
           },
         ]

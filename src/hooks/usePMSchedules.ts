@@ -11,6 +11,7 @@ export interface PMSchedule {
   description?: string;
   asset_id: string;
   job_plan_id?: string;
+  route_id?: string;
   frequency_type: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
   frequency_value: number;
   frequency_unit?: 'days' | 'weeks' | 'months' | 'years';
@@ -43,6 +44,10 @@ export interface PMSchedule {
     first_name: string;
     last_name: string;
   };
+  maintenance_route?: {
+    route_number: string;
+    name: string;
+  };
 }
 
 export interface PMScheduleInsert {
@@ -51,6 +56,7 @@ export interface PMScheduleInsert {
   description?: string;
   asset_id: string;
   job_plan_id?: string;
+  route_id?: string;
   frequency_type: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
   frequency_value: number;
   frequency_unit?: 'days' | 'weeks' | 'months' | 'years';
@@ -89,7 +95,8 @@ export const usePMSchedules = () => {
           *,
           asset:assets(name, asset_number),
           job_plan:job_plans(title, job_plan_number),
-          assigned_person:people(first_name, last_name)
+          assigned_person:people(first_name, last_name),
+          maintenance_route:maintenance_routes(route_number, name)
         `)
         .eq("organization_id", currentOrganization?.id)
         .order("next_due_date", { ascending: true, nullsFirst: false });
@@ -116,7 +123,8 @@ export const usePMSchedule = (id: string) => {
           *,
           asset:assets(name, asset_number, manufacturer, model),
           job_plan:job_plans(title, job_plan_number, description),
-          assigned_person:people(first_name, last_name, email)
+          assigned_person:people(first_name, last_name, email),
+          maintenance_route:maintenance_routes(route_number, name)
         `)
         .eq("id", id)
         .single();
@@ -142,7 +150,8 @@ export const usePMSchedulesByAsset = (assetId: string) => {
         .select(`
           *,
           job_plan:job_plans(title, job_plan_number),
-          assigned_person:people(first_name, last_name)
+          assigned_person:people(first_name, last_name),
+          maintenance_route:maintenance_routes(route_number, name)
         `)
         .eq("asset_id", assetId)
         .eq("organization_id", currentOrganization?.id)
