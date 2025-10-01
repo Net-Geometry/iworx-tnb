@@ -18,8 +18,8 @@ import {
 const Index = () => {
   const modules = [
     {
-      title: "Asset Management",
-      description: "Asset creation, health monitoring, criticality assessment, and BOM management with comprehensive lifecycle tracking.",
+      title: "Core Asset Management",
+      description: "Asset creation, hierarchy management, health monitoring, criticality assessment, and BOM management with lifecycle tracking.",
       icon: Settings,
       stats: [
         { label: "Total Assets", value: "12,847", trend: "up" as const },
@@ -29,26 +29,15 @@ const Index = () => {
       gradient: "bg-gradient-primary"
     },
     {
-      title: "Work Management",
-      description: "Work order creation, execution, templates, and standardization with calendar and board views.",
+      title: "Work & Maintenance Operations",
+      description: "Work orders, job plans, preventive maintenance schedules, and maintenance routes with comprehensive execution tracking.",
       icon: Wrench,
       stats: [
         { label: "Open Orders", value: "156", trend: "down" as const },
-        { label: "Completed Today", value: "23", trend: "up" as const }
+        { label: "Scheduled PMs", value: "89", trend: "up" as const }
       ],
       status: "active" as const,
       gradient: "bg-gradient-secondary"
-    },
-    {
-      title: "Preventive Maintenance",
-      description: "PM template creation, schedule management, automation, and job plan designer with template library.",
-      icon: Calendar,
-      stats: [
-        { label: "Scheduled PMs", value: "89", trend: "up" as const },
-        { label: "Completion Rate", value: "94%", trend: "up" as const }
-      ],
-      status: "active" as const,
-      gradient: "bg-gradient-success"
     },
     {
       title: "Inventory & Procurement",
@@ -62,40 +51,7 @@ const Index = () => {
       gradient: "bg-warning"
     },
     {
-      title: "Advanced Analytics & AI",
-      description: "Predictive maintenance engine, ML feature store, AI-powered asset health computation, and CBM rules engine.",
-      icon: Brain,
-      stats: [
-        { label: "AI Models", value: "8", trend: "up" as const },
-        { label: "Predictions", value: "1,247", trend: "up" as const }
-      ],
-      status: "active" as const,
-      gradient: "bg-info"
-    },
-    {
-      title: "Mobile & Field Operations",
-      description: "Mobile work order execution, inventory scanner, inspection interface, and dispatch board with offline sync.",
-      icon: Smartphone,
-      stats: [
-        { label: "Mobile Users", value: "127", trend: "up" as const },
-        { label: "Offline Syncs", value: "45", trend: "stable" as const }
-      ],
-      status: "active" as const,
-      gradient: "bg-gradient-primary"
-    },
-    {
-      title: "Integration Platform",
-      description: "Integration hub with connector management, orchestrator for complex workflows, and real-time IoT data ingestion.",
-      icon: Link,
-      stats: [
-        { label: "Active Integrations", value: "14", trend: "up" as const },
-        { label: "IoT Devices", value: "2,103", trend: "up" as const }
-      ],
-      status: "active" as const,
-      gradient: "bg-gradient-secondary"
-    },
-    {
-      title: "Safety & HSE",
+      title: "Safety & Compliance",
       description: "Safety incident management, hazard management, LOTO procedures, and CAPA creation with comprehensive tracking.",
       icon: Shield,
       stats: [
@@ -106,23 +62,45 @@ const Index = () => {
       gradient: "bg-accent-success"
     },
     {
-      title: "Spatial Intelligence",
-      description: "Interactive spatial maps, location hierarchy management, GIS integration, and route optimization capabilities.",
-      icon: MapPin,
+      title: "People & Labor",
+      description: "People management, team organization, skills tracking, and labor planning with comprehensive workforce analytics.",
+      icon: Shield,
       stats: [
-        { label: "Mapped Assets", value: "11,892", trend: "up" as const },
-        { label: "Locations", value: "847", trend: "stable" as const }
+        { label: "Active Staff", value: "487", trend: "up" as const },
+        { label: "Teams", value: "23", trend: "stable" as const }
       ],
       status: "active" as const,
       gradient: "bg-gradient-success"
     },
     {
-      title: "Reporting & BI",
-      description: "Executive dashboards with KPIs, customizable dashboard builder, advanced analytics, and custom report builder.",
-      icon: BarChart3,
+      title: "Analytics & Intelligence",
+      description: "Predictive maintenance engine, ML feature store, AI-powered asset health computation, reporting, and spatial intelligence.",
+      icon: Brain,
       stats: [
-        { label: "Reports Generated", value: "156", trend: "up" as const },
-        { label: "Dashboards", value: "12", trend: "stable" as const }
+        { label: "AI Models", value: "8", trend: "up" as const },
+        { label: "Predictions", value: "1,247", trend: "up" as const }
+      ],
+      status: "active" as const,
+      gradient: "bg-info"
+    },
+    {
+      title: "Integration & Mobility",
+      description: "Integration hub with connector management, mobile operations, IoT data ingestion, and field execution capabilities.",
+      icon: Link,
+      stats: [
+        { label: "Active Integrations", value: "14", trend: "up" as const },
+        { label: "Mobile Users", value: "127", trend: "up" as const }
+      ],
+      status: "active" as const,
+      gradient: "bg-gradient-primary"
+    },
+    {
+      title: "System Administration",
+      description: "User management, role-based access control, vertical configuration, and reference data management.",
+      icon: Settings,
+      stats: [
+        { label: "Active Users", value: "234", trend: "up" as const },
+        { label: "Roles", value: "12", trend: "stable" as const }
       ],
       status: "active" as const,
       gradient: "bg-destructive"

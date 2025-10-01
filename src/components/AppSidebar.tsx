@@ -60,27 +60,17 @@ const navigationItems = [
   },
 ];
 
-// Asset & Maintenance modules
-const assetMaintenanceModules = [
+// Core Asset Management modules
+const coreAssetModules = [
   {
     title: "Asset Management",
     url: "/assets",
     icon: Settings,
   },
   {
-    title: "Work Management", 
-    url: "/work-orders",
-    icon: Wrench,
-  },
-  {
-    title: "Job Plans",
-    url: "/job-plans",
-    icon: FileSpreadsheet,
-  },
-  {
-    title: "Preventive Maintenance",
-    url: "/preventive-maintenance",
-    icon: Calendar,
+    title: "Asset Hierarchy Management",
+    url: "/assets/hierarchy",
+    icon: Layers,
   },
   {
     title: "Bill of Materials",
@@ -96,6 +86,25 @@ const assetMaintenanceModules = [
     title: "Meter Groups",
     url: "/meter-groups",
     icon: Layers,
+  },
+];
+
+// Work & Maintenance Operations modules
+const workMaintenanceModules = [
+  {
+    title: "Work Management", 
+    url: "/work-orders",
+    icon: Wrench,
+  },
+  {
+    title: "Job Plans",
+    url: "/job-plans",
+    icon: FileSpreadsheet,
+  },
+  {
+    title: "Preventive Maintenance",
+    url: "/preventive-maintenance",
+    icon: Calendar,
   },
   {
     title: "Maintenance Routes",
@@ -123,12 +132,17 @@ const analyticsModules = [
   },
 ];
 
-// Platform & Integration modules
-const platformModules = [
+// Integration & Mobility modules
+const integrationMobilityModules = [
   {
     title: "Integration Platform",
     url: "/integrations",
     icon: Link,
+  },
+  {
+    title: "Mobile & Field Operations",
+    url: "/mobile",
+    icon: Smartphone,
   },
 ];
 
@@ -183,9 +197,10 @@ export function AppSidebar() {
     return currentPath.startsWith(path);
   };
 
-  const isAssetMaintenanceExpanded = assetMaintenanceModules.some((item) => isActive(item.url));
+  const isCoreAssetExpanded = coreAssetModules.some((item) => isActive(item.url));
+  const isWorkMaintenanceExpanded = workMaintenanceModules.some((item) => isActive(item.url));
   const isAnalyticsExpanded = analyticsModules.some((item) => isActive(item.url));
-  const isPlatformExpanded = platformModules.some((item) => isActive(item.url));
+  const isIntegrationMobilityExpanded = integrationMobilityModules.some((item) => isActive(item.url));
   const isInventoryExpanded = currentPath.startsWith('/inventory');
   const isSafetyExpanded = currentPath.startsWith('/safety');
   const isPeopleAndLaborExpanded = currentPath.startsWith('/people-labor');
@@ -230,14 +245,49 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Asset & Maintenance */}
-        <Collapsible defaultOpen={isAssetMaintenanceExpanded} className="group/collapsible">
+        {/* Core Asset Management */}
+        <Collapsible defaultOpen={isCoreAssetExpanded} className="group/collapsible">
+          <SidebarGroup>
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-4 h-4" />
+                  Core Asset Management
+                </div>
+                <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {coreAssetModules.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.url)}
+                        tooltip={state === "collapsed" ? item.title : undefined}
+                      >
+                        <NavLink to={item.url}>
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+
+        {/* Work & Maintenance Operations */}
+        <Collapsible defaultOpen={isWorkMaintenanceExpanded} className="group/collapsible">
           <SidebarGroup>
             <SidebarGroupLabel asChild>
               <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
                 <div className="flex items-center gap-2">
                   <Wrench className="w-4 h-4" />
-                  Asset & Maintenance
+                  Work & Maintenance Operations
                 </div>
                 <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
               </CollapsibleTrigger>
@@ -245,7 +295,7 @@ export function AppSidebar() {
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {assetMaintenanceModules.map((item) => (
+                  {workMaintenanceModules.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
@@ -265,14 +315,14 @@ export function AppSidebar() {
           </SidebarGroup>
         </Collapsible>
 
-        {/* Analytics & Intelligence */}
-        <Collapsible defaultOpen={isAnalyticsExpanded} className="group/collapsible">
+        {/* Inventory & Procurement Submenu */}
+        <Collapsible defaultOpen={isInventoryExpanded} className="group/collapsible">
           <SidebarGroup>
             <SidebarGroupLabel asChild>
               <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
                 <div className="flex items-center gap-2">
-                  <Brain className="w-4 h-4" />
-                  Analytics & Intelligence
+                  <Package className="w-4 h-4" />
+                  Inventory & Procurement
                 </div>
                 <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
               </CollapsibleTrigger>
@@ -280,42 +330,7 @@ export function AppSidebar() {
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {analyticsModules.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive(item.url)}
-                        tooltip={state === "collapsed" ? item.title : undefined}
-                      >
-                        <NavLink to={item.url}>
-                          <item.icon className="w-4 h-4" />
-                          <span>{item.title}</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </CollapsibleContent>
-          </SidebarGroup>
-        </Collapsible>
-
-        {/* Platform & Integration */}
-        <Collapsible defaultOpen={isPlatformExpanded} className="group/collapsible">
-          <SidebarGroup>
-            <SidebarGroupLabel asChild>
-              <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
-                <div className="flex items-center gap-2">
-                  <Link className="w-4 h-4" />
-                  Platform & Integration
-                </div>
-                <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-              </CollapsibleTrigger>
-            </SidebarGroupLabel>
-            <CollapsibleContent>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {platformModules.map((item) => (
+                  {inventorySubModules.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
@@ -370,14 +385,14 @@ export function AppSidebar() {
           </SidebarGroup>
         </Collapsible>
 
-        {/* Inventory & Procurement Submenu */}
-        <Collapsible defaultOpen={isInventoryExpanded} className="group/collapsible">
+        {/* Analytics & Intelligence */}
+        <Collapsible defaultOpen={isAnalyticsExpanded} className="group/collapsible">
           <SidebarGroup>
             <SidebarGroupLabel asChild>
               <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
                 <div className="flex items-center gap-2">
-                  <Package className="w-4 h-4" />
-                  Inventory & Procurement
+                  <Brain className="w-4 h-4" />
+                  Analytics & Intelligence
                 </div>
                 <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
               </CollapsibleTrigger>
@@ -385,7 +400,42 @@ export function AppSidebar() {
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {inventorySubModules.map((item) => (
+                  {analyticsModules.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.url)}
+                        tooltip={state === "collapsed" ? item.title : undefined}
+                      >
+                        <NavLink to={item.url}>
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+
+        {/* Integration & Mobility */}
+        <Collapsible defaultOpen={isIntegrationMobilityExpanded} className="group/collapsible">
+          <SidebarGroup>
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
+                <div className="flex items-center gap-2">
+                  <Link className="w-4 h-4" />
+                  Integration & Mobility
+                </div>
+                <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {integrationMobilityModules.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild

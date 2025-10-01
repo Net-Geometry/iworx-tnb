@@ -71,6 +71,8 @@ import MetersPage from "./pages/meters/MetersPage";
 import MeterGroupsPage from "./pages/meters/MeterGroupsPage";
 import MaintenanceRoutesPage from "./pages/MaintenanceRoutesPage";
 import RouteDetailPage from "./pages/RouteDetailPage";
+import MobilePage from "./pages/MobilePage";
+import AssetHierarchyPage from "./pages/AssetHierarchyPage";
 
 const queryClient = new QueryClient();
 
@@ -108,6 +110,13 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <CreateAssetPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/assets/hierarchy" element={
+              <AuthGuard>
+                <Layout>
+                  <AssetHierarchyPage />
                 </Layout>
               </AuthGuard>
             } />
@@ -269,6 +278,13 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <IntegrationsPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/mobile" element={
+              <AuthGuard>
+                <Layout>
+                  <MobilePage />
                 </Layout>
               </AuthGuard>
             } />
