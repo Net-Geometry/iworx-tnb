@@ -18,6 +18,9 @@ import CreateAssetPage from "./pages/CreateAssetPage";
 import WorkOrdersPage from "./pages/WorkOrdersPage";
 import WorkOrderDetailPage from "./pages/WorkOrderDetailPage";
 import JobPlansPage from "./pages/JobPlansPage";
+import JobPlanDetailPage from "./pages/JobPlanDetailPage";
+import CreateJobPlanPage from "./pages/CreateJobPlanPage";
+import EditJobPlanPage from "./pages/EditJobPlanPage";
 import PreventiveMaintenancePage from "./pages/PreventiveMaintenancePage";
 import CreatePMSchedulePage from "./pages/CreatePMSchedulePage";
 import EditPMSchedulePage from "./pages/EditPMSchedulePage";
@@ -150,13 +153,34 @@ const App = () => (
               </Layout>
             </AuthGuard>
           } />
-            <Route path="/job-plans" element={
-              <AuthGuard>
-                <Layout>
-                  <JobPlansPage />
-                </Layout>
-              </AuthGuard>
-            } />
+              <Route path="/job-plans" element={
+                <AuthGuard>
+                  <Layout>
+                    <JobPlansPage />
+                  </Layout>
+                </AuthGuard>
+              } />
+              <Route path="/job-plans/create" element={
+                <AuthGuard>
+                  <Layout>
+                    <CreateJobPlanPage />
+                  </Layout>
+                </AuthGuard>
+              } />
+              <Route path="/job-plans/:id" element={
+                <AuthGuard>
+                  <Layout>
+                    <JobPlanDetailPage />
+                  </Layout>
+                </AuthGuard>
+              } />
+              <Route path="/job-plans/:id/edit" element={
+                <AuthGuard>
+                  <Layout>
+                    <EditJobPlanPage />
+                  </Layout>
+                </AuthGuard>
+              } />
             <Route path="/preventive-maintenance" element={
               <AuthGuard>
                 <Layout>

@@ -1,16 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Clipboard, Plus, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { JobPlanCard } from "@/components/job-plans/JobPlanCard";
-import { JobPlanForm } from "@/components/job-plans/JobPlanForm";
 import { useJobPlans, useJobPlanStats } from "@/hooks/useJobPlans";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const JobPlansPage = () => {
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   
   const { data: jobPlans, isLoading } = useJobPlans();
@@ -35,7 +34,7 @@ const JobPlansPage = () => {
             <p className="text-muted-foreground">Standardized maintenance procedures and task templates</p>
           </div>
         </div>
-        <Button onClick={() => setIsFormOpen(true)} className="gap-2">
+        <Button onClick={() => navigate("/job-plans/create")} className="gap-2">
           <Plus className="w-4 h-4" />
           Create New Job Plan
         </Button>
@@ -126,7 +125,7 @@ const JobPlansPage = () => {
               {searchTerm ? "Try adjusting your search terms" : "Get started by creating your first job plan"}
             </p>
             {!searchTerm && (
-              <Button onClick={() => setIsFormOpen(true)} className="gap-2">
+              <Button onClick={() => navigate("/job-plans/create")} className="gap-2">
                 <Plus className="w-4 h-4" />
                 Create Job Plan
               </Button>
@@ -139,11 +138,6 @@ const JobPlansPage = () => {
         )}
       </div>
 
-      {/* Job Plan Form Modal */}
-      <JobPlanForm
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-      />
     </div>
   );
 };
