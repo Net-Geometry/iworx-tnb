@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { usePeople } from '@/hooks/usePeople';
 import { usePersonSkills } from '@/hooks/usePersonSkills';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
+import { useBusinessArea } from '@/hooks/useBusinessAreas';
 import { useSkills } from '@/hooks/useSkills';
 import { useTeams } from '@/hooks/useTeams';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -44,11 +45,12 @@ const PersonDetailPage: React.FC = () => {
   // Fetch related data
   const { personSkills, isLoading: skillsLoading } = usePersonSkills(id);
   const { teamMembers, isLoading: teamsLoading } = useTeamMembers(id);
+  const { data: businessArea, isLoading: businessAreaLoading } = useBusinessArea(person?.business_area_id || null);
   const { skills } = useSkills();
   const { teams } = useTeams();
 
   // Loading state
-  if (peopleLoading) {
+  if (peopleLoading || skillsLoading || teamsLoading || businessAreaLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-full" />
@@ -194,6 +196,16 @@ const PersonDetailPage: React.FC = () => {
                 <label className="text-sm font-medium text-muted-foreground">Department</label>
                 <p className="text-sm text-foreground mt-1">{person.department || 'N/A'}</p>
               </div>
+
+              {businessArea && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Business Area</label>
+                  <p className="text-sm text-foreground mt-1">
+                    {businessArea.business_area}
+                    {businessArea.region && ` (${businessArea.region})`}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Employment Information */}

@@ -389,6 +389,51 @@ export type Database = {
           },
         ]
       }
+      business_area: {
+        Row: {
+          ba_id: number | null
+          ba_number: number | null
+          business_area: string | null
+          id: string
+          label: string | null
+          ppb_zone: string | null
+          region: string | null
+          source_dat: string | null
+          state: string | null
+          station: string | null
+          status: string | null
+          tnb_source: number | null
+        }
+        Insert: {
+          ba_id?: number | null
+          ba_number?: number | null
+          business_area?: string | null
+          id?: string
+          label?: string | null
+          ppb_zone?: string | null
+          region?: string | null
+          source_dat?: string | null
+          state?: string | null
+          station?: string | null
+          status?: string | null
+          tnb_source?: number | null
+        }
+        Update: {
+          ba_id?: number | null
+          ba_number?: number | null
+          business_area?: string | null
+          id?: string
+          label?: string | null
+          ppb_zone?: string | null
+          region?: string | null
+          source_dat?: string | null
+          state?: string | null
+          station?: string | null
+          status?: string | null
+          tnb_source?: number | null
+        }
+        Relationships: []
+      }
       capa_records: {
         Row: {
           capa_number: string
@@ -1626,6 +1671,7 @@ export type Database = {
       }
       people: {
         Row: {
+          business_area_id: string | null
           certifications: string[] | null
           complemented: string | null
           cost_center: string | null
@@ -1669,6 +1715,7 @@ export type Database = {
           vacancy_status: string | null
         }
         Insert: {
+          business_area_id?: string | null
           certifications?: string[] | null
           complemented?: string | null
           cost_center?: string | null
@@ -1712,6 +1759,7 @@ export type Database = {
           vacancy_status?: string | null
         }
         Update: {
+          business_area_id?: string | null
           certifications?: string[] | null
           complemented?: string | null
           cost_center?: string | null
@@ -1755,6 +1803,13 @@ export type Database = {
           vacancy_status?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "people_business_area_id_fkey"
+            columns: ["business_area_id"]
+            isOneToOne: false
+            referencedRelation: "business_area"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "people_organization_id_fkey"
             columns: ["organization_id"]

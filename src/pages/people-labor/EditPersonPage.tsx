@@ -13,6 +13,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePeople } from "@/hooks/usePeople";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useBusinessAreas } from "@/hooks/useBusinessAreas";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ArrowLeft, User, Briefcase, FileText, Save } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -32,6 +34,7 @@ const personSchema = z.object({
   hourly_rate: z.string().optional(),
   notes: z.string().optional(),
   certifications: z.string().optional(),
+  business_area_id: z.string().optional(),
 });
 
 type PersonFormData = z.infer<typeof personSchema>;
@@ -44,6 +47,7 @@ export default function EditPersonPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { updatePerson } = usePeople();
+  const { data: businessAreas, isLoading: businessAreasLoading } = useBusinessAreas();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [person, setPerson] = useState<any>(null);
@@ -54,6 +58,7 @@ export default function EditPersonPage() {
     formState: { errors },
     setValue,
     watch,
+    control,
   } = useForm<PersonFormData>({
     resolver: zodResolver(personSchema),
     defaultValues: {
@@ -92,6 +97,7 @@ export default function EditPersonPage() {
           setValue("hourly_rate", data.hourly_rate?.toString() || "");
           setValue("notes", data.notes || "");
           setValue("certifications", Array.isArray(data.certifications) ? data.certifications.join(", ") : (data.certifications || ""));
+          setValue("business_area_id", data.business_area_id || "");
         }
       } catch (error: any) {
         console.error("Error fetching person:", error);
@@ -128,6 +134,7 @@ export default function EditPersonPage() {
         employment_status: data.employment_status,
         notes: data.notes || undefined,
         certifications: data.certifications ? data.certifications.split(",").map(c => c.trim()).filter(c => c) : undefined,
+        business_area_id: data.business_area_id || null,
       });
 
       toast({
@@ -148,7 +155,7 @@ export default function EditPersonPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || businessAreasLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <Skeleton className="h-8 w-64" />
@@ -305,6 +312,35 @@ export default function EditPersonPage() {
                 />
               </div>
             </div>
+
+            <FormField
+              control={control}
+              name="business_area_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Business Area</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value || ""}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select business area" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {businessAreas?.map((ba) => (
+                        <SelectItem key={ba.id} value={ba.id}>
+                          {ba.business_area} {ba.region && `- ${ba.region}`} {ba.state && `(${ba.state})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
 

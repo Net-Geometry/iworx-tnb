@@ -15,11 +15,13 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { AddPersonDialog } from "@/components/people-labor/AddPersonDialog";
 import { ImportUsersDialog } from "@/components/people-labor/ImportUsersDialog";
+import { useBusinessAreas } from "@/hooks/useBusinessAreas";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const PeopleManagementPage = () => {
   const navigate = useNavigate();
   const { people, isLoading } = usePeople();
+  const { data: businessAreas } = useBusinessAreas();
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -98,6 +100,7 @@ const PeopleManagementPage = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Job Title</TableHead>
                 <TableHead>Department</TableHead>
+                <TableHead>Business Area</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>System Access</TableHead>
                 <TableHead>Hire Date</TableHead>
@@ -107,13 +110,13 @@ const PeopleManagementPage = () => {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center">
+                  <TableCell colSpan={9} className="text-center">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : filteredPeople.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center">
+                  <TableCell colSpan={9} className="text-center">
                     No people found
                   </TableCell>
                 </TableRow>
@@ -124,6 +127,12 @@ const PeopleManagementPage = () => {
                     <TableCell>{`${person.first_name} ${person.last_name}`}</TableCell>
                     <TableCell>{person.job_title || '-'}</TableCell>
                     <TableCell>{person.department || '-'}</TableCell>
+                    <TableCell>
+                      {person.business_area_id 
+                        ? businessAreas?.find(ba => ba.id === person.business_area_id)?.business_area || '-'
+                        : '-'
+                      }
+                    </TableCell>
                     <TableCell>
                       <Badge variant={getStatusColor(person.employment_status)}>
                         {person.employment_status}
