@@ -33,6 +33,17 @@ export function AssignCraftDialog({ open, onOpenChange, personId, editingCraft }
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Handle craft selection - auto-populate fields
+  const handleCraftSelect = (craftId: string) => {
+    const selectedCraft = crafts.find(c => c.id === craftId);
+    setFormData({
+      ...formData,
+      craft_id: craftId,
+      proficiency_level: selectedCraft?.skill_level || "",
+      certification_status: "active",
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -91,7 +102,7 @@ export function AssignCraftDialog({ open, onOpenChange, personId, editingCraft }
             <Label htmlFor="craft">Craft *</Label>
             <Select
               value={formData.craft_id}
-              onValueChange={(value) => setFormData({ ...formData, craft_id: value })}
+              onValueChange={handleCraftSelect}
               disabled={!!editingCraft || craftsLoading}
             >
               <SelectTrigger id="craft">
@@ -108,13 +119,14 @@ export function AssignCraftDialog({ open, onOpenChange, personId, editingCraft }
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="grade-level">Grade/Level</Label>
+            <Label htmlFor="grade-level">Grade/Level (Auto-populated)</Label>
             <Input
               id="grade-level"
               type="text"
               value={formData.proficiency_level}
-              onChange={(e) => setFormData({ ...formData, proficiency_level: e.target.value })}
-              placeholder="e.g., TD 03-04, TT 05-06"
+              disabled
+              placeholder="Select a craft to auto-fill"
+              className="bg-muted"
             />
           </div>
 
@@ -123,8 +135,9 @@ export function AssignCraftDialog({ open, onOpenChange, personId, editingCraft }
             <Select
               value={formData.certification_status}
               onValueChange={(value) => setFormData({ ...formData, certification_status: value })}
+              disabled
             >
-              <SelectTrigger id="status">
+              <SelectTrigger id="status" className="bg-muted">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
