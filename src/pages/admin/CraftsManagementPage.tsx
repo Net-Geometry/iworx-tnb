@@ -269,16 +269,15 @@ const CraftsManagementPage = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="vendor">Vendor</Label>
+                <Label htmlFor="vendor">Vendor (Optional)</Label>
                 <Select
-                  value={formData.vendor_id}
+                  value={formData.vendor_id || undefined}
                   onValueChange={(value) => setFormData({ ...formData, vendor_id: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select vendor" />
+                    <SelectValue placeholder="Select vendor (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
                     {suppliers?.map((supplier) => (
                       <SelectItem key={supplier.id} value={supplier.id}>
                         {supplier.name}
