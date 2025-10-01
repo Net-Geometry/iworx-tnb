@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { assetApi } from '@/services/api-client';
 
 export interface Asset {
   id: string;
@@ -47,40 +48,57 @@ export const useAssets = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch assets with hierarchy information
-      let query = supabase
-        .from('assets')
-        .select(`
-          *,
-          hierarchy_nodes!hierarchy_node_id (
-            id,
-            name,
-            path
-          )
-        `);
+      // Use microservice API through API Gateway
+      const data = await assetApi.getAssets();
 
-      // Filter by organization unless user has cross-project access
-      if (!hasCrossProjectAccess && currentOrganization) {
-        query = query.eq('organization_id', currentOrganization.id);
-      }
-
-      const { data, error: fetchError } = await query.order('created_at', { ascending: false });
-
-      if (fetchError) throw fetchError;
-
-      // Transform data to include hierarchy path as location
-      const transformedAssets: Asset[] = (data || []).map(asset => ({
+      // Transform data to match Asset interface
+      const transformedAssets: Asset[] = (data as any[]).map(asset => ({
         ...asset,
-        status: asset.status as Asset['status'], // Type assertion for status
-        criticality: asset.criticality as Asset['criticality'], // Type assertion for criticality
-        location: asset.hierarchy_nodes?.name || 'Unassigned',
-        hierarchy_path: asset.hierarchy_nodes?.path || asset.hierarchy_nodes?.name || 'Unassigned'
+        status: asset.status as Asset['status'],
+        criticality: asset.criticality as Asset['criticality'],
       }));
 
       setAssets(transformedAssets);
     } catch (error: any) {
       console.error('Error fetching assets:', error);
       setError(error.message);
+      
+      // Fallback to direct Supabase call if microservice fails
+      console.log('[useAssets] Falling back to direct database access');
+      try {
+        let query = supabase
+          .from('assets')
+          .select(`
+            *,
+            hierarchy_nodes!hierarchy_node_id (
+              id,
+              name,
+              path
+            )
+          `);
+
+        if (!hasCrossProjectAccess && currentOrganization) {
+          query = query.eq('organization_id', currentOrganization.id);
+        }
+
+        const { data, error: fetchError } = await query.order('created_at', { ascending: false });
+
+        if (fetchError) throw fetchError;
+
+        const transformedAssets: Asset[] = (data || []).map(asset => ({
+          ...asset,
+          status: asset.status as Asset['status'],
+          criticality: asset.criticality as Asset['criticality'],
+          location: asset.hierarchy_nodes?.name || 'Unassigned',
+          hierarchy_path: asset.hierarchy_nodes?.path || asset.hierarchy_nodes?.name || 'Unassigned'
+        }));
+
+        setAssets(transformedAssets);
+        setError(null); // Clear error on successful fallback
+      } catch (fallbackError: any) {
+        console.error('Fallback also failed:', fallbackError);
+        setError(fallbackError.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -88,18 +106,8 @@ export const useAssets = () => {
 
   const addAsset = async (assetData: Omit<Asset, 'id' | 'created_at' | 'updated_at' | 'hierarchy_path' | 'location' | 'organization_id'>) => {
     try {
-      const dataWithOrg = {
-        ...assetData,
-        organization_id: currentOrganization?.id
-      };
-
-      const { data, error } = await supabase
-        .from('assets')
-        .insert([dataWithOrg])
-        .select()
-        .single();
-
-      if (error) throw error;
+      // Use microservice API
+      const data = await assetApi.createAsset(assetData);
 
       toast({
         title: "Success",
@@ -121,14 +129,8 @@ export const useAssets = () => {
 
   const updateAsset = async (id: string, assetData: Partial<Asset>) => {
     try {
-      const { data, error } = await supabase
-        .from('assets')
-        .update(assetData)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      // Use microservice API
+      const data = await assetApi.updateAsset(id, assetData);
 
       toast({
         title: "Success",
@@ -150,12 +152,8 @@ export const useAssets = () => {
 
   const deleteAsset = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('assets')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      // Use microservice API
+      await assetApi.deleteAsset(id);
 
       toast({
         title: "Success",

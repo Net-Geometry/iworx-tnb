@@ -1,0 +1,340 @@
+/**
+ * Asset Management Microservice
+ * 
+ * Handles all asset-related operations including:
+ * - CRUD operations for assets
+ * - Asset hierarchy management
+ * - Asset document management
+ * - Asset health scoring and criticality
+ * - Asset lifecycle management
+ */
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.0";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-user-id, x-organization-id",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+};
+
+/**
+ * Get all assets with filters
+ */
+async function getAssets(
+  supabase: any,
+  organizationId: string,
+  hasCrossProjectAccess: boolean,
+  searchParams: URLSearchParams
+) {
+  console.log("[Asset Service] Fetching assets");
+
+  let query = supabase
+    .from("assets")
+    .select(`
+      *,
+      hierarchy_nodes!hierarchy_node_id (
+        id,
+        name,
+        path
+      )
+    `);
+
+  // Apply organization filter unless user has cross-project access
+  if (!hasCrossProjectAccess && organizationId) {
+    query = query.eq("organization_id", organizationId);
+  }
+
+  // Apply filters from query parameters
+  const status = searchParams.get("status");
+  const criticality = searchParams.get("criticality");
+  const type = searchParams.get("type");
+  const search = searchParams.get("search");
+
+  if (status) query = query.eq("status", status);
+  if (criticality) query = query.eq("criticality", criticality);
+  if (type) query = query.eq("type", type);
+  if (search) {
+    query = query.or(`name.ilike.%${search}%,asset_number.ilike.%${search}%,description.ilike.%${search}%`);
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  // Transform data to include hierarchy path as location
+  const transformedAssets = (data || []).map((asset: any) => ({
+    ...asset,
+    location: asset.hierarchy_nodes?.name || "Unassigned",
+    hierarchy_path: asset.hierarchy_nodes?.path || asset.hierarchy_nodes?.name || "Unassigned",
+  }));
+
+  return transformedAssets;
+}
+
+/**
+ * Get single asset by ID
+ */
+async function getAssetById(supabase: any, id: string, organizationId: string, hasCrossProjectAccess: boolean) {
+  console.log(`[Asset Service] Fetching asset ${id}`);
+
+  let query = supabase
+    .from("assets")
+    .select(`
+      *,
+      hierarchy_nodes!hierarchy_node_id (
+        id,
+        name,
+        path
+      )
+    `)
+    .eq("id", id);
+
+  if (!hasCrossProjectAccess && organizationId) {
+    query = query.eq("organization_id", organizationId);
+  }
+
+  const { data, error } = await query.single();
+
+  if (error) throw error;
+
+  return {
+    ...data,
+    location: data.hierarchy_nodes?.name || "Unassigned",
+    hierarchy_path: data.hierarchy_nodes?.path || data.hierarchy_nodes?.name || "Unassigned",
+  };
+}
+
+/**
+ * Create new asset
+ */
+async function createAsset(supabase: any, assetData: any, organizationId: string) {
+  console.log("[Asset Service] Creating asset");
+
+  const dataWithOrg = {
+    ...assetData,
+    organization_id: organizationId,
+  };
+
+  const { data, error } = await supabase
+    .from("assets")
+    .insert([dataWithOrg])
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}
+
+/**
+ * Update existing asset
+ */
+async function updateAsset(supabase: any, id: string, assetData: any, organizationId: string, hasCrossProjectAccess: boolean) {
+  console.log(`[Asset Service] Updating asset ${id}`);
+
+  let query = supabase
+    .from("assets")
+    .update(assetData)
+    .eq("id", id);
+
+  if (!hasCrossProjectAccess && organizationId) {
+    query = query.eq("organization_id", organizationId);
+  }
+
+  const { data, error } = await query.select().single();
+
+  if (error) throw error;
+
+  return data;
+}
+
+/**
+ * Delete asset
+ */
+async function deleteAsset(supabase: any, id: string, organizationId: string, hasCrossProjectAccess: boolean) {
+  console.log(`[Asset Service] Deleting asset ${id}`);
+
+  let query = supabase
+    .from("assets")
+    .delete()
+    .eq("id", id);
+
+  if (!hasCrossProjectAccess && organizationId) {
+    query = query.eq("organization_id", organizationId);
+  }
+
+  const { error } = await query;
+
+  if (error) throw error;
+
+  return { success: true };
+}
+
+/**
+ * Get asset hierarchy
+ */
+async function getAssetHierarchy(supabase: any, assetId: string) {
+  console.log(`[Asset Service] Fetching hierarchy for asset ${assetId}`);
+
+  const { data: asset, error } = await supabase
+    .from("assets")
+    .select(`
+      *,
+      hierarchy_nodes!hierarchy_node_id (
+        id,
+        name,
+        path,
+        parent_id,
+        hierarchy_level_id
+      )
+    `)
+    .eq("id", assetId)
+    .single();
+
+  if (error) throw error;
+
+  return {
+    asset,
+    hierarchy: asset.hierarchy_nodes,
+  };
+}
+
+/**
+ * Health check endpoint
+ */
+function healthCheck() {
+  return {
+    status: "healthy",
+    service: "asset-service",
+    timestamp: new Date().toISOString(),
+  };
+}
+
+/**
+ * Check if user has cross-project access
+ */
+async function checkCrossProjectAccess(supabase: any, userId: string): Promise<boolean> {
+  const { data } = await supabase.rpc("has_cross_project_access", {
+    _user_id: userId,
+  });
+  return data || false;
+}
+
+serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  const url = new URL(req.url);
+  const path = url.pathname;
+  const searchParams = url.searchParams;
+
+  try {
+    // Health check
+    if (path === "/health") {
+      return new Response(JSON.stringify(healthCheck()), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Get auth info from headers (set by API Gateway)
+    const userId = req.headers.get("x-user-id");
+    const organizationId = req.headers.get("x-organization-id");
+
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Create Supabase client
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Check cross-project access
+    const hasCrossProjectAccess = await checkCrossProjectAccess(supabase, userId);
+
+    // Route to appropriate handler
+    const pathParts = path.split("/").filter(Boolean);
+    const assetId = pathParts[0]; // First part might be asset ID
+
+    // GET /assets - List all assets
+    if (req.method === "GET" && (!assetId || assetId === "assets")) {
+      const assets = await getAssets(supabase, organizationId || "", hasCrossProjectAccess, searchParams);
+      return new Response(JSON.stringify(assets), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // GET /assets/:id - Get single asset
+    if (req.method === "GET" && assetId && !pathParts[1]) {
+      const asset = await getAssetById(supabase, assetId, organizationId || "", hasCrossProjectAccess);
+      return new Response(JSON.stringify(asset), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // GET /assets/:id/hierarchy - Get asset hierarchy
+    if (req.method === "GET" && assetId && pathParts[1] === "hierarchy") {
+      const hierarchy = await getAssetHierarchy(supabase, assetId);
+      return new Response(JSON.stringify(hierarchy), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // POST /assets - Create new asset
+    if (req.method === "POST" && (!assetId || assetId === "assets")) {
+      const body = await req.json();
+      const asset = await createAsset(supabase, body, organizationId || "");
+      return new Response(JSON.stringify(asset), {
+        status: 201,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // PUT /assets/:id - Update asset
+    if (req.method === "PUT" && assetId) {
+      const body = await req.json();
+      const asset = await updateAsset(supabase, assetId, body, organizationId || "", hasCrossProjectAccess);
+      return new Response(JSON.stringify(asset), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // DELETE /assets/:id - Delete asset
+    if (req.method === "DELETE" && assetId) {
+      const result = await deleteAsset(supabase, assetId, organizationId || "", hasCrossProjectAccess);
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Not found
+    return new Response(
+      JSON.stringify({ error: "Endpoint not found" }),
+      { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+
+  } catch (error) {
+    console.error("[Asset Service] Error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return new Response(
+      JSON.stringify({ 
+        error: "Internal server error",
+        message: errorMessage 
+      }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});
