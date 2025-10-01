@@ -1,0 +1,168 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+
+export interface Meter {
+  id: string;
+  organization_id: string;
+  meter_number: string;
+  serial_number: string;
+  meter_type: 'revenue' | 'monitoring' | 'protection' | 'power_quality';
+  manufacturer?: string;
+  model?: string;
+  accuracy_class?: string;
+  voltage_rating?: number;
+  current_rating?: number;
+  phase_type?: 'single' | 'three';
+  installation_date?: string;
+  installation_location?: string;
+  coordinates?: { lat: number; lng: number };
+  last_calibration_date?: string;
+  next_calibration_date?: string;
+  calibration_certificate_number?: string;
+  meter_constant?: number;
+  multiplier?: number;
+  status: 'active' | 'inactive' | 'faulty' | 'retired';
+  health_score: number;
+  last_reading?: number;
+  last_reading_date?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+}
+
+export const useMeters = () => {
+  const [meters, setMeters] = useState<Meter[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
+
+  const fetchMeters = async () => {
+    try {
+      setLoading(true);
+
+      let query = supabase.from('meters').select('*');
+
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq('organization_id', currentOrganization.id);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setMeters((data || []) as Meter[]);
+    } catch (error: any) {
+      console.error('Error fetching meters:', error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addMeter = async (meterData: Omit<Meter, 'id' | 'created_at' | 'updated_at' | 'organization_id'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('meters')
+        .insert([{
+          ...meterData,
+          organization_id: currentOrganization?.id
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Meter registered successfully",
+      });
+
+      await fetchMeters();
+      return data;
+    } catch (error: any) {
+      console.error('Error adding meter:', error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const updateMeter = async (id: string, meterData: Partial<Meter>) => {
+    try {
+      const { data, error } = await supabase
+        .from('meters')
+        .update(meterData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Meter updated successfully",
+      });
+
+      await fetchMeters();
+      return data;
+    } catch (error: any) {
+      console.error('Error updating meter:', error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const deleteMeter = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('meters')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Meter deleted successfully",
+      });
+
+      await fetchMeters();
+    } catch (error: any) {
+      console.error('Error deleting meter:', error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    if (currentOrganization || hasCrossProjectAccess) {
+      fetchMeters();
+    }
+  }, [currentOrganization?.id, hasCrossProjectAccess]);
+
+  return {
+    meters,
+    loading,
+    refetch: fetchMeters,
+    addMeter,
+    updateMeter,
+    deleteMeter,
+  };
+};

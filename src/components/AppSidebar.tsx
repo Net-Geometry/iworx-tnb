@@ -29,6 +29,8 @@ import {
   GraduationCap,
   Hammer,
   Database,
+  Gauge,
+  Layers,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -83,6 +85,16 @@ const assetMaintenanceModules = [
     title: "Bill of Materials",
     url: "/bom",
     icon: FileSpreadsheet,
+  },
+  {
+    title: "Meter Registration",
+    url: "/meters",
+    icon: Gauge,
+  },
+  {
+    title: "Meter Groups",
+    url: "/meter-groups",
+    icon: Layers,
   },
 ];
 

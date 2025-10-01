@@ -124,6 +124,48 @@ export type Database = {
           },
         ]
       }
+      asset_meter_groups: {
+        Row: {
+          asset_id: string
+          assigned_by: string | null
+          assigned_date: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          meter_group_id: string
+          notes: string | null
+          organization_id: string
+          purpose: string | null
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          assigned_by?: string | null
+          assigned_date?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          meter_group_id: string
+          notes?: string | null
+          organization_id: string
+          purpose?: string | null
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          assigned_by?: string | null
+          assigned_date?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          meter_group_id?: string
+          notes?: string | null
+          organization_id?: string
+          purpose?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       assets: {
         Row: {
           asset_image_url: string | null
@@ -1674,6 +1716,183 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      meter_group_assignments: {
+        Row: {
+          assigned_by: string | null
+          assigned_date: string
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          meter_group_id: string
+          meter_id: string
+          notes: string | null
+          organization_id: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          assigned_date?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          meter_group_id: string
+          meter_id: string
+          notes?: string | null
+          organization_id: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string | null
+          assigned_date?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          meter_group_id?: string
+          meter_id?: string
+          notes?: string | null
+          organization_id?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      meter_groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          group_number: string
+          group_type: string | null
+          hierarchy_node_id: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          purpose: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          group_number: string
+          group_type?: string | null
+          hierarchy_node_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          purpose?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          group_number?: string
+          group_type?: string | null
+          hierarchy_node_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          purpose?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      meters: {
+        Row: {
+          accuracy_class: string | null
+          calibration_certificate_number: string | null
+          coordinates: Json | null
+          created_at: string
+          created_by: string | null
+          current_rating: number | null
+          health_score: number | null
+          id: string
+          installation_date: string | null
+          installation_location: string | null
+          last_calibration_date: string | null
+          last_reading: number | null
+          last_reading_date: string | null
+          manufacturer: string | null
+          meter_constant: number | null
+          meter_number: string
+          meter_type: string
+          model: string | null
+          multiplier: number | null
+          next_calibration_date: string | null
+          notes: string | null
+          organization_id: string
+          phase_type: string | null
+          serial_number: string
+          status: string
+          updated_at: string
+          voltage_rating: number | null
+        }
+        Insert: {
+          accuracy_class?: string | null
+          calibration_certificate_number?: string | null
+          coordinates?: Json | null
+          created_at?: string
+          created_by?: string | null
+          current_rating?: number | null
+          health_score?: number | null
+          id?: string
+          installation_date?: string | null
+          installation_location?: string | null
+          last_calibration_date?: string | null
+          last_reading?: number | null
+          last_reading_date?: string | null
+          manufacturer?: string | null
+          meter_constant?: number | null
+          meter_number: string
+          meter_type: string
+          model?: string | null
+          multiplier?: number | null
+          next_calibration_date?: string | null
+          notes?: string | null
+          organization_id: string
+          phase_type?: string | null
+          serial_number: string
+          status?: string
+          updated_at?: string
+          voltage_rating?: number | null
+        }
+        Update: {
+          accuracy_class?: string | null
+          calibration_certificate_number?: string | null
+          coordinates?: Json | null
+          created_at?: string
+          created_by?: string | null
+          current_rating?: number | null
+          health_score?: number | null
+          id?: string
+          installation_date?: string | null
+          installation_location?: string | null
+          last_calibration_date?: string | null
+          last_reading?: number | null
+          last_reading_date?: string | null
+          manufacturer?: string | null
+          meter_constant?: number | null
+          meter_number?: string
+          meter_type?: string
+          model?: string | null
+          multiplier?: number | null
+          next_calibration_date?: string | null
+          notes?: string | null
+          organization_id?: string
+          phase_type?: string | null
+          serial_number?: string
+          status?: string
+          updated_at?: string
+          voltage_rating?: number | null
+        }
+        Relationships: []
       }
       organizations: {
         Row: {

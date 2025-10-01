@@ -63,6 +63,8 @@ import TeamsManagementPage from "./pages/people-labor/TeamsManagementPage";
 import SkillsLibraryPage from "./pages/people-labor/SkillsLibraryPage";
 import MyVerticals from "./pages/MyVerticals";
 import CrossProjectAnalytics from "./pages/CrossProjectAnalytics";
+import MetersPage from "./pages/meters/MetersPage";
+import MeterGroupsPage from "./pages/meters/MeterGroupsPage";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +102,20 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <CreateAssetPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/meters" element={
+              <AuthGuard>
+                <Layout>
+                  <MetersPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/meter-groups" element={
+              <AuthGuard>
+                <Layout>
+                  <MeterGroupsPage />
                 </Layout>
               </AuthGuard>
             } />

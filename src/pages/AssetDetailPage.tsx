@@ -1,4 +1,5 @@
 import { AssetBOMTab } from '@/components/bom/AssetBOMTab';
+import { AssetMeterGroupsTab } from '@/components/assets/AssetMeterGroupsTab';
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAssets } from '@/hooks/useAssets';
@@ -243,10 +244,11 @@ const AssetDetailPage: React.FC = () => {
 
       {/* Detailed Information Tabs */}
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
           <TabsTrigger value="bom">Bill of Materials</TabsTrigger>
+          <TabsTrigger value="meters">Meter Groups</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="financials">Financials</TabsTrigger>
           <TabsTrigger value="location">Location</TabsTrigger>
@@ -397,6 +399,11 @@ const AssetDetailPage: React.FC = () => {
         {/* BOM Tab */}
         <TabsContent value="bom" className="mt-6">
           <AssetBOMTab assetId={id!} />
+        </TabsContent>
+
+        {/* Meter Groups Tab */}
+        <TabsContent value="meters" className="mt-6">
+          <AssetMeterGroupsTab assetId={id!} />
         </TabsContent>
 
         {/* Documents Tab */}
