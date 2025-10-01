@@ -3,11 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { safetyApi } from '@/services/api-client';
-import type { Database } from '@/integrations/supabase/types';
-
-type SafetyPrecaution = Database['public']['Tables']['safety_precautions']['Row'];
-type SafetyPrecautionInsert = Database['public']['Tables']['safety_precautions']['Insert'];
-type SafetyPrecautionUpdate = Database['public']['Tables']['safety_precautions']['Update'];
+import { SafetyPrecaution, SafetyPrecautionInsert, SafetyPrecautionUpdate } from '@/types/microservices';
 
 export interface PrecautionFilters {
   category?: string;

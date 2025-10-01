@@ -104,7 +104,7 @@ export const usePMSchedules = () => {
             schedule.asset_id ? supabase.from("assets").select("name, asset_number").eq("id", schedule.asset_id).maybeSingle() : Promise.resolve(null),
             schedule.job_plan_id ? supabase.from("job_plans").select("title, job_plan_number").eq("id", schedule.job_plan_id).maybeSingle() : Promise.resolve(null),
             schedule.assigned_to ? supabase.from("people").select("first_name, last_name").eq("id", schedule.assigned_to).maybeSingle() : Promise.resolve(null),
-            schedule.maintenance_route_id ? supabase.from("maintenance_routes").select("route_number, name").eq("id", schedule.maintenance_route_id).maybeSingle() : Promise.resolve(null),
+            schedule.route_id ? supabase.from("maintenance_routes").select("route_number, name").eq("id", schedule.route_id).maybeSingle() : Promise.resolve(null),
           ]);
           
           return {

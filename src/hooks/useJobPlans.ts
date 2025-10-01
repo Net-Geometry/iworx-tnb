@@ -181,25 +181,30 @@ export const useJobPlan = (id: string) => {
   return useQuery({
     queryKey: ["job-plans", id, currentOrganization?.id],
     queryFn: async () => {
-      let query = supabase
-        .from("job_plans")
-        .select(`
-          *,
-          tasks:job_plan_tasks(*),
-          parts:job_plan_parts(*),
-          tools:job_plan_tools(*),
-          documents:job_plan_documents(*)
-        `)
-        .eq("id", id);
+      let query = supabase.from("job_plans").select("*").eq("id", id);
 
       if (!hasCrossProjectAccess && currentOrganization) {
         query = query.eq("organization_id", currentOrganization.id);
       }
 
       const { data, error } = await query.single();
-
       if (error) throw error;
-      return data as JobPlanWithDetails;
+      
+      // Fetch related data separately (cross-schema relationships)
+      const [tasksData, partsData, toolsData, docsData] = await Promise.all([
+        supabase.from("job_plan_tasks").select("*").eq("job_plan_id", id).order("task_sequence"),
+        supabase.from("job_plan_parts").select("*").eq("job_plan_id", id),
+        supabase.from("job_plan_tools").select("*").eq("job_plan_id", id),
+        supabase.from("job_plan_documents").select("*").eq("job_plan_id", id),
+      ]);
+      
+      return {
+        ...data,
+        tasks: tasksData.data || [],
+        parts: partsData.data || [],
+        tools: toolsData.data || [],
+        documents: docsData.data || [],
+      } as JobPlanWithDetails;
     },
     enabled: !!id && (!!currentOrganization || hasCrossProjectAccess),
   });
@@ -264,7 +269,11 @@ export const useCreateJobPlan = () => {
         const { error: documentsError } = await supabase
           .from("job_plan_documents")
           .insert(documents.map(doc => ({ 
-            ...doc, 
+            document_name: doc.document_name,
+            document_type: doc.document_type as 'manual' | 'schematic' | 'checklist' | 'video' | 'image',
+            file_path: doc.file_path,
+            file_size: doc.file_size,
+            is_required: doc.is_required,
             job_plan_id: jobPlan.id,
             organization_id: currentOrganization?.id,
           })));

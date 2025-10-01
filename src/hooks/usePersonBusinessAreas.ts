@@ -38,16 +38,7 @@ export const usePersonBusinessAreas = (personId: string | undefined) => {
 
       let query = supabase
         .from("person_business_areas")
-        .select(`
-          *,
-          business_area (
-            id,
-            business_area,
-            region,
-            state,
-            station
-          )
-        `)
+        .select("*")
         .eq("person_id", personId)
         .eq("status", "active")
         .order("is_primary", { ascending: false })
@@ -60,7 +51,30 @@ export const usePersonBusinessAreas = (personId: string | undefined) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as PersonBusinessArea[];
+      
+      // Fetch business area details separately (cross-schema relationship)
+      const enrichedData = await Promise.all(
+        (data || []).map(async (pba) => {
+          const { data: baData } = await supabase
+            .from("business_area")
+            .select("id, business_area, region, state, station")
+            .eq("id", pba.business_area_id)
+            .single();
+          
+          return {
+            ...pba,
+            business_area: baData || {
+              id: pba.business_area_id,
+              business_area: 'Unknown',
+              region: '',
+              state: '',
+              station: ''
+            }
+          };
+        })
+      );
+      
+      return enrichedData as PersonBusinessArea[];
     },
     enabled: !!personId && (!!currentOrganization || hasCrossProjectAccess),
   });

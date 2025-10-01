@@ -39,23 +39,35 @@ export const useRouteAssets = (routeId: string | undefined) => {
 
       const { data, error } = await supabase
         .from("route_assets")
-        .select(`
-          *,
-          asset:assets(
-            id,
-            name,
-            asset_number,
-            category,
-            status,
-            hierarchy_node_id
-          )
-        `)
+        .select("*")
         .eq("route_id", routeId)
         .order("sequence_order", { ascending: true });
 
       if (error) throw error;
       
-      return (data || []) as RouteAsset[];
+      // Fetch asset details separately (cross-schema relationship)
+      const enrichedData = await Promise.all(
+        (data || []).map(async (routeAsset) => {
+          const { data: assetData } = await supabase
+            .from("assets")
+            .select("id, name, asset_number, category, status, hierarchy_node_id")
+            .eq("id", routeAsset.asset_id)
+            .single();
+          
+          return {
+            ...routeAsset,
+            asset: assetData || {
+              id: routeAsset.asset_id,
+              name: 'Unknown Asset',
+              asset_number: '',
+              category: '',
+              status: ''
+            }
+          };
+        })
+      );
+      
+      return enrichedData as RouteAsset[];
     },
     enabled: !!routeId && !!currentOrganization,
   });
