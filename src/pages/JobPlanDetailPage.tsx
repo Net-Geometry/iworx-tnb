@@ -186,7 +186,9 @@ export default function JobPlanDetailPage() {
         {/* Tasks Tab */}
         <TabsContent value="tasks" className="space-y-4 mt-6">
           <InteractiveTaskList 
-            tasks={jobPlan.tasks?.sort((a, b) => a.task_sequence - b.task_sequence) || []} 
+            tasks={jobPlan.tasks?.sort((a, b) => a.task_sequence - b.task_sequence) || []}
+            jobPlanId={jobPlan.id}
+            organizationId={jobPlan.organization_id}
           />
         </TabsContent>
 

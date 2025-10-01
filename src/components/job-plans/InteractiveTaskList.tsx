@@ -19,10 +19,11 @@ import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GripVertical, Shield, Pencil, Trash2 } from "lucide-react";
+import { GripVertical, Shield, Pencil, Trash2, Plus } from "lucide-react";
 import { useUpdateTaskSequence } from "@/hooks/useUpdateTaskSequence";
 import { useDeleteTask } from "@/hooks/useDeleteTask";
 import { TaskEditDialog } from "./TaskEditDialog";
+import { TaskCreateDialog } from "./TaskCreateDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,6 +50,8 @@ interface Task {
 
 interface InteractiveTaskListProps {
   tasks: Task[];
+  jobPlanId: string;
+  organizationId: string;
 }
 
 /**
@@ -177,10 +180,11 @@ function SortableTaskCard({
  * Interactive Task List Component
  * Displays tasks with drag-and-drop reordering functionality (always active)
  */
-export function InteractiveTaskList({ tasks }: InteractiveTaskListProps) {
+export function InteractiveTaskList({ tasks, jobPlanId, organizationId }: InteractiveTaskListProps) {
   const [localTasks, setLocalTasks] = useState(tasks);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
   const updateSequence = useUpdateTaskSequence();
   const deleteTask = useDeleteTask();
 
@@ -231,51 +235,65 @@ export function InteractiveTaskList({ tasks }: InteractiveTaskListProps) {
     setDeletingTask(null);
   };
 
-  if (tasks.length === 0) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        No tasks defined for this job plan.
-      </div>
-    );
-  }
+  // Calculate the next sequence number for new tasks
+  const nextSequence = tasks.length > 0 
+    ? Math.max(...tasks.map(t => t.task_sequence || 0)) + 1 
+    : 1;
 
   return (
     <div className="space-y-4">
-      {/* Header */}
+      {/* Header with Add Button */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Tasks</h3>
           <p className="text-sm text-muted-foreground">
-            Drag and drop tasks to reorder
+            {tasks.length > 0 ? "Drag and drop tasks to reorder" : "No tasks yet. Add your first task to get started."}
           </p>
         </div>
-        {updateSequence.isPending && (
-          <Badge variant="secondary">Saving...</Badge>
-        )}
+        <div className="flex items-center gap-2">
+          {updateSequence.isPending && (
+            <Badge variant="secondary">Saving...</Badge>
+          )}
+          <Button onClick={() => setIsCreating(true)} size="sm">
+            <Plus className="w-4 h-4 mr-1" />
+            Add Task
+          </Button>
+        </div>
       </div>
 
       {/* Task List with Drag & Drop */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={localTasks.map((task) => task.id)}
-          strategy={verticalListSortingStrategy}
+      {tasks.length > 0 && (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
         >
-          <div className="space-y-3">
-            {localTasks.map((task) => (
-              <SortableTaskCard 
-                key={task.id} 
-                task={task}
-                onEdit={setEditingTask}
-                onDelete={setDeletingTask}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+          <SortableContext
+            items={localTasks.map((task) => task.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-3">
+              {localTasks.map((task) => (
+                <SortableTaskCard 
+                  key={task.id} 
+                  task={task}
+                  onEdit={setEditingTask}
+                  onDelete={setDeletingTask}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
+
+      {/* Create Task Dialog */}
+      <TaskCreateDialog
+        jobPlanId={jobPlanId}
+        organizationId={organizationId}
+        nextSequence={nextSequence}
+        open={isCreating}
+        onOpenChange={setIsCreating}
+      />
 
       {/* Edit Task Dialog */}
       <TaskEditDialog

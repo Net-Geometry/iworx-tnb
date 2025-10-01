@@ -425,9 +425,9 @@ export const JobPlanFormContent = ({ jobPlan, mode, onSuccess }: JobPlanFormCont
 
               {/* Tasks Tab */}
               <TabsContent value="tasks" className="space-y-4 mt-6">
-                {mode === "edit" && jobPlan?.tasks && jobPlan.tasks.length > 0 ? (
+                {mode === "edit" && jobPlan ? (
                   <InteractiveTaskList 
-                    tasks={jobPlan.tasks.map(t => ({
+                    tasks={jobPlan.tasks?.map(t => ({
                       id: t.id,
                       task_sequence: t.task_sequence,
                       task_title: t.task_title,
@@ -436,7 +436,11 @@ export const JobPlanFormContent = ({ jobPlan, mode, onSuccess }: JobPlanFormCont
                       skill_required: t.skill_required,
                       is_critical_step: t.is_critical_step,
                       safety_precaution_ids: t.safety_precaution_ids,
-                    }))}
+                      completion_criteria: t.completion_criteria,
+                      notes: t.notes,
+                    })) || []}
+                    jobPlanId={jobPlan.id}
+                    organizationId={jobPlan.organization_id}
                   />
                 ) : (
                   <>
