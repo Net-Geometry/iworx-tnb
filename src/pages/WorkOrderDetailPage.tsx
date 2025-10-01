@@ -39,6 +39,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { WorkOrderForm } from '@/components/work-orders/WorkOrderForm';
+import { TestFormTab } from '@/components/work-orders/TestFormTab';
+import { useAssetMeterGroups } from '@/hooks/useAssetMeterGroups';
 
 import type { Database } from '@/integrations/supabase/types';
 
@@ -86,6 +88,33 @@ const WorkOrderDetailPage: React.FC = () => {
   
   // Fetch PM schedule materials
   const { data: materials } = usePMScheduleMaterials(workOrder?.pm_schedule_id);
+  
+  // Fetch asset meter groups
+  const { assetMeterGroups } = useAssetMeterGroups(workOrder?.asset_id);
+  
+  // Calculate matching meter groups between asset and job plan tasks
+  const matchingMeterGroups = React.useMemo(() => {
+    if (!assetMeterGroups || !jobPlan?.tasks) return [];
+    
+    const assetMeterGroupIds = assetMeterGroups.map(amg => amg.meter_group_id);
+    const taskMeterGroupIds = jobPlan.tasks
+      .filter(task => task.meter_group_id)
+      .map(task => task.meter_group_id);
+    
+    const matchingIds = assetMeterGroupIds.filter(id => taskMeterGroupIds.includes(id));
+    
+    // Get full meter group details for matching IDs
+    return assetMeterGroups
+      .filter(amg => matchingIds.includes(amg.meter_group_id))
+      .map(amg => ({
+        id: amg.meter_group_id,
+        name: (amg as any).meter_groups?.name || 'Unknown',
+        group_number: (amg as any).meter_groups?.group_number,
+        description: (amg as any).meter_groups?.description,
+      }));
+  }, [assetMeterGroups, jobPlan]);
+  
+  const showTestFormTab = matchingMeterGroups.length > 0;
 
   // Fetch related asset and safety precautions details
   React.useEffect(() => {
@@ -423,10 +452,16 @@ const WorkOrderDetailPage: React.FC = () => {
 
       {/* Detailed Information Tabs */}
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className={`grid w-full ${showTestFormTab ? 'grid-cols-6' : 'grid-cols-5'}`}>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="asset">Asset</TabsTrigger>
           <TabsTrigger value="pm-schedule">PM Schedule</TabsTrigger>
+          {showTestFormTab && (
+            <TabsTrigger value="test-form">
+              <Zap className="h-4 w-4 mr-2" />
+              Test Form
+            </TabsTrigger>
+          )}
           <TabsTrigger value="tasks">Tasks & Notes</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
@@ -936,6 +971,16 @@ const WorkOrderDetailPage: React.FC = () => {
             </Card>
           )}
         </TabsContent>
+
+        {/* Test Form Tab - Conditional */}
+        {showTestFormTab && (
+          <TabsContent value="test-form" className="space-y-4">
+            <TestFormTab 
+              workOrderId={workOrder.id}
+              matchingMeterGroups={matchingMeterGroups}
+            />
+          </TabsContent>
+        )}
 
         {/* Tasks & Notes Tab */}
         <TabsContent value="tasks" className="space-y-4">

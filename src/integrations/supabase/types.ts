@@ -3484,6 +3484,54 @@ export type Database = {
           },
         ]
       }
+      work_order_meter_readings: {
+        Row: {
+          created_at: string
+          id: string
+          is_validated: boolean | null
+          meter_group_id: string
+          notes: string | null
+          organization_id: string
+          reading_date: string
+          reading_value: number
+          recorded_by: string | null
+          updated_at: string
+          validated_at: string | null
+          validated_by: string | null
+          work_order_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_validated?: boolean | null
+          meter_group_id: string
+          notes?: string | null
+          organization_id: string
+          reading_date?: string
+          reading_value: number
+          recorded_by?: string | null
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+          work_order_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_validated?: boolean | null
+          meter_group_id?: string
+          notes?: string | null
+          organization_id?: string
+          reading_date?: string
+          reading_value?: number
+          recorded_by?: string | null
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+          work_order_id?: string
+        }
+        Relationships: []
+      }
       work_orders: {
         Row: {
           asset_id: string
