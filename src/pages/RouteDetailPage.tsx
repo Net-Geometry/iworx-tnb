@@ -12,7 +12,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMaintenanceRoute } from "@/hooks/useMaintenanceRoutes";
@@ -34,9 +33,8 @@ const RouteDetailPage = () => {
   const { updateRoute } = useMaintenanceRoutes();
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isAddAssetDialogOpen, setIsAddAssetDialogOpen] = useState(false);
+  const [isAddingAsset, setIsAddingAsset] = useState(false);
   const [selectedAssetId, setSelectedAssetId] = useState<string | undefined>();
-  const [estimatedTime, setEstimatedTime] = useState("");
   const [notes, setNotes] = useState("");
 
   const handleUpdateRoute = (data: any) => {
@@ -56,14 +54,12 @@ const RouteDetailPage = () => {
     addAsset({
       asset_id: selectedAssetId,
       sequence_order: nextSequence,
-      estimated_time_minutes: estimatedTime ? parseInt(estimatedTime) : undefined,
       notes: notes || undefined,
     });
 
-    // Reset form and close dialog
-    setIsAddAssetDialogOpen(false);
+    // Reset form
+    setIsAddingAsset(false);
     setSelectedAssetId(undefined);
-    setEstimatedTime("");
     setNotes("");
   };
 
@@ -169,15 +165,57 @@ const RouteDetailPage = () => {
         <TabsContent value="assets" className="space-y-4">
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Route Assets</CardTitle>
-                <Button size="sm" onClick={() => setIsAddAssetDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Assets
-                </Button>
-              </div>
+              <CardTitle>Route Assets</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {/* Inline Add Asset Form */}
+              {isAddingAsset && (
+                <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                  <div className="space-y-2">
+                    <Label htmlFor="asset">Select Asset</Label>
+                    <RouteAssetSelector
+                      value={selectedAssetId}
+                      onValueChange={setSelectedAssetId}
+                      excludeAssetIds={assignedAssetIds}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notes (Optional)</Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Additional notes for this asset..."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleAddAsset} disabled={!selectedAssetId}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Asset
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsAddingAsset(false);
+                        setSelectedAssetId(undefined);
+                        setNotes("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {!isAddingAsset && (
+                <Button onClick={() => setIsAddingAsset(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Asset
+                </Button>
+              )}
+
+              {/* Asset List */}
               {routeAssets.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   No assets assigned to this route yet
@@ -198,23 +236,21 @@ const RouteDetailPage = () => {
                             <p className="text-sm text-muted-foreground">
                               {ra.asset?.asset_number}
                             </p>
+                            {ra.notes && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {ra.notes}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        {ra.estimated_time_minutes && (
-                          <span className="text-sm text-muted-foreground">
-                            {ra.estimated_time_minutes} min
-                          </span>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeAsset(ra.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeAsset(ra.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -270,60 +306,6 @@ const RouteDetailPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add Asset Dialog */}
-      <Dialog open={isAddAssetDialogOpen} onOpenChange={setIsAddAssetDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Asset to Route</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="asset">Asset *</Label>
-              <RouteAssetSelector
-                value={selectedAssetId}
-                onValueChange={setSelectedAssetId}
-                excludeAssetIds={assignedAssetIds}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="estimated-time">Estimated Time (minutes)</Label>
-              <Input
-                id="estimated-time"
-                type="number"
-                placeholder="30"
-                value={estimatedTime}
-                onChange={(e) => setEstimatedTime(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                placeholder="Additional notes for this asset..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-              />
-            </div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsAddAssetDialogOpen(false);
-                setSelectedAssetId(undefined);
-                setEstimatedTime("");
-                setNotes("");
-              }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleAddAsset} disabled={!selectedAssetId}>
-              Add Asset
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
