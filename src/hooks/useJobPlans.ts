@@ -13,7 +13,30 @@ type JobPlanPart = Database["public"]["Tables"]["job_plan_parts"]["Row"];
 type JobPlanTool = Database["public"]["Tables"]["job_plan_tools"]["Row"];
 type JobPlanDocument = Database["public"]["Tables"]["job_plan_documents"]["Row"];
 
-export interface JobPlanWithDetails extends JobPlan {
+export interface JobPlanWithDetails {
+  id: string;
+  job_plan_number: string;
+  title: string;
+  description?: string;
+  job_type: 'preventive' | 'corrective' | 'predictive' | 'emergency' | 'shutdown';
+  category?: string;
+  subcategory?: string;
+  estimated_duration_hours?: number;
+  skill_level_required?: 'basic' | 'intermediate' | 'advanced' | 'specialist';
+  status: 'draft' | 'active' | 'inactive' | 'archived';
+  version?: string;
+  created_by?: string;
+  approved_by?: string;
+  approved_at?: string;
+  applicable_asset_types?: string[];
+  frequency_type?: 'time_based' | 'usage_based' | 'condition_based';
+  frequency_interval?: number;
+  priority?: string;
+  cost_estimate?: number;
+  usage_count?: number;
+  created_at: string;
+  updated_at: string;
+  organization_id: string;
   tasks?: JobPlanTask[];
   parts?: JobPlanPart[];
   tools?: JobPlanTool[];
