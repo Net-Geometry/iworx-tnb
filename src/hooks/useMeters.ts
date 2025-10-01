@@ -8,6 +8,7 @@ export interface Meter {
   organization_id: string;
   meter_number: string;
   serial_number: string;
+  description?: string;
   meter_type: 'revenue' | 'monitoring' | 'protection' | 'power_quality';
   manufacturer?: string;
   model?: string;

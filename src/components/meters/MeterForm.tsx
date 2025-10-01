@@ -99,6 +99,17 @@ export function MeterForm({ meter, onClose }: MeterFormProps) {
         </div>
       </div>
 
+      {/* Description */}
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          placeholder="Enter meter description, purpose, location context, or other relevant details..."
+          {...register('description')}
+          className="min-h-[80px]"
+        />
+      </div>
+
       {/* Meter Type and Status */}
       <div className="grid grid-cols-2 gap-4">
         <div>
