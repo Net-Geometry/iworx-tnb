@@ -46,15 +46,22 @@ export function AssignSkillDialog({ open, onOpenChange, personId, editingSkill }
 
     setIsSubmitting(true);
     try {
+      // Prepare data with proper null handling for dates
+      const submitData = {
+        ...formData,
+        certification_date: formData.certification_date || null,
+        certification_expiry: formData.certification_expiry || null,
+      };
+
       if (editingSkill) {
         await updatePersonSkill.mutateAsync({
           id: editingSkill.id,
-          ...formData,
+          ...submitData,
         });
       } else {
         await assignSkill.mutateAsync({
           person_id: personId,
-          ...formData,
+          ...submitData,
         });
       }
       onOpenChange(false);

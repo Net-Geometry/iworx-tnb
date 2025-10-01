@@ -43,15 +43,21 @@ export function AssignCraftDialog({ open, onOpenChange, personId, editingCraft }
 
     setIsSubmitting(true);
     try {
+      // Prepare data with proper null handling for dates
+      const submitData = {
+        ...formData,
+        assigned_date: formData.assigned_date || null,
+      };
+
       if (editingCraft) {
         await updatePersonCraft.mutateAsync({
           id: editingCraft.id,
-          ...formData,
+          ...submitData,
         });
       } else {
         await addPersonCraft.mutateAsync({
           person_id: personId,
-          ...formData,
+          ...submitData,
         } as any);
       }
       onOpenChange(false);
