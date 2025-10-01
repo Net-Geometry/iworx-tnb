@@ -208,10 +208,12 @@ export default function JobPlanDetailPage() {
           />
         </TabsContent>
 
-        {/* Parts Tab */}
         <TabsContent value="parts" className="space-y-4 mt-6">
           <InteractivePartsList
-            parts={jobPlan.parts || []}
+            parts={(jobPlan.parts || []).map(p => ({
+              ...p,
+              quantity_required: p.quantity_required || 1
+            }))}
             jobPlanId={jobPlan.id}
             organizationId={jobPlan.organization_id}
           />

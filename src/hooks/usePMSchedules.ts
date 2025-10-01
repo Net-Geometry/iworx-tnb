@@ -134,18 +134,27 @@ export const usePMSchedule = (id: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pm_schedules")
-        .select(`
-          *,
-          asset:assets(name, asset_number, manufacturer, model),
-          job_plan:job_plans(title, job_plan_number, description),
-          assigned_person:people(first_name, last_name, email),
-          maintenance_route:maintenance_routes(route_number, name)
-        `)
+        .select("*")
         .eq("id", id)
         .single();
 
       if (error) throw error;
-      return data as PMSchedule;
+      
+      // Fetch related data separately (cross-schema relationships)
+      const [assetData, jobPlanData, personData, routeData] = await Promise.all([
+        data.asset_id ? supabase.from("assets").select("name, asset_number, manufacturer, model").eq("id", data.asset_id).maybeSingle() : Promise.resolve(null),
+        data.job_plan_id ? supabase.from("job_plans").select("title, job_plan_number, description").eq("id", data.job_plan_id).maybeSingle() : Promise.resolve(null),
+        data.assigned_to ? supabase.from("people").select("first_name, last_name, email").eq("id", data.assigned_to).maybeSingle() : Promise.resolve(null),
+        data.route_id ? supabase.from("maintenance_routes").select("route_number, name").eq("id", data.route_id).maybeSingle() : Promise.resolve(null),
+      ]);
+      
+      return {
+        ...data,
+        asset: assetData?.data || null,
+        job_plan: jobPlanData?.data || null,
+        assigned_person: personData?.data || null,
+        maintenance_route: routeData?.data || null,
+      } as PMSchedule;
     },
     enabled: !!id && !!currentOrganization?.id,
   });
@@ -162,18 +171,32 @@ export const usePMSchedulesByAsset = (assetId: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pm_schedules")
-        .select(`
-          *,
-          job_plan:job_plans(title, job_plan_number),
-          assigned_person:people(first_name, last_name),
-          maintenance_route:maintenance_routes(route_number, name)
-        `)
+        .select("*")
         .eq("asset_id", assetId)
         .eq("organization_id", currentOrganization?.id)
         .order("next_due_date", { ascending: true });
 
       if (error) throw error;
-      return data as PMSchedule[];
+      
+      // Fetch related data separately (cross-schema relationships)
+      const enrichedData = await Promise.all(
+        (data || []).map(async (schedule) => {
+          const [jobPlanData, personData, routeData] = await Promise.all([
+            schedule.job_plan_id ? supabase.from("job_plans").select("title, job_plan_number").eq("id", schedule.job_plan_id).maybeSingle() : Promise.resolve(null),
+            schedule.assigned_to ? supabase.from("people").select("first_name, last_name").eq("id", schedule.assigned_to).maybeSingle() : Promise.resolve(null),
+            schedule.route_id ? supabase.from("maintenance_routes").select("route_number, name").eq("id", schedule.route_id).maybeSingle() : Promise.resolve(null),
+          ]);
+          
+          return {
+            ...schedule,
+            job_plan: jobPlanData?.data || null,
+            assigned_person: personData?.data || null,
+            maintenance_route: routeData?.data || null,
+          };
+        })
+      );
+      
+      return enrichedData as PMSchedule[];
     },
     enabled: !!assetId && !!currentOrganization?.id,
   });

@@ -55,14 +55,7 @@ export const useWorkOrderSkillMatching = (workOrderId?: string) => {
 
       let query = supabase
         .from("work_order_skill_requirements")
-        .select(`
-          *,
-          skills:skill_id (
-            skill_name,
-            skill_code,
-            category
-          )
-        `)
+        .select("*")
         .eq("work_order_id", workOrderId);
 
       if (!hasCrossProjectAccess && currentOrganization) {
@@ -71,7 +64,24 @@ export const useWorkOrderSkillMatching = (workOrderId?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as WorkOrderSkillRequirement[];
+      
+      // Fetch skill details separately (cross-schema relationship)
+      const enrichedData = await Promise.all(
+        (data || []).map(async (req) => {
+          const { data: skillData } = await supabase
+            .from("skills")
+            .select("skill_name, skill_code, category")
+            .eq("id", req.skill_id)
+            .single();
+          
+          return {
+            ...req,
+            skills: skillData || { skill_name: 'Unknown', skill_code: '', category: '' }
+          };
+        })
+      );
+      
+      return enrichedData as WorkOrderSkillRequirement[];
     },
     enabled: !!workOrderId && (!!currentOrganization || hasCrossProjectAccess),
   });

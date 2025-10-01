@@ -27,15 +27,7 @@ export const useTeamMembers = (personId?: string) => {
     queryFn: async () => {
       let query = supabase
         .from("team_members")
-        .select(`
-          *,
-          teams (
-            id,
-            team_name,
-            description,
-            is_active
-          )
-        `);
+        .select("*");
 
       if (personId) {
         query = query.eq("person_id", personId);
@@ -48,7 +40,29 @@ export const useTeamMembers = (personId?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as TeamMemberWithTeam[];
+      
+      // Fetch team details separately (cross-schema relationship)
+      const enrichedData = await Promise.all(
+        (data || []).map(async (member) => {
+          const { data: teamData } = await supabase
+            .from("teams")
+            .select("id, team_name, description, is_active")
+            .eq("id", member.team_id)
+            .single();
+          
+          return {
+            ...member,
+            teams: teamData || {
+              id: member.team_id,
+              team_name: 'Unknown Team',
+              description: '',
+              is_active: false
+            }
+          };
+        })
+      );
+      
+      return enrichedData as TeamMemberWithTeam[];
     },
     enabled: !!personId && (!!currentOrganization || hasCrossProjectAccess),
   });

@@ -10,9 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePrecautions } from "@/hooks/usePrecautions";
 import { PrecautionForm } from "@/components/safety/PrecautionForm";
 import { PrecautionDetailsModal } from "@/components/safety/PrecautionDetailsModal";
-import type { Database } from '@/integrations/supabase/types';
-
-type SafetyPrecaution = Database['public']['Tables']['safety_precautions']['Row'];
+import { SafetyPrecaution } from '@/types/microservices';
 
 const getSeverityColor = (severity: string) => {
   switch (severity) {

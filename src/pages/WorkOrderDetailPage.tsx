@@ -58,7 +58,7 @@ interface Asset {
   };
 }
 
-type SafetyPrecaution = Database['public']['Tables']['safety_precautions']['Row'];
+import { SafetyPrecaution } from '@/types/microservices';
 
 /**
  * WorkOrderDetailPage - Dedicated page for viewing work order details
@@ -128,12 +128,29 @@ const WorkOrderDetailPage: React.FC = () => {
         if (workOrder.asset_id) {
           const { data: assetData, error: assetError } = await supabase
             .from('assets')
-            .select('id, name, asset_number, status, type, hierarchy_nodes(name, path)')
+            .select('id, name, asset_number, status, type, hierarchy_node_id')
             .eq('id', workOrder.asset_id)
             .single();
 
           if (!assetError && assetData) {
-            setAsset(assetData);
+            // Fetch hierarchy node separately
+            let hierarchyNodeName = 'Unassigned';
+            if (assetData.hierarchy_node_id) {
+              const { data: nodeData } = await supabase
+                .from('hierarchy_nodes')
+                .select('name, path')
+                .eq('id', assetData.hierarchy_node_id)
+                .single();
+              
+              if (nodeData) {
+                hierarchyNodeName = nodeData.name;
+              }
+            }
+            
+            setAsset({
+              ...assetData,
+              hierarchy_nodes: { name: hierarchyNodeName }
+            });
           }
         }
 

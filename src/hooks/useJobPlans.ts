@@ -219,27 +219,23 @@ export const useCreateJobPlan = () => {
     mutationFn: async (jobPlanData: CreateJobPlanData) => {
       const { tasks, parts, tools, documents, ...planData } = jobPlanData;
 
-      // Create the job plan first with organization_id
+      // Create the job plan first (organization_id handled by RLS)
       const { data: jobPlan, error: planError } = await supabase
         .from("job_plans")
-        .insert({
-          ...planData,
-          organization_id: currentOrganization?.id,
-        })
+        .insert(planData as any)
         .select()
         .single();
 
       if (planError) throw planError;
 
-      // Create related records if they exist (organization_id inherited via RLS)
+      // Create related records if they exist
       if (tasks && tasks.length > 0) {
         const { error: tasksError } = await supabase
           .from("job_plan_tasks")
           .insert(tasks.map(task => ({ 
             ...task, 
             job_plan_id: jobPlan.id,
-            organization_id: currentOrganization?.id,
-          })));
+          })) as any);
         if (tasksError) throw tasksError;
       }
 
@@ -305,10 +301,10 @@ export const useUpdateJobPlan = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: JobPlanUpdate & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: Partial<JobPlan> & { id: string }) => {
       const { data, error } = await supabase
         .from("job_plans")
-        .update(updates)
+        .update(updates as any)
         .eq("id", id)
         .select()
         .single();

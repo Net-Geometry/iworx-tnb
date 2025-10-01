@@ -34,29 +34,46 @@ export const useTeam = (teamId?: string) => {
 
       const { data, error } = await supabase
         .from("teams")
-        .select(`
-          *,
-          team_members (
-            id,
-            person_id,
-            role_in_team,
-            assigned_date,
-            is_active,
-            people (
-              id,
-              first_name,
-              last_name,
-              email,
-              employee_number,
-              phone
-            )
-          )
-        `)
+        .select("*")
         .eq("id", teamId)
         .single();
 
       if (error) throw error;
-      return data as TeamWithMembers;
+      
+      // Fetch team members separately (cross-schema relationship)
+      const { data: membersData } = await supabase
+        .from("team_members")
+        .select("id, person_id, role_in_team, assigned_date, is_active")
+        .eq("team_id", teamId)
+        .eq("is_active", true);
+      
+      // Fetch people details for each member
+      const membersWithPeople = await Promise.all(
+        (membersData || []).map(async (member) => {
+          const { data: personData } = await supabase
+            .from("people")
+            .select("id, first_name, last_name, email, employee_number, phone")
+            .eq("id", member.person_id)
+            .single();
+          
+          return {
+            ...member,
+            people: personData || {
+              id: member.person_id,
+              first_name: 'Unknown',
+              last_name: '',
+              email: '',
+              employee_number: '',
+              phone: ''
+            }
+          };
+        })
+      );
+      
+      return {
+        ...data,
+        team_members: membersWithPeople
+      } as TeamWithMembers;
     },
     enabled: !!teamId,
   });
