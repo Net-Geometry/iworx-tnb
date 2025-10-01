@@ -20,7 +20,7 @@ export default function UserRegistrationPage() {
     email: "",
     password: "",
     displayName: "",
-    roleId: "",
+    roleIds: [] as string[], // Changed to support multiple roles
     employeeNumber: "",
     organizationIds: [] as string[]
   });
@@ -52,13 +52,24 @@ export default function UserRegistrationPage() {
         return;
       }
 
+      // Validate role selection
+      if (formData.roleIds.length === 0) {
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Please select at least one role."
+        });
+        setLoading(false);
+        return;
+      }
+
       // Create user via edge function
       const { data: edgeData, error: edgeError } = await supabase.functions.invoke('create-user', {
         body: {
           email: formData.email,
           password: formData.password,
           displayName: formData.displayName,
-          roleId: formData.roleId,
+          roleIds: formData.roleIds, // Changed to array
           organizationIds: formData.organizationIds
         }
       });
@@ -96,7 +107,7 @@ export default function UserRegistrationPage() {
           email: "",
           password: "",
           displayName: "",
-          roleId: "",
+          roleIds: [],
           employeeNumber: "",
           organizationIds: msms ? [msms.id] : []
         });
@@ -199,30 +210,47 @@ export default function UserRegistrationPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">User Role *</Label>
-              <Select
-                value={formData.roleId}
-                onValueChange={(value) => setFormData({ ...formData, roleId: value })}
-                disabled={rolesLoading}
-              >
-                <SelectTrigger id="role">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent className="bg-background z-50">
-                  {roles.filter(role => role.is_active).map((role) => (
-                    <SelectItem key={role.id} value={role.id}>
-                      <div>
-                        <div className="font-medium">{role.display_name}</div>
-                        {role.description && (
-                          <div className="text-xs text-muted-foreground">{role.description}</div>
-                        )}
+              <Label>User Roles *</Label>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {roles.filter(role => role.is_active).map((role) => (
+                      <div key={role.id} className="flex items-start space-x-2">
+                        <Checkbox
+                          id={`role-${role.id}`}
+                          checked={formData.roleIds.includes(role.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setFormData({
+                                ...formData,
+                                roleIds: [...formData.roleIds, role.id]
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                roleIds: formData.roleIds.filter(id => id !== role.id)
+                              });
+                            }
+                          }}
+                        />
+                        <div className="flex-1">
+                          <label
+                            htmlFor={`role-${role.id}`}
+                            className="text-sm cursor-pointer font-medium"
+                          >
+                            {role.display_name}
+                          </label>
+                          {role.description && (
+                            <p className="text-xs text-muted-foreground">{role.description}</p>
+                          )}
+                        </div>
                       </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
               <p className="text-xs text-muted-foreground">
-                Select the role that defines this user's permissions
+                Select one or more roles. User will have combined permissions from all selected roles.
               </p>
             </div>
 
@@ -278,7 +306,7 @@ export default function UserRegistrationPage() {
                     email: "",
                     password: "",
                     displayName: "",
-                    roleId: "",
+                    roleIds: [],
                     employeeNumber: "",
                     organizationIds: msms ? [msms.id] : []
                   });

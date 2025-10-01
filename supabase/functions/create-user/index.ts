@@ -20,12 +20,12 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { email, password, displayName, roleId, organizationIds } = await req.json();
+    const { email, password, displayName, roleIds, organizationIds } = await req.json();
 
     // Validate required fields
-    if (!email || !password || !roleId) {
+    if (!email || !password || !roleIds || !Array.isArray(roleIds) || roleIds.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Email, password, and roleId are required' }),
+        JSON.stringify({ error: 'Email, password, and at least one roleId are required' }),
         { 
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -68,20 +68,22 @@ serve(async (req) => {
 
     console.log('User created:', authData.user.id);
 
-    // Assign role to user
-    const { error: roleError } = await supabaseAdmin
-      .from('user_roles')
-      .insert({
-        user_id: authData.user.id,
-        role_id: roleId
-      });
+    // Assign roles to user (support multiple roles)
+    for (const roleId of roleIds) {
+      const { error: roleError } = await supabaseAdmin
+        .from('user_roles')
+        .insert({
+          user_id: authData.user.id,
+          role_id: roleId
+        });
 
-    if (roleError) {
-      console.error('Role assignment error:', roleError);
-      throw roleError;
+      if (roleError) {
+        console.error('Role assignment error:', roleError);
+        throw roleError;
+      }
     }
 
-    console.log('Role assigned successfully');
+    console.log('Roles assigned successfully');
 
     // Assign user to organizations
     if (organizationIds && Array.isArray(organizationIds) && organizationIds.length > 0) {

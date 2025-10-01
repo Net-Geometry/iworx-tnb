@@ -44,10 +44,12 @@ import PrecautionLibraryPage from "./pages/safety/PrecautionLibraryPage";
 import CAPAManagementPage from "./pages/safety/CAPAManagementPage";
 import SafetyReportsPage from "./pages/safety/SafetyReportsPage";
 import { AdminGuard } from "./components/auth/AdminGuard";
-import SystemSettingsPage from "./pages/admin/SystemSettingsPage";
-import UserRegistrationPage from "./pages/admin/UserRegistrationPage";
-import RoleManagementPage from "./pages/admin/RoleManagementPage";
-import RoleFormPage from "./pages/admin/RoleFormPage";
+import SystemSettingsPage from "@/pages/admin/SystemSettingsPage";
+import UserRegistrationPage from "@/pages/admin/UserRegistrationPage";
+import UserManagementPage from "@/pages/admin/UserManagementPage";
+import UserRolesPage from "@/pages/admin/UserRolesPage";
+import RoleManagementPage from "@/pages/admin/RoleManagementPage";
+import RoleFormPage from "@/pages/admin/RoleFormPage";
 import OrganizationManagementPage from "./pages/admin/OrganizationManagementPage";
 import PeopleLaborPage from "./pages/people-labor/PeopleLaborPage";
 import PeopleManagementPage from "./pages/people-labor/PeopleManagementPage";
@@ -351,6 +353,20 @@ const App = () => (
               <AdminGuard>
                 <Layout>
                   <UserRegistrationPage />
+                </Layout>
+              </AdminGuard>
+            } />
+            <Route path="/admin/user-management" element={
+              <AdminGuard>
+                <Layout>
+                  <UserManagementPage />
+                </Layout>
+              </AdminGuard>
+            } />
+            <Route path="/admin/users/:userId/roles" element={
+              <AdminGuard>
+                <Layout>
+                  <UserRolesPage />
                 </Layout>
               </AdminGuard>
             } />
