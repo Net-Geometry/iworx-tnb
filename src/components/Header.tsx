@@ -29,7 +29,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-gradient-card border-b border-border shadow-card sticky top-0 z-50">
+    <header className="bg-gradient-card border-b border-border shadow-card">
       <div className="flex h-16 items-center justify-between px-6">
         {/* Sidebar Trigger and Brand */}
         <div className="flex items-center space-x-4">
