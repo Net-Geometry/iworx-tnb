@@ -40,6 +40,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { WorkOrderForm } from '@/components/work-orders/WorkOrderForm';
 import { TestFormTab } from '@/components/work-orders/TestFormTab';
+import { WorkOrderSkillMatchingPanel } from '@/components/work-orders/WorkOrderSkillMatchingPanel';
 import { useAssetMeterGroups } from '@/hooks/useAssetMeterGroups';
 
 import type { Database } from '@/integrations/supabase/types';
@@ -452,7 +453,7 @@ const WorkOrderDetailPage: React.FC = () => {
 
       {/* Detailed Information Tabs */}
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className={`grid w-full ${showTestFormTab ? 'grid-cols-6' : 'grid-cols-5'}`}>
+        <TabsList className={`grid w-full ${showTestFormTab ? 'grid-cols-7' : 'grid-cols-6'}`}>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="asset">Asset</TabsTrigger>
           <TabsTrigger value="pm-schedule">PM Schedule</TabsTrigger>
@@ -462,6 +463,10 @@ const WorkOrderDetailPage: React.FC = () => {
               Test Form
             </TabsTrigger>
           )}
+          <TabsTrigger value="technicians">
+            <Users className="h-4 w-4 mr-2" />
+            Technicians
+          </TabsTrigger>
           <TabsTrigger value="tasks">Tasks & Notes</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
@@ -981,6 +986,20 @@ const WorkOrderDetailPage: React.FC = () => {
             />
           </TabsContent>
         )}
+
+        {/* Technicians Tab - Skill Matching */}
+        <TabsContent value="technicians" className="space-y-4">
+          <WorkOrderSkillMatchingPanel 
+            workOrderId={workOrder.id}
+            onSelectTechnician={(personId, personName) => {
+              handleEditWorkOrder({ assigned_technician: personName });
+              toast({
+                title: "Technician Assigned",
+                description: `${personName} has been assigned to this work order.`,
+              });
+            }}
+          />
+        </TabsContent>
 
         {/* Tasks & Notes Tab */}
         <TabsContent value="tasks" className="space-y-4">

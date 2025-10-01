@@ -181,6 +181,64 @@ export type Database = {
           },
         ]
       }
+      asset_skill_requirements: {
+        Row: {
+          asset_id: string
+          created_at: string
+          id: string
+          is_mandatory: boolean | null
+          organization_id: string
+          priority_order: number | null
+          proficiency_level_required: Database["public"]["Enums"]["proficiency_level"]
+          skill_id: string
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          id?: string
+          is_mandatory?: boolean | null
+          organization_id: string
+          priority_order?: number | null
+          proficiency_level_required?: Database["public"]["Enums"]["proficiency_level"]
+          skill_id: string
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          id?: string
+          is_mandatory?: boolean | null
+          organization_id?: string
+          priority_order?: number | null
+          proficiency_level_required?: Database["public"]["Enums"]["proficiency_level"]
+          skill_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_skill_requirements_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_skill_requirements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_skill_requirements_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assets: {
         Row: {
           asset_image_url: string | null
@@ -1377,6 +1435,64 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_plan_task_skills: {
+        Row: {
+          created_at: string
+          estimated_time_minutes: number | null
+          id: string
+          is_critical: boolean | null
+          job_plan_task_id: string
+          organization_id: string
+          proficiency_level_required: Database["public"]["Enums"]["proficiency_level"]
+          skill_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estimated_time_minutes?: number | null
+          id?: string
+          is_critical?: boolean | null
+          job_plan_task_id: string
+          organization_id: string
+          proficiency_level_required?: Database["public"]["Enums"]["proficiency_level"]
+          skill_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estimated_time_minutes?: number | null
+          id?: string
+          is_critical?: boolean | null
+          job_plan_task_id?: string
+          organization_id?: string
+          proficiency_level_required?: Database["public"]["Enums"]["proficiency_level"]
+          skill_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_plan_task_skills_job_plan_task_id_fkey"
+            columns: ["job_plan_task_id"]
+            isOneToOne: false
+            referencedRelation: "job_plan_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_plan_task_skills_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_plan_task_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
             referencedColumns: ["id"]
           },
         ]
@@ -3532,6 +3648,71 @@ export type Database = {
         }
         Relationships: []
       }
+      work_order_skill_requirements: {
+        Row: {
+          assigned_person_id: string | null
+          created_at: string
+          id: string
+          is_fulfilled: boolean | null
+          organization_id: string
+          proficiency_level_required: Database["public"]["Enums"]["proficiency_level"]
+          skill_id: string
+          updated_at: string
+          work_order_id: string
+        }
+        Insert: {
+          assigned_person_id?: string | null
+          created_at?: string
+          id?: string
+          is_fulfilled?: boolean | null
+          organization_id: string
+          proficiency_level_required?: Database["public"]["Enums"]["proficiency_level"]
+          skill_id: string
+          updated_at?: string
+          work_order_id: string
+        }
+        Update: {
+          assigned_person_id?: string | null
+          created_at?: string
+          id?: string
+          is_fulfilled?: boolean | null
+          organization_id?: string
+          proficiency_level_required?: Database["public"]["Enums"]["proficiency_level"]
+          skill_id?: string
+          updated_at?: string
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_order_skill_requirements_assigned_person_id_fkey"
+            columns: ["assigned_person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_order_skill_requirements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_order_skill_requirements_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_order_skill_requirements_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_orders: {
         Row: {
           asset_id: string
@@ -3622,6 +3803,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_recommended_technicians: {
+        Args: { _organization_id: string; _work_order_id: string }
+        Returns: {
+          match_percentage: number
+          matched_skills: Json
+          missing_skills: Json
+          person_id: string
+          person_name: string
+          total_experience_years: number
+        }[]
+      }
       get_user_organizations: {
         Args: { _user_id: string }
         Returns: string[]
