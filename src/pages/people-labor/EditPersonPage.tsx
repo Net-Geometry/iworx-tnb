@@ -312,16 +312,15 @@ export default function EditPersonPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="business_area_id">Business Area</Label>
+              <Label htmlFor="business_area_id">Business Area (Optional)</Label>
               <Select
-                value={watch("business_area_id") || ""}
-                onValueChange={(value) => setValue("business_area_id", value)}
+                value={watch("business_area_id") || undefined}
+                onValueChange={(value) => setValue("business_area_id", value || "")}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select business area" />
+                  <SelectValue placeholder="Select business area (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
                   {businessAreas?.map((ba) => (
                     <SelectItem key={ba.id} value={ba.id}>
                       {ba.business_area} {ba.region && `- ${ba.region}`} {ba.state && `(${ba.state})`}
