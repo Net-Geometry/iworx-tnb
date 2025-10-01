@@ -31,8 +31,10 @@ const SERVICE_REGISTRY = {
     url: `${SUPABASE_URL}/functions/v1/work-order-service`,
     healthEndpoint: "/health",
   },
-  // Future services will be added here
-  // inventory: { url: `${SUPABASE_URL}/functions/v1/inventory-service` },
+  inventory: {
+    url: `${SUPABASE_URL}/functions/v1/inventory-service`,
+    healthEndpoint: "/health",
+  },
 };
 
 /**

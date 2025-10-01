@@ -4,10 +4,17 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AddLocationDialog } from "@/components/inventory/AddLocationDialog";
-import { useInventoryLocationWithItems } from "@/hooks/useInventoryLocations";
+import { useInventoryLocationWithItems, InventoryLocation } from "@/hooks/useInventoryLocations";
+
+interface LocationWithStats extends InventoryLocation {
+  itemCount?: number;
+  totalQuantity?: number;
+  utilizationPercentage?: number;
+}
 
 const LocationsPage = () => {
-  const { data: locations = [], isLoading, refetch } = useInventoryLocationWithItems();
+  const { data, isLoading, refetch } = useInventoryLocationWithItems();
+  const locations = (data || []) as LocationWithStats[];
 
   const getLocationIcon = (type: string) => {
     switch (type) {

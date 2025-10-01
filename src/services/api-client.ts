@@ -208,3 +208,52 @@ export const workOrderApi = {
     return apiClient.get('/work-orders/stats');
   },
 };
+
+/**
+ * Inventory Service API
+ */
+export const inventoryApi = {
+  async getItems() {
+    return apiClient.get('/inventory/items');
+  },
+
+  async getItemById(id: string) {
+    return apiClient.get(`/inventory/items/${id}`);
+  },
+
+  async createItem(item: any) {
+    return apiClient.post('/inventory/items', item);
+  },
+
+  async updateItem(id: string, updates: any) {
+    return apiClient.put(`/inventory/items/${id}`, updates);
+  },
+
+  async deleteItem(id: string) {
+    return apiClient.delete(`/inventory/items/${id}`);
+  },
+
+  async getLocations() {
+    return apiClient.get('/inventory/locations');
+  },
+
+  async getLocationsWithItems() {
+    return apiClient.get('/inventory/locations/with-items');
+  },
+
+  async createLocation(location: any) {
+    return apiClient.post('/inventory/locations', location);
+  },
+
+  async getSuppliers() {
+    return apiClient.get('/inventory/suppliers');
+  },
+
+  async createSupplier(supplier: any) {
+    return apiClient.post('/inventory/suppliers', supplier);
+  },
+
+  async getStats() {
+    return apiClient.get('/inventory/stats');
+  },
+};

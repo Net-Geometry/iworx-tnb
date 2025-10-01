@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { inventoryApi } from "@/services/api-client";
 
 export interface Supplier {
   id: string;
@@ -40,43 +41,61 @@ export const useSuppliers = () => {
   const suppliersQuery = useQuery({
     queryKey: ["suppliers", currentOrganization?.id],
     queryFn: async () => {
-      let supplierQuery = supabase
-        .from("suppliers")
-        .select("*");
+      try {
+        // Try microservice first
+        const data = await inventoryApi.getSuppliers();
+        return data as Supplier[];
+      } catch (microserviceError) {
+        console.warn("Microservice failed, falling back to direct Supabase:", microserviceError);
+        
+        // Fallback to direct Supabase call
+        let supplierQuery = supabase
+          .from("suppliers")
+          .select("*");
 
-      if (!hasCrossProjectAccess && currentOrganization) {
-        supplierQuery = supplierQuery.eq("organization_id", currentOrganization.id);
+        if (!hasCrossProjectAccess && currentOrganization) {
+          supplierQuery = supplierQuery.eq("organization_id", currentOrganization.id);
+        }
+
+        const { data, error } = await supplierQuery.order("name");
+
+        if (error) {
+          console.error("Error fetching suppliers:", error);
+          throw error;
+        }
+
+        return data as Supplier[];
       }
-
-      const { data, error } = await supplierQuery.order("name");
-
-      if (error) {
-        console.error("Error fetching suppliers:", error);
-        throw error;
-      }
-
-      return data as Supplier[];
     },
     enabled: !!currentOrganization || hasCrossProjectAccess,
   });
 
   const addSupplier = useMutation({
     mutationFn: async (supplierData: CreateSupplierData) => {
-      const { data, error } = await supabase
-        .from("suppliers")
-        .insert([{
-          ...supplierData,
-          organization_id: currentOrganization?.id,
-        }])
-        .select()
-        .single();
+      try {
+        // Try microservice first
+        const data = await inventoryApi.createSupplier(supplierData);
+        return data as Supplier;
+      } catch (microserviceError) {
+        console.warn("Microservice failed, falling back to direct Supabase:", microserviceError);
+        
+        // Fallback to direct Supabase call
+        const { data, error } = await supabase
+          .from("suppliers")
+          .insert([{
+            ...supplierData,
+            organization_id: currentOrganization?.id,
+          }])
+          .select()
+          .single();
 
-      if (error) {
-        console.error("Error adding supplier:", error);
-        throw error;
+        if (error) {
+          console.error("Error adding supplier:", error);
+          throw error;
+        }
+
+        return data as Supplier;
       }
-
-      return data as Supplier;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["suppliers"] });

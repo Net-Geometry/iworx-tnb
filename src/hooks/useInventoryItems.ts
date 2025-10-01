@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { inventoryApi } from "@/services/api-client";
 
 export interface InventoryItem {
   id: string;
@@ -60,30 +61,39 @@ export const useInventoryItems = () => {
   return useQuery({
     queryKey: ["inventory-items", currentOrganization?.id],
     queryFn: async () => {
-      let query = supabase
-        .from("inventory_items")
-        .select(`
-          *,
-          suppliers(name),
-          inventory_item_locations(
-            quantity,
-            inventory_locations(name)
-          )
-        `)
-        .eq("is_active", true);
+      try {
+        // Try microservice first
+        const data = await inventoryApi.getItems();
+        return data as InventoryItem[];
+      } catch (microserviceError) {
+        console.warn("Microservice failed, falling back to direct Supabase:", microserviceError);
+        
+        // Fallback to direct Supabase call
+        let query = supabase
+          .from("inventory_items")
+          .select(`
+            *,
+            suppliers(name),
+            inventory_item_locations(
+              quantity,
+              inventory_locations(name)
+            )
+          `)
+          .eq("is_active", true);
 
-      if (!hasCrossProjectAccess && currentOrganization) {
-        query = query.eq("organization_id", currentOrganization.id);
+        if (!hasCrossProjectAccess && currentOrganization) {
+          query = query.eq("organization_id", currentOrganization.id);
+        }
+
+        const { data, error } = await query.order("name");
+
+        if (error) {
+          console.error("Error fetching inventory items:", error);
+          throw error;
+        }
+
+        return data as InventoryItem[];
       }
-
-      const { data, error } = await query.order("name");
-
-      if (error) {
-        console.error("Error fetching inventory items:", error);
-        throw error;
-      }
-
-      return data as InventoryItem[];
     },
     enabled: !!currentOrganization || hasCrossProjectAccess,
   });
@@ -117,22 +127,31 @@ export const useCreateInventoryItem = () => {
 
   return useMutation({
     mutationFn: async (itemData: CreateInventoryItemData) => {
-      const { data, error } = await supabase
-        .from("inventory_items")
-        .insert([{
-          ...itemData,
-          reserved_stock: 0,
-          organization_id: currentOrganization?.id,
-        }])
-        .select()
-        .single();
+      try {
+        // Try microservice first
+        const data = await inventoryApi.createItem(itemData);
+        return data;
+      } catch (microserviceError) {
+        console.warn("Microservice failed, falling back to direct Supabase:", microserviceError);
+        
+        // Fallback to direct Supabase call
+        const { data, error } = await supabase
+          .from("inventory_items")
+          .insert([{
+            ...itemData,
+            reserved_stock: 0,
+            organization_id: currentOrganization?.id,
+          }])
+          .select()
+          .single();
 
-      if (error) {
-        console.error("Error creating inventory item:", error);
-        throw error;
+        if (error) {
+          console.error("Error creating inventory item:", error);
+          throw error;
+        }
+
+        return data;
       }
-
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
@@ -158,19 +177,28 @@ export const useUpdateInventoryItem = () => {
 
   return useMutation({
     mutationFn: async ({ id, itemData }: { id: string; itemData: UpdateInventoryItemData }) => {
-      const { data, error } = await supabase
-        .from("inventory_items")
-        .update(itemData)
-        .eq("id", id)
-        .select()
-        .single();
+      try {
+        // Try microservice first
+        const data = await inventoryApi.updateItem(id, itemData);
+        return data;
+      } catch (microserviceError) {
+        console.warn("Microservice failed, falling back to direct Supabase:", microserviceError);
+        
+        // Fallback to direct Supabase call
+        const { data, error } = await supabase
+          .from("inventory_items")
+          .update(itemData)
+          .eq("id", id)
+          .select()
+          .single();
 
-      if (error) {
-        console.error("Error updating inventory item:", error);
-        throw error;
+        if (error) {
+          console.error("Error updating inventory item:", error);
+          throw error;
+        }
+
+        return data;
       }
-
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
