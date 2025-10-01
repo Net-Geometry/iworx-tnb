@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Users, Crown } from "lucide-react";
 import { useTeams } from "@/hooks/useTeams";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -162,29 +162,83 @@ const TeamsManagementPage = () => {
               onClick={() => navigate(`/people-labor/teams/${team.id}`)}
             >
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>{team.team_name}</span>
-                  <Badge variant={getShiftBadge(team.shift) as any}>
-                    {team.shift || 'day'}
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <span className="font-medium">Code:</span> {team.team_code}
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <CardTitle className="text-xl">{team.team_name}</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Code: {team.team_code}
+                    </p>
                   </div>
-                  <div>
-                    <span className="font-medium">Department:</span> {team.department || '-'}
-                  </div>
-                  <div>
-                    <span className="font-medium">Status:</span>{' '}
-                    <Badge variant={team.is_active ? 'default' : 'secondary'}>
-                      {team.is_active ? 'Active' : 'Inactive'}
+                  <div className="flex flex-col gap-2 items-end">
+                    <Badge variant={team.is_active ? "default" : "secondary"}>
+                      {team.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      <Users className="h-3 w-3 mr-1" />
+                      {team.member_count || 0}
                     </Badge>
                   </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {team.department && (
+                    <div className="text-sm">
+                      <span className="font-medium">Department:</span> {team.department}
+                    </div>
+                  )}
+                  {team.shift && (
+                    <div className="text-sm">
+                      <span className="font-medium">Shift:</span>{' '}
+                      <Badge variant={getShiftBadge(team.shift) as any} className="text-xs">
+                        {team.shift}
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  {team.leader_name && (
+                    <div className="flex items-center text-sm">
+                      <Crown className="h-4 w-4 mr-2 text-yellow-600" />
+                      <span className="font-medium">Leader: {team.leader_name}</span>
+                    </div>
+                  )}
+                  
+                  {team.member_names && team.member_names.length > 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      <p className="font-medium text-foreground mb-1">Team Members:</p>
+                      <p>
+                        {team.member_names.join(", ")}
+                        {team.member_count && team.member_count > 3 && (
+                          <span className="italic"> and {team.member_count - 3} more</span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {team.role_distribution && (team.role_distribution.leaders > 0 || team.role_distribution.supervisors > 0 || team.role_distribution.members > 0) && (
+                    <div className="flex gap-2 flex-wrap text-xs">
+                      {team.role_distribution.leaders > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          {team.role_distribution.leaders} Leader{team.role_distribution.leaders > 1 ? 's' : ''}
+                        </Badge>
+                      )}
+                      {team.role_distribution.supervisors > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          {team.role_distribution.supervisors} Supervisor{team.role_distribution.supervisors > 1 ? 's' : ''}
+                        </Badge>
+                      )}
+                      {team.role_distribution.members > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          {team.role_distribution.members} Member{team.role_distribution.members > 1 ? 's' : ''}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                  
                   {team.description && (
-                    <p className="text-muted-foreground mt-2">{team.description}</p>
+                    <p className="text-sm text-muted-foreground mt-2 pt-2 border-t">
+                      {team.description}
+                    </p>
                   )}
                 </div>
               </CardContent>

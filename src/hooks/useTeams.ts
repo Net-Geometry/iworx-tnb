@@ -15,6 +15,14 @@ export interface Team {
   organization_id: string;
   created_at: string;
   updated_at: string;
+  member_count?: number;
+  leader_name?: string;
+  member_names?: string[];
+  role_distribution?: {
+    leaders: number;
+    supervisors: number;
+    members: number;
+  };
 }
 
 export interface TeamMember {
@@ -38,7 +46,18 @@ export const useTeams = () => {
     queryFn: async () => {
       let query = supabase
         .from("teams")
-        .select("*")
+        .select(`
+          *,
+          team_members!inner(
+            id,
+            role_in_team,
+            people!inner(
+              id,
+              first_name,
+              last_name
+            )
+          )
+        `)
         .order("team_name");
 
       if (!hasCrossProjectAccess && currentOrganization) {
@@ -47,7 +66,39 @@ export const useTeams = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as Team[];
+      
+      // Transform data to include member statistics
+      const teamsWithStats = (data || []).map((team: any) => {
+        const members = team.team_members || [];
+        const memberCount = members.length;
+        
+        const roleDistribution = {
+          leaders: members.filter((m: any) => m.role_in_team === 'leader').length,
+          supervisors: members.filter((m: any) => m.role_in_team === 'supervisor').length,
+          members: members.filter((m: any) => m.role_in_team === 'member').length,
+        };
+        
+        const leader = members.find((m: any) => m.role_in_team === 'leader');
+        const leaderName = leader?.people 
+          ? `${leader.people.first_name} ${leader.people.last_name}`.trim()
+          : undefined;
+        
+        const memberNames = members
+          .slice(0, 3)
+          .map((m: any) => `${m.people.first_name} ${m.people.last_name}`.trim());
+        
+        const { team_members, ...teamData } = team;
+        
+        return {
+          ...teamData,
+          member_count: memberCount,
+          leader_name: leaderName,
+          member_names: memberNames,
+          role_distribution: roleDistribution,
+        } as Team;
+      });
+      
+      return teamsWithStats;
     },
     enabled: !!currentOrganization || hasCrossProjectAccess,
   });
