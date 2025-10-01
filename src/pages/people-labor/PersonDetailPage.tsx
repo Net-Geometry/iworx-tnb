@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { usePerson } from '@/hooks/usePerson';
 import { usePeople, Person } from '@/hooks/usePeople';
 import { usePersonSkills } from '@/hooks/usePersonSkills';
 import { usePersonCrafts } from '@/hooks/usePersonCrafts';
-import { useBusinessAreas, useBusinessArea } from '@/hooks/useBusinessAreas';
 import { useSkills } from '@/hooks/useSkills';
 import { useCrafts } from '@/hooks/useCrafts';
 import { useToast } from '@/hooks/use-toast';
@@ -62,17 +62,21 @@ const PersonDetailPage: React.FC = () => {
   const [deletingSkill, setDeletingSkill] = useState<any>(null);
   const [deletingCraft, setDeletingCraft] = useState<any>(null);
   
-  // Fetch person data
-  const { people, isLoading: peopleLoading, updatePerson } = usePeople();
-  const person = people.find(p => p.id === id);
+  
+  // Fetch person data with optimized single query
+  const { data: person, isLoading: personLoading } = usePerson(id);
+  
+  // Only import updatePerson for updates
+  const { updatePerson } = usePeople();
   
   // Fetch related data
   const { personSkills, isLoading: skillsLoading, removeSkill } = usePersonSkills(id);
   const { personCrafts, isLoading: craftsLoading, removePersonCraft } = usePersonCrafts(id);
-  const { data: businessAreas, isLoading: businessAreasLoading } = useBusinessAreas();
-  const { data: businessArea, isLoading: businessAreaLoading } = useBusinessArea(person?.business_area_id || null);
   const { skills } = useSkills();
   const { crafts } = useCrafts();
+  
+  // Get business area from person object (with type assertion for nested data)
+  const businessArea = (person as any)?.business_area;
 
   // Handler functions for skills and crafts
   const handleEditSkill = (skill: any) => {
@@ -135,7 +139,7 @@ const PersonDetailPage: React.FC = () => {
   };
 
   // Loading state
-  if (peopleLoading || skillsLoading || craftsLoading || businessAreaLoading || businessAreasLoading) {
+  if (personLoading || skillsLoading || craftsLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-full" />
@@ -318,8 +322,8 @@ const PersonDetailPage: React.FC = () => {
         <CardContent className="p-6">
           {isEditing ? (
             <PersonProfileEditForm
-              person={person}
-              businessAreas={businessAreas || []}
+              person={person as any}
+              businessAreas={[]}
               onSave={handleSaveProfile}
               onCancel={() => setIsEditing(false)}
               isSubmitting={isSubmitting}
@@ -644,9 +648,6 @@ const PersonDetailPage: React.FC = () => {
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
                           <h4 className="font-semibold text-foreground text-lg mb-1">{assignment.crafts?.name}</h4>
-                          {assignment.crafts?.code && (
-                            <p className="text-sm text-muted-foreground font-mono">Code: {assignment.crafts.code}</p>
-                          )}
                         </div>
                         <div className="flex gap-2 items-start">
                           <div className="flex flex-col gap-2">

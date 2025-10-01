@@ -17,7 +17,6 @@ export interface PersonCraft {
   crafts: {
     id: string;
     name: string;
-    code: string | null;
     description: string | null;
   } | null;
 }
@@ -40,7 +39,6 @@ export const usePersonCrafts = (personId?: string) => {
           crafts (
             id,
             name,
-            code,
             description
           )
         `);
