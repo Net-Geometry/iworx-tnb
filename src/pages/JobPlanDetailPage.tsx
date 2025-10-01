@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useJobPlan } from "@/hooks/useJobPlans";
 import { Skeleton } from "@/components/ui/skeleton";
+import { InteractiveTaskList } from "@/components/job-plans/InteractiveTaskList";
 
 /**
  * Job Plan Detail Page
@@ -184,65 +185,9 @@ export default function JobPlanDetailPage() {
 
         {/* Tasks Tab */}
         <TabsContent value="tasks" className="space-y-4 mt-6">
-          {jobPlan.tasks && jobPlan.tasks.length > 0 ? (
-            jobPlan.tasks
-              .sort((a, b) => a.task_sequence - b.task_sequence)
-              .map((task, index) => (
-                <Card key={task.id || index}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">
-                        Step {task.task_sequence}: {task.task_title}
-                      </CardTitle>
-                      {task.is_critical_step && (
-                        <Badge variant="destructive">Critical</Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {task.task_description && (
-                      <p className="text-sm text-muted-foreground">{task.task_description}</p>
-                    )}
-                    
-                    <div className="flex items-center gap-4 text-sm">
-                      {task.estimated_duration_minutes && (
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {task.estimated_duration_minutes} min
-                        </div>
-                      )}
-                      {task.skill_required && (
-                        <div className="flex items-center gap-1">
-                          <User className="w-3 h-3" />
-                          {task.skill_required}
-                        </div>
-                      )}
-                    </div>
-
-                    {task.completion_criteria && (
-                      <div>
-                        <p className="text-sm font-medium">Completion Criteria:</p>
-                        <p className="text-sm text-muted-foreground">{task.completion_criteria}</p>
-                      </div>
-                    )}
-
-                    {task.notes && (
-                      <div>
-                        <p className="text-sm font-medium">Notes:</p>
-                        <p className="text-sm text-muted-foreground">{task.notes}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-          ) : (
-            <Card>
-              <CardContent className="text-center py-8">
-                <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground">No tasks defined for this job plan</p>
-              </CardContent>
-            </Card>
-          )}
+          <InteractiveTaskList 
+            tasks={jobPlan.tasks?.sort((a, b) => a.task_sequence - b.task_sequence) || []} 
+          />
         </TabsContent>
 
         {/* Parts Tab */}
