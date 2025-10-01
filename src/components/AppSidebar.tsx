@@ -31,6 +31,7 @@ import {
   Database,
   Gauge,
   Layers,
+  Route,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -95,6 +96,11 @@ const assetMaintenanceModules = [
     title: "Meter Groups",
     url: "/meter-groups",
     icon: Layers,
+  },
+  {
+    title: "Maintenance Routes",
+    url: "/routes",
+    icon: Route,
   },
 ];
 

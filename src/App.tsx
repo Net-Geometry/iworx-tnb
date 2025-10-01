@@ -66,6 +66,8 @@ import MyVerticals from "./pages/MyVerticals";
 import CrossProjectAnalytics from "./pages/CrossProjectAnalytics";
 import MetersPage from "./pages/meters/MetersPage";
 import MeterGroupsPage from "./pages/meters/MeterGroupsPage";
+import MaintenanceRoutesPage from "./pages/MaintenanceRoutesPage";
+import RouteDetailPage from "./pages/RouteDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -117,6 +119,20 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <MeterGroupsPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/routes" element={
+              <AuthGuard>
+                <Layout>
+                  <MaintenanceRoutesPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/routes/:id" element={
+              <AuthGuard>
+                <Layout>
+                  <RouteDetailPage />
                 </Layout>
               </AuthGuard>
             } />

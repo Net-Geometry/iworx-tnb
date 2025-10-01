@@ -1,0 +1,185 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+
+/**
+ * Hook for managing maintenance routes
+ * Handles CRUD operations for routes with asset assignments
+ */
+
+export interface MaintenanceRoute {
+  id: string;
+  organization_id: string;
+  route_number: string;
+  name: string;
+  description?: string;
+  route_type?: string;
+  status?: string;
+  estimated_duration_hours?: number;
+  frequency_type?: string;
+  frequency_interval?: number;
+  is_optimized?: boolean;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+  asset_count?: number;
+}
+
+export const useMaintenanceRoutes = () => {
+  const { currentOrganization, hasCrossProjectAccess } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Fetch all routes
+  const { data: routes = [], isLoading } = useQuery({
+    queryKey: ["maintenance-routes", currentOrganization?.id],
+    queryFn: async () => {
+      let query = supabase
+        .from("maintenance_routes")
+        .select(`
+          *,
+          route_assets(count)
+        `)
+        .order("created_at", { ascending: false });
+
+      if (!hasCrossProjectAccess && currentOrganization?.id) {
+        query = query.eq("organization_id", currentOrganization.id);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      return (data || []).map((route: any) => ({
+        ...route,
+        asset_count: route.route_assets?.[0]?.count || 0,
+      })) as MaintenanceRoute[];
+    },
+    enabled: !!currentOrganization,
+  });
+
+  // Create route
+  const createRoute = useMutation({
+    mutationFn: async (routeData: Partial<MaintenanceRoute> & { name: string; route_number: string }) => {
+      const { data, error } = await supabase
+        .from("maintenance_routes")
+        .insert([
+          {
+            name: routeData.name,
+            route_number: routeData.route_number,
+            description: routeData.description,
+            route_type: routeData.route_type,
+            status: routeData.status,
+            estimated_duration_hours: routeData.estimated_duration_hours,
+            frequency_type: routeData.frequency_type,
+            frequency_interval: routeData.frequency_interval,
+            organization_id: currentOrganization?.id!,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["maintenance-routes"] });
+      toast.success("Route created successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to create route");
+    },
+  });
+
+  // Update route
+  const updateRoute = useMutation({
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<MaintenanceRoute>;
+    }) => {
+      const { data, error } = await supabase
+        .from("maintenance_routes")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["maintenance-routes"] });
+      toast.success("Route updated successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to update route");
+    },
+  });
+
+  // Delete route
+  const deleteRoute = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("maintenance_routes")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["maintenance-routes"] });
+      toast.success("Route deleted successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete route");
+    },
+  });
+
+  return {
+    routes,
+    isLoading,
+    createRoute: createRoute.mutate,
+    updateRoute: updateRoute.mutate,
+    deleteRoute: deleteRoute.mutate,
+  };
+};
+
+// Hook for fetching a single route with details
+export const useMaintenanceRoute = (routeId: string | undefined) => {
+  const { currentOrganization } = useAuth();
+
+  return useQuery({
+    queryKey: ["maintenance-route", routeId],
+    queryFn: async () => {
+      if (!routeId) return null;
+
+      const { data, error } = await supabase
+        .from("maintenance_routes")
+        .select(`
+          *,
+          route_assets(
+            id,
+            sequence_order,
+            estimated_time_minutes,
+            notes,
+            asset:assets(
+              id,
+              name,
+              asset_number,
+              category,
+              status
+            )
+          )
+        `)
+        .eq("id", routeId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!routeId && !!currentOrganization,
+  });
+};

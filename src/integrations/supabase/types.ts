@@ -1732,6 +1732,57 @@ export type Database = {
           },
         ]
       }
+      maintenance_routes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          estimated_duration_hours: number | null
+          frequency_interval: number | null
+          frequency_type: string | null
+          id: string
+          is_optimized: boolean | null
+          name: string
+          organization_id: string
+          route_number: string
+          route_type: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_duration_hours?: number | null
+          frequency_interval?: number | null
+          frequency_type?: string | null
+          id?: string
+          is_optimized?: boolean | null
+          name: string
+          organization_id: string
+          route_number: string
+          route_type?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_duration_hours?: number | null
+          frequency_interval?: number | null
+          frequency_type?: string | null
+          id?: string
+          is_optimized?: boolean | null
+          name?: string
+          organization_id?: string
+          route_number?: string
+          route_type?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       meter_group_assignments: {
         Row: {
           assigned_by: string | null
@@ -2825,6 +2876,75 @@ export type Database = {
           is_system_role?: boolean
           name?: string
           permissions?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      route_assets: {
+        Row: {
+          asset_id: string
+          created_at: string
+          estimated_time_minutes: number | null
+          id: string
+          notes: string | null
+          organization_id: string
+          route_id: string
+          sequence_order: number
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          estimated_time_minutes?: number | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          route_id: string
+          sequence_order: number
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          estimated_time_minutes?: number | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          route_id?: string
+          sequence_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      route_assignments: {
+        Row: {
+          assigned_date: string | null
+          assignment_id: string
+          assignment_type: string
+          created_at: string
+          id: string
+          organization_id: string
+          route_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_date?: string | null
+          assignment_id: string
+          assignment_type: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          route_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_date?: string | null
+          assignment_id?: string
+          assignment_type?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          route_id?: string
           updated_at?: string
         }
         Relationships: []
