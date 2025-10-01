@@ -1896,7 +1896,22 @@ export type Database = {
           proficiency_level?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "person_crafts_craft_id_fkey"
+            columns: ["craft_id"]
+            isOneToOne: false
+            referencedRelation: "crafts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_crafts_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       person_skills: {
         Row: {

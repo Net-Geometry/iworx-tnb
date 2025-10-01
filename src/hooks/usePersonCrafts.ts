@@ -56,7 +56,7 @@ export const usePersonCrafts = (personId?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as PersonCraft[];
+      return (data || []) as any as PersonCraft[];
     },
     enabled: !!personId && (!!currentOrganization || hasCrossProjectAccess),
   });

@@ -2,10 +2,10 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePeople } from '@/hooks/usePeople';
 import { usePersonSkills } from '@/hooks/usePersonSkills';
-import { useTeamMembers } from '@/hooks/useTeamMembers';
+import { usePersonCrafts } from '@/hooks/usePersonCrafts';
 import { useBusinessArea } from '@/hooks/useBusinessAreas';
 import { useSkills } from '@/hooks/useSkills';
-import { useTeams } from '@/hooks/useTeams';
+import { useCrafts } from '@/hooks/useCrafts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,13 +44,13 @@ const PersonDetailPage: React.FC = () => {
   
   // Fetch related data
   const { personSkills, isLoading: skillsLoading } = usePersonSkills(id);
-  const { teamMembers, isLoading: teamsLoading } = useTeamMembers(id);
+  const { personCrafts, isLoading: craftsLoading } = usePersonCrafts(id);
   const { data: businessArea, isLoading: businessAreaLoading } = useBusinessArea(person?.business_area_id || null);
   const { skills } = useSkills();
-  const { teams } = useTeams();
+  const { crafts } = useCrafts();
 
   // Loading state
-  if (peopleLoading || skillsLoading || teamsLoading || businessAreaLoading) {
+  if (peopleLoading || skillsLoading || craftsLoading || businessAreaLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-full" />
@@ -237,10 +237,10 @@ const PersonDetailPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Team Memberships</label>
+                <label className="text-sm font-medium text-muted-foreground">Craft Assignments</label>
                 <div className="mt-1 flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-foreground">{teamMembers.length} teams</span>
+                  <span className="text-sm text-foreground">{personCrafts.length} crafts</span>
                 </div>
               </div>
             </div>
@@ -272,7 +272,7 @@ const PersonDetailPage: React.FC = () => {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="skills">Skills ({personSkills.length})</TabsTrigger>
-          <TabsTrigger value="teams">Teams ({teamMembers.length})</TabsTrigger>
+          <TabsTrigger value="craft">Craft ({personCrafts.length})</TabsTrigger>
           <TabsTrigger value="access">System Access</TabsTrigger>
         </TabsList>
 
@@ -363,46 +363,61 @@ const PersonDetailPage: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {/* Teams Tab */}
-        <TabsContent value="teams" className="space-y-4">
+        {/* Craft Tab */}
+        <TabsContent value="craft" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Team Memberships
+                Craft Assignments
               </CardTitle>
-              <CardDescription>Teams this person belongs to</CardDescription>
+              <CardDescription>Crafts assigned to this person</CardDescription>
             </CardHeader>
             <CardContent>
-              {teamsLoading ? (
+              {craftsLoading ? (
                 <div className="space-y-3">
                   <Skeleton className="h-20 w-full" />
                   <Skeleton className="h-20 w-full" />
                 </div>
-              ) : teamMembers.length > 0 ? (
+              ) : personCrafts.length > 0 ? (
                 <div className="space-y-4">
-                  {teamMembers.map((membership) => (
-                    <div key={membership.id} className="border border-border rounded-lg p-4">
+                  {personCrafts.map((assignment) => (
+                    <div key={assignment.id} className="border border-border rounded-lg p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h4 className="font-medium text-foreground">{membership.teams?.team_name}</h4>
-                          <p className="text-sm text-muted-foreground">{membership.teams?.description}</p>
+                          <h4 className="font-medium text-foreground">{assignment.crafts?.name}</h4>
+                          {assignment.crafts?.code && (
+                            <p className="text-sm text-muted-foreground">Code: {assignment.crafts.code}</p>
+                          )}
                         </div>
-                        <Badge variant="outline">
-                          {membership.role_in_team}
-                        </Badge>
+                        <div className="flex gap-2">
+                          <Badge className={getProficiencyColor(assignment.proficiency_level)}>
+                            {assignment.proficiency_level}
+                          </Badge>
+                          <Badge variant="outline">
+                            {assignment.certification_status}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                        <span>Assigned: {formatDate(membership.assigned_date || undefined)}</span>
-                        <span className={membership.is_active ? 'text-success' : 'text-muted-foreground'}>
-                          {membership.is_active ? 'Active' : 'Inactive'}
-                        </span>
+                      <Separator className="my-2" />
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Assigned: </span>
+                          <span className="text-foreground">{formatDate(assignment.assigned_date || undefined)}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Certification: </span>
+                          <span className="text-foreground">{assignment.certification_status}</span>
+                        </div>
                       </div>
+                      {assignment.notes && (
+                        <p className="text-sm text-muted-foreground mt-2">{assignment.notes}</p>
+                      )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-4">Not assigned to any teams</p>
+                <p className="text-muted-foreground text-center py-4">No crafts assigned</p>
               )}
             </CardContent>
           </Card>
