@@ -25,8 +25,8 @@ export function AssignCraftDialog({ open, onOpenChange, personId, editingCraft }
   
   const [formData, setFormData] = useState({
     craft_id: editingCraft?.craft_id || "",
-    proficiency_level: editingCraft?.proficiency_level || "beginner",
-    certification_status: editingCraft?.certification_status || "none",
+    proficiency_level: editingCraft?.proficiency_level || "", // Repurposed as grade/level
+    certification_status: editingCraft?.certification_status || "active", // Repurposed as status
     assigned_date: editingCraft?.assigned_date || new Date().toISOString().split('T')[0],
     notes: editingCraft?.notes || "",
   });
@@ -72,8 +72,8 @@ export function AssignCraftDialog({ open, onOpenChange, personId, editingCraft }
   const resetForm = () => {
     setFormData({
       craft_id: "",
-      proficiency_level: "beginner",
-      certification_status: "none",
+      proficiency_level: "",
+      certification_status: "active",
       assigned_date: new Date().toISOString().split('T')[0],
       notes: "",
     });
@@ -108,37 +108,29 @@ export function AssignCraftDialog({ open, onOpenChange, personId, editingCraft }
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="proficiency">Proficiency Level *</Label>
-            <Select
+            <Label htmlFor="grade-level">Grade/Level</Label>
+            <Input
+              id="grade-level"
+              type="text"
               value={formData.proficiency_level}
-              onValueChange={(value) => setFormData({ ...formData, proficiency_level: value })}
-            >
-              <SelectTrigger id="proficiency">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="beginner">Beginner</SelectItem>
-                <SelectItem value="intermediate">Intermediate</SelectItem>
-                <SelectItem value="advanced">Advanced</SelectItem>
-                <SelectItem value="expert">Expert</SelectItem>
-              </SelectContent>
-            </Select>
+              onChange={(e) => setFormData({ ...formData, proficiency_level: e.target.value })}
+              placeholder="e.g., TD 03-04, TT 05-06"
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="certification">Certification Status *</Label>
+            <Label htmlFor="status">Status *</Label>
             <Select
               value={formData.certification_status}
               onValueChange={(value) => setFormData({ ...formData, certification_status: value })}
             >
-              <SelectTrigger id="certification">
+              <SelectTrigger id="status">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">None</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="certified">Certified</SelectItem>
-                <SelectItem value="expired">Expired</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="transferred">Transferred</SelectItem>
               </SelectContent>
             </Select>
           </div>
