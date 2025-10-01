@@ -12,6 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
 import {
   ArrowLeft,
   Edit,
@@ -25,7 +27,9 @@ import {
   User,
   DollarSign,
   AlertTriangle,
-  UserCheck
+  UserCheck,
+  FileText,
+  Wrench
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -101,6 +105,20 @@ const PersonDetailPage: React.FC = () => {
     return colors[level as keyof typeof colors] || 'bg-muted';
   };
 
+  const getProficiencyValue = (level: string) => {
+    const values = {
+      beginner: 25,
+      intermediate: 50,
+      advanced: 75,
+      expert: 100
+    };
+    return values[level as keyof typeof values] || 0;
+  };
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
   return (
     <div className="space-y-6">
       {/* Breadcrumb Navigation */}
@@ -120,160 +138,225 @@ const PersonDetailPage: React.FC = () => {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Header Section */}
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/people-labor/people')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to People
-            </Button>
-          </div>
-          <h1 className="text-3xl font-bold text-foreground">
-            {person.first_name} {person.last_name}
-          </h1>
-          <p className="text-lg text-muted-foreground">Employee #{person.employee_number}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" onClick={() => navigate(`/people-labor/people/${id}/edit`)}>
-            <Edit className="w-4 h-4 mr-2" />
-            Edit Person
+      {/* Enhanced Header Section with Gradient */}
+      <div className="relative overflow-hidden rounded-xl border border-border bg-gradient-to-br from-primary/10 via-background to-accent/10 p-8">
+        <div className="absolute inset-0 bg-grid-white/10" />
+        <div className="relative">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate('/people-labor/people')}
+            className="mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to People
           </Button>
-        </div>
-      </div>
+          
+          <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+            {/* Enhanced Avatar */}
+            <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
+              <AvatarFallback className="text-2xl font-bold bg-primary/20 text-primary">
+                {getInitials(person.first_name, person.last_name)}
+              </AvatarFallback>
+            </Avatar>
 
-      {/* Person Overview Card */}
-      <Card className="border-border">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Profile Image */}
-            <div className="space-y-4">
-              <div className="aspect-square bg-muted rounded-lg flex items-center justify-center border border-border">
-                <User className="h-16 w-16 text-muted-foreground" />
-              </div>
-              <div className="text-center">
-                <Badge className={getStatusColor(person.employment_status)}>
+            {/* Header Info */}
+            <div className="flex-1 space-y-2">
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-4xl font-bold text-foreground">
+                  {person.first_name} {person.last_name}
+                </h1>
+                <Badge className={`${getStatusColor(person.employment_status)} animate-pulse`}>
                   {person.employment_status}
                 </Badge>
                 {person.user_id && (
-                  <div className="mt-2">
-                    <Badge variant="outline" className="text-xs">
-                      <UserCheck className="w-3 h-3 mr-1" />
-                      System Access
-                    </Badge>
+                  <Badge variant="outline" className="border-primary text-primary">
+                    <UserCheck className="w-3 h-3 mr-1" />
+                    System Access
+                  </Badge>
+                )}
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <User className="w-4 h-4" />
+                  #{person.employee_number}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Briefcase className="w-4 h-4" />
+                  {person.job_title || 'N/A'}
+                </span>
+                {person.department && (
+                  <span className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    {person.department}
+                  </span>
+                )}
+              </div>
+
+              {/* Quick Stats */}
+              <div className="flex flex-wrap gap-4 pt-2">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-background/80 backdrop-blur-sm rounded-lg border border-border">
+                  <Award className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">{personSkills.length} Skills</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-background/80 backdrop-blur-sm rounded-lg border border-border">
+                  <Wrench className="w-4 h-4 text-accent" />
+                  <span className="text-sm font-medium">{personCrafts.length} Crafts</span>
+                </div>
+                {person.certifications && person.certifications.length > 0 && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-background/80 backdrop-blur-sm rounded-lg border border-border">
+                    <Shield className="w-4 h-4 text-success" />
+                    <span className="text-sm font-medium">{person.certifications.length} Certifications</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Contact Information */}
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Email</label>
-                <div className="mt-1 flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-foreground">{person.email || 'N/A'}</span>
-                </div>
-              </div>
+            {/* Action Button */}
+            <Button onClick={() => navigate(`/people-labor/people/${id}/edit`)} className="shrink-0">
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Person
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Overview Card with Better Layout */}
+      <Card className="border-border shadow-sm">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
+          <CardTitle>Profile Overview</CardTitle>
+          <CardDescription>Complete employment and contact information</CardDescription>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Contact Information Section */}
+            <div className="space-y-5">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" />
+                Contact Information
+              </h3>
+              <Separator />
               
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Phone</label>
-                <div className="mt-1 flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-foreground">{person.phone || 'N/A'}</span>
+              <div className="space-y-4">
+                <div className="group">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <span className="text-sm text-foreground">{person.email || 'N/A'}</span>
+                  </div>
                 </div>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Job Title</label>
-                <div className="mt-1 flex items-center gap-2">
-                  <Briefcase className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-foreground">{person.job_title || 'N/A'}</span>
+                
+                <div className="group">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Phone</label>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <span className="text-sm text-foreground">{person.phone || 'N/A'}</span>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Department</label>
-                <p className="text-sm text-foreground mt-1">{person.department || 'N/A'}</p>
-              </div>
-
-              {businessArea && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Business Area</label>
-                  <p className="text-sm text-foreground mt-1">
-                    {businessArea.business_area}
-                    {businessArea.region && ` (${businessArea.region})`}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Employment Information */}
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Hire Date</label>
-                <div className="mt-1 flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-foreground">{formatDate(person.hire_date)}</span>
-                </div>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Hourly Rate</label>
-                <div className="mt-1 flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-foreground">
-                    {person.hourly_rate ? `$${person.hourly_rate}/hr` : 'N/A'}
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Skills Count</label>
-                <div className="mt-1 flex items-center gap-2">
-                  <Award className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-foreground">{personSkills.length} skills</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Craft Assignments</label>
-                <div className="mt-1 flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-foreground">{personCrafts.length} crafts</span>
-                </div>
+                {businessArea && (
+                  <div className="group">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Business Area</label>
+                    <p className="text-sm text-foreground mt-1.5">
+                      {businessArea.business_area}
+                      {businessArea.region && ` (${businessArea.region})`}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Certifications */}
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Certifications</label>
-                <div className="mt-2 space-y-2">
-                  {person.certifications && person.certifications.length > 0 ? (
-                    person.certifications.map((cert, idx) => (
-                      <Badge key={idx} variant="outline" className="mr-2">
-                        <Award className="w-3 h-3 mr-1" />
+            {/* Employment Information Section */}
+            <div className="space-y-5">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
+                <Briefcase className="h-4 w-4 text-primary" />
+                Employment Details
+              </h3>
+              <Separator />
+              
+              <div className="space-y-4">
+                <div className="group">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Job Title</label>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <span className="text-sm text-foreground font-medium">{person.job_title || 'N/A'}</span>
+                  </div>
+                </div>
+
+                <div className="group">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Department</label>
+                  <p className="text-sm text-foreground mt-1.5">{person.department || 'N/A'}</p>
+                </div>
+              
+                <div className="group">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Hire Date</label>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <span className="text-sm text-foreground">{formatDate(person.hire_date)}</span>
+                  </div>
+                </div>
+                
+                <div className="group">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Hourly Rate</label>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <span className="text-sm text-foreground font-semibold">
+                      {person.hourly_rate ? `$${person.hourly_rate}/hr` : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Certifications & Qualifications Section */}
+            <div className="space-y-5">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
+                <Award className="h-4 w-4 text-primary" />
+                Certifications
+              </h3>
+              <Separator />
+              
+              <div className="space-y-3">
+                {person.certifications && person.certifications.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {person.certifications.map((cert, idx) => (
+                      <Badge key={idx} variant="secondary" className="px-3 py-1">
+                        <Shield className="w-3 h-3 mr-1" />
                         {cert}
                       </Badge>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No certifications</p>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">No certifications recorded</p>
+                )}
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Detailed Information Tabs */}
+      {/* Enhanced Tabs with Icons */}
       <Tabs defaultValue="details" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="skills">Skills ({personSkills.length})</TabsTrigger>
-          <TabsTrigger value="craft">Craft ({personCrafts.length})</TabsTrigger>
-          <TabsTrigger value="access">System Access</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 h-auto p-1">
+          <TabsTrigger value="details" className="flex items-center gap-2 py-3">
+            <FileText className="h-4 w-4" />
+            <span className="hidden sm:inline">Details</span>
+          </TabsTrigger>
+          <TabsTrigger value="skills" className="flex items-center gap-2 py-3">
+            <Award className="h-4 w-4" />
+            <span className="hidden sm:inline">Skills</span>
+            <Badge variant="secondary" className="ml-1 text-xs">{personSkills.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="craft" className="flex items-center gap-2 py-3">
+            <Wrench className="h-4 w-4" />
+            <span className="hidden sm:inline">Crafts</span>
+            <Badge variant="secondary" className="ml-1 text-xs">{personCrafts.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="access" className="flex items-center gap-2 py-3">
+            <Shield className="h-4 w-4" />
+            <span className="hidden sm:inline">Access</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* Details Tab */}
@@ -295,170 +378,249 @@ const PersonDetailPage: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {/* Skills Tab */}
+        {/* Enhanced Skills Tab with Grid Layout */}
         <TabsContent value="skills" className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
               <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5" />
+                <Award className="h-5 w-5 text-primary" />
                 Skills & Proficiency
               </CardTitle>
-              <CardDescription>Skills assigned to this person</CardDescription>
+              <CardDescription>Technical skills and competency levels</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {skillsLoading ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-20 w-full" />
-                  <Skeleton className="h-20 w-full" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Skeleton className="h-40 w-full" />
+                  <Skeleton className="h-40 w-full" />
                 </div>
               ) : personSkills.length > 0 ? (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {personSkills.map((personSkill: any) => {
                     const skill = skills.find(s => s.id === personSkill.skill_id);
                     return (
-                      <div key={personSkill.id} className="border border-border rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h4 className="font-medium text-foreground">{skill?.skill_name || 'Unknown Skill'}</h4>
+                      <div key={personSkill.id} className="group relative border border-border rounded-xl p-5 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all duration-200 hover:border-primary/50">
+                        {/* Skill Header */}
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-foreground text-lg mb-1">{skill?.skill_name || 'Unknown Skill'}</h4>
                             <p className="text-sm text-muted-foreground">{skill?.category}</p>
                           </div>
-                          <Badge className={getProficiencyColor(personSkill.proficiency_level)}>
+                          <Badge className={`${getProficiencyColor(personSkill.proficiency_level)} ml-2 shrink-0`}>
                             {personSkill.proficiency_level}
                           </Badge>
                         </div>
-                        <Separator className="my-2" />
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Experience: </span>
-                            <span className="text-foreground">{personSkill.years_experience || 0} years</span>
+
+                        {/* Proficiency Progress Bar */}
+                        <div className="mb-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs text-muted-foreground uppercase tracking-wide">Proficiency</span>
+                            <span className="text-xs font-medium text-foreground">{getProficiencyValue(personSkill.proficiency_level)}%</span>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Certified: </span>
-                            <span className="text-foreground">{personSkill.certified ? 'Yes' : 'No'}</span>
+                          <Progress value={getProficiencyValue(personSkill.proficiency_level)} className="h-2" />
+                        </div>
+
+                        <Separator className="my-3" />
+
+                        {/* Skill Details */}
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div className="space-y-1">
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider">Experience</span>
+                            <p className="text-foreground font-medium">{personSkill.years_experience || 0} years</p>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider">Certified</span>
+                            <p className="text-foreground font-medium">
+                              {personSkill.certified ? (
+                                <Badge variant="outline" className="border-success text-success">
+                                  <Shield className="w-3 h-3 mr-1" />
+                                  Yes
+                                </Badge>
+                              ) : (
+                                'No'
+                              )}
+                            </p>
                           </div>
                           {personSkill.certification_date && (
-                            <div>
-                              <span className="text-muted-foreground">Cert. Date: </span>
-                              <span className="text-foreground">{formatDate(personSkill.certification_date)}</span>
+                            <div className="space-y-1">
+                              <span className="text-xs text-muted-foreground uppercase tracking-wider">Cert. Date</span>
+                              <p className="text-foreground font-medium">{formatDate(personSkill.certification_date)}</p>
                             </div>
                           )}
                           {personSkill.certification_expiry && (
-                            <div>
-                              <span className="text-muted-foreground">Expiry: </span>
-                              <span className="text-foreground">{formatDate(personSkill.certification_expiry)}</span>
+                            <div className="space-y-1">
+                              <span className="text-xs text-muted-foreground uppercase tracking-wider">Expiry</span>
+                              <p className="text-foreground font-medium">{formatDate(personSkill.certification_expiry)}</p>
                             </div>
                           )}
                         </div>
+
                         {personSkill.notes && (
-                          <p className="text-sm text-muted-foreground mt-2">{personSkill.notes}</p>
+                          <>
+                            <Separator className="my-3" />
+                            <p className="text-sm text-muted-foreground italic">{personSkill.notes}</p>
+                          </>
                         )}
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-4">No skills assigned</p>
+                <div className="text-center py-12">
+                  <Award className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                  <p className="text-muted-foreground text-lg font-medium">No skills assigned yet</p>
+                  <p className="text-muted-foreground text-sm mt-1">Skills will appear here once assigned to this person</p>
+                </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Craft Tab */}
+        {/* Enhanced Craft Tab with Grid Layout */}
         <TabsContent value="craft" className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="bg-gradient-to-r from-accent/5 to-transparent">
               <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
+                <Wrench className="h-5 w-5 text-accent" />
                 Craft Assignments
               </CardTitle>
-              <CardDescription>Crafts assigned to this person</CardDescription>
+              <CardDescription>Specialized craft skills and certifications</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {craftsLoading ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-20 w-full" />
-                  <Skeleton className="h-20 w-full" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Skeleton className="h-40 w-full" />
+                  <Skeleton className="h-40 w-full" />
                 </div>
               ) : personCrafts.length > 0 ? (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {personCrafts.map((assignment) => (
-                    <div key={assignment.id} className="border border-border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-medium text-foreground">{assignment.crafts?.name}</h4>
+                    <div key={assignment.id} className="group relative border border-border rounded-xl p-5 bg-gradient-to-br from-card to-accent/5 hover:shadow-md transition-all duration-200 hover:border-accent/50">
+                      {/* Craft Header */}
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-foreground text-lg mb-1">{assignment.crafts?.name}</h4>
                           {assignment.crafts?.code && (
-                            <p className="text-sm text-muted-foreground">Code: {assignment.crafts.code}</p>
+                            <p className="text-sm text-muted-foreground font-mono">Code: {assignment.crafts.code}</p>
                           )}
                         </div>
-                        <div className="flex gap-2">
-                          <Badge className={getProficiencyColor(assignment.proficiency_level)}>
+                        <div className="flex flex-col gap-2 ml-2">
+                          <Badge className={`${getProficiencyColor(assignment.proficiency_level)} shrink-0`}>
                             {assignment.proficiency_level}
                           </Badge>
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="shrink-0">
                             {assignment.certification_status}
                           </Badge>
                         </div>
                       </div>
-                      <Separator className="my-2" />
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Assigned: </span>
-                          <span className="text-foreground">{formatDate(assignment.assigned_date || undefined)}</span>
+
+                      {/* Proficiency Progress Bar */}
+                      <div className="mb-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs text-muted-foreground uppercase tracking-wide">Proficiency</span>
+                          <span className="text-xs font-medium text-foreground">{getProficiencyValue(assignment.proficiency_level)}%</span>
                         </div>
-                        <div>
-                          <span className="text-muted-foreground">Certification: </span>
-                          <span className="text-foreground">{assignment.certification_status}</span>
+                        <Progress value={getProficiencyValue(assignment.proficiency_level)} className="h-2" />
+                      </div>
+
+                      <Separator className="my-3" />
+
+                      {/* Assignment Details */}
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="space-y-1">
+                          <span className="text-xs text-muted-foreground uppercase tracking-wider">Assigned Date</span>
+                          <p className="text-foreground font-medium">{formatDate(assignment.assigned_date || undefined)}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-xs text-muted-foreground uppercase tracking-wider">Status</span>
+                          <p className="text-foreground font-medium">
+                            <Badge variant={assignment.certification_status === 'certified' ? 'default' : 'secondary'} className="text-xs">
+                              {assignment.certification_status === 'certified' && <Shield className="w-3 h-3 mr-1" />}
+                              {assignment.certification_status}
+                            </Badge>
+                          </p>
                         </div>
                       </div>
+
                       {assignment.notes && (
-                        <p className="text-sm text-muted-foreground mt-2">{assignment.notes}</p>
+                        <>
+                          <Separator className="my-3" />
+                          <p className="text-sm text-muted-foreground italic">{assignment.notes}</p>
+                        </>
                       )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-4">No crafts assigned</p>
+                <div className="text-center py-12">
+                  <Wrench className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                  <p className="text-muted-foreground text-lg font-medium">No craft assignments yet</p>
+                  <p className="text-muted-foreground text-sm mt-1">Craft assignments will appear here once assigned</p>
+                </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* System Access Tab */}
+        {/* Enhanced System Access Tab */}
         <TabsContent value="access" className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
               <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                System Access
+                <Shield className="h-5 w-5 text-primary" />
+                System Access & Permissions
               </CardTitle>
-              <CardDescription>User account and permissions</CardDescription>
+              <CardDescription>User account information and access level</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {person.user_id ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-success">
-                    <UserCheck className="h-5 w-5" />
-                    <span className="font-medium">System access enabled</span>
+                <div className="space-y-6">
+                  {/* Access Status Banner */}
+                  <div className="relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-success/10 via-success/5 to-transparent border border-success/30">
+                    <div className="absolute inset-0 bg-grid-white/10" />
+                    <div className="relative flex items-start gap-4">
+                      <div className="flex-shrink-0 p-3 bg-success/20 rounded-lg">
+                        <UserCheck className="h-6 w-6 text-success" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground text-lg mb-1">System Access Active</h3>
+                        <p className="text-muted-foreground">This person has an active user account with system access</p>
+                      </div>
+                      <Badge className="bg-success text-success-foreground">Active</Badge>
+                    </div>
                   </div>
-                  <Separator />
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">User ID</label>
-                    <p className="text-sm text-foreground mt-1 font-mono">{person.user_id}</p>
+
+                  {/* User Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">User ID</label>
+                      <p className="text-sm text-foreground font-mono bg-muted px-3 py-2 rounded-lg border border-border">
+                        {person.user_id}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Account Status</label>
+                      <Badge className="bg-success text-success-foreground">
+                        <UserCheck className="w-3 h-3 mr-1" />
+                        Active Access
+                      </Badge>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    This person has an active user account and can access the system.
-                  </p>
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-2">No System Access</h3>
-                  <p className="text-muted-foreground mb-4">
-                    This person does not have a user account to access the system.
-                  </p>
-                  <Button variant="outline">
-                    Link User Account
-                  </Button>
+                <div className="text-center py-12">
+                  <div className="relative overflow-hidden rounded-xl p-8 bg-gradient-to-br from-muted via-muted/50 to-transparent border border-border">
+                    <div className="absolute inset-0 bg-grid-white/5" />
+                    <div className="relative">
+                      <div className="mx-auto w-16 h-16 bg-muted-foreground/10 rounded-full flex items-center justify-center mb-4">
+                        <Shield className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <h3 className="font-semibold text-foreground text-lg mb-2">No System Access</h3>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        This person does not currently have system access. Contact an administrator to grant access if needed.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
             </CardContent>
