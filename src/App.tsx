@@ -54,6 +54,7 @@ import OrganizationManagementPage from "./pages/admin/OrganizationManagementPage
 import PeopleLaborPage from "./pages/people-labor/PeopleLaborPage";
 import PeopleManagementPage from "./pages/people-labor/PeopleManagementPage";
 import PersonDetailPage from "./pages/people-labor/PersonDetailPage";
+import EditPersonPage from "./pages/people-labor/EditPersonPage";
 import TeamsManagementPage from "./pages/people-labor/TeamsManagementPage";
 import SkillsLibraryPage from "./pages/people-labor/SkillsLibraryPage";
 import MyVerticals from "./pages/MyVerticals";
@@ -323,6 +324,13 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <PersonDetailPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/people-labor/people/:id/edit" element={
+              <AuthGuard>
+                <Layout>
+                  <EditPersonPage />
                 </Layout>
               </AuthGuard>
             } />

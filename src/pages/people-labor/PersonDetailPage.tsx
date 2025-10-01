@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePeople } from '@/hooks/usePeople';
 import { usePersonSkills } from '@/hooks/usePersonSkills';
@@ -36,7 +36,6 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 const PersonDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
   
   // Fetch person data
   const { people, isLoading: peopleLoading } = usePeople();
@@ -134,7 +133,7 @@ const PersonDetailPage: React.FC = () => {
           <p className="text-lg text-muted-foreground">Employee #{person.employee_number}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" onClick={() => setEditDialogOpen(true)}>
+          <Button size="sm" onClick={() => navigate(`/people-labor/people/${id}/edit`)}>
             <Edit className="w-4 h-4 mr-2" />
             Edit Person
           </Button>
@@ -439,12 +438,6 @@ const PersonDetailPage: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Edit Dialog - TODO: Create dedicated EditPersonDialog */}
-      {/* <AddPersonDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-      /> */}
     </div>
   );
 };
