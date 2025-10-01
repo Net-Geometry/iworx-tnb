@@ -26,13 +26,8 @@ export const OrganizationSwitcher = () => {
   const showSwitcher = userOrganizations.length > 1 || hasCrossProjectAccess;
 
   if (!showSwitcher) {
-    // Single organization - just show a badge
-    return (
-      <Badge variant="outline" className="flex items-center gap-2 px-3 py-1.5">
-        <Building2 className="h-4 w-4" />
-        <span className="font-medium">{currentOrganization.name}</span>
-      </Badge>
-    );
+    // Single organization - no need to show switcher
+    return null;
   }
 
   return (
