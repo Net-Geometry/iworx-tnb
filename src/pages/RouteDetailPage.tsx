@@ -11,11 +11,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMaintenanceRoute } from "@/hooks/useMaintenanceRoutes";
 import { useRouteAssets } from "@/hooks/useRouteAssets";
 import { RouteForm } from "@/components/routes/RouteForm";
 import { useMaintenanceRoutes } from "@/hooks/useMaintenanceRoutes";
+import { RouteAssetSelector } from "@/components/routes/RouteAssetSelector";
 
 /**
  * Detailed view of a maintenance route
@@ -26,10 +30,14 @@ const RouteDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: route, isLoading } = useMaintenanceRoute(id);
-  const { routeAssets, removeAsset } = useRouteAssets(id);
+  const { routeAssets, removeAsset, addAsset } = useRouteAssets(id);
   const { updateRoute } = useMaintenanceRoutes();
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddAssetDialogOpen, setIsAddAssetDialogOpen] = useState(false);
+  const [selectedAssetId, setSelectedAssetId] = useState<string | undefined>();
+  const [estimatedTime, setEstimatedTime] = useState("");
+  const [notes, setNotes] = useState("");
 
   const handleUpdateRoute = (data: any) => {
     if (id) {
@@ -37,6 +45,29 @@ const RouteDetailPage = () => {
       setIsEditDialogOpen(false);
     }
   };
+
+  const handleAddAsset = () => {
+    if (!selectedAssetId) return;
+
+    const nextSequence = routeAssets.length > 0
+      ? Math.max(...routeAssets.map((ra) => ra.sequence_order)) + 1
+      : 1;
+
+    addAsset({
+      asset_id: selectedAssetId,
+      sequence_order: nextSequence,
+      estimated_time_minutes: estimatedTime ? parseInt(estimatedTime) : undefined,
+      notes: notes || undefined,
+    });
+
+    // Reset form and close dialog
+    setIsAddAssetDialogOpen(false);
+    setSelectedAssetId(undefined);
+    setEstimatedTime("");
+    setNotes("");
+  };
+
+  const assignedAssetIds = routeAssets.map((ra) => ra.asset_id);
 
   if (isLoading) {
     return (
@@ -140,7 +171,7 @@ const RouteDetailPage = () => {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>Route Assets</CardTitle>
-                <Button size="sm">
+                <Button size="sm" onClick={() => setIsAddAssetDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Assets
                 </Button>
@@ -236,6 +267,61 @@ const RouteDetailPage = () => {
             onSubmit={handleUpdateRoute}
             onCancel={() => setIsEditDialogOpen(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Asset Dialog */}
+      <Dialog open={isAddAssetDialogOpen} onOpenChange={setIsAddAssetDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Asset to Route</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="asset">Asset *</Label>
+              <RouteAssetSelector
+                value={selectedAssetId}
+                onValueChange={setSelectedAssetId}
+                excludeAssetIds={assignedAssetIds}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="estimated-time">Estimated Time (minutes)</Label>
+              <Input
+                id="estimated-time"
+                type="number"
+                placeholder="30"
+                value={estimatedTime}
+                onChange={(e) => setEstimatedTime(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                placeholder="Additional notes for this asset..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAddAssetDialogOpen(false);
+                setSelectedAssetId(undefined);
+                setEstimatedTime("");
+                setNotes("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleAddAsset} disabled={!selectedAssetId}>
+              Add Asset
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
