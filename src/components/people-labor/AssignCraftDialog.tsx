@@ -100,7 +100,7 @@ export function AssignCraftDialog({ open, onOpenChange, personId, editingCraft }
               <SelectContent>
                 {crafts.map((craft) => (
                   <SelectItem key={craft.id} value={craft.id}>
-                    {craft.name} {craft.code && `(${craft.code})`}
+                    {craft.name} {craft.contract && `(${craft.contract})`}
                   </SelectItem>
                 ))}
               </SelectContent>

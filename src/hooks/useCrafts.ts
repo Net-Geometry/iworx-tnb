@@ -7,8 +7,10 @@ export interface Craft {
   id: string;
   organization_id: string;
   name: string;
-  code: string | null;
+  contract: string | null;
   description: string | null;
+  skill_level: string | null;
+  vendor_id: string | null;
   is_active: boolean | null;
   created_at: string;
   updated_at: string;
@@ -38,7 +40,7 @@ export const useCrafts = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as Craft[];
+      return data as any as Craft[];
     },
     enabled: !!currentOrganization || hasCrossProjectAccess,
   });
