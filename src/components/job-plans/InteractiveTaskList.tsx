@@ -18,8 +18,21 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GripVertical, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { GripVertical, Shield, Pencil, Trash2 } from "lucide-react";
 import { useUpdateTaskSequence } from "@/hooks/useUpdateTaskSequence";
+import { useDeleteTask } from "@/hooks/useDeleteTask";
+import { TaskEditDialog } from "./TaskEditDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Task {
   id: string;
@@ -42,7 +55,15 @@ interface InteractiveTaskListProps {
  * Sortable Task Card Component
  * Individual task card with drag-and-drop functionality
  */
-function SortableTaskCard({ task }: { task: Task }) {
+function SortableTaskCard({ 
+  task, 
+  onEdit, 
+  onDelete 
+}: { 
+  task: Task;
+  onEdit: (task: Task) => void;
+  onDelete: (task: Task) => void;
+}) {
   const {
     attributes,
     listeners,
@@ -74,9 +95,9 @@ function SortableTaskCard({ task }: { task: Task }) {
           <div className="flex-1 space-y-2">
             {/* Task Header */}
             <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-1">
                 <Badge variant="outline" className="font-mono">
-                  Step {task.task_sequence}
+                  Step {task.task_sequence || 1}
                 </Badge>
                 <h4 className="font-semibold">{task.task_title}</h4>
                 {task.is_critical_step && (
@@ -85,6 +106,28 @@ function SortableTaskCard({ task }: { task: Task }) {
                     Critical
                   </Badge>
                 )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => onEdit(task)}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  onClick={() => onDelete(task)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </div>
             </div>
 
@@ -136,7 +179,10 @@ function SortableTaskCard({ task }: { task: Task }) {
  */
 export function InteractiveTaskList({ tasks }: InteractiveTaskListProps) {
   const [localTasks, setLocalTasks] = useState(tasks);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const updateSequence = useUpdateTaskSequence();
+  const deleteTask = useDeleteTask();
 
   // Sync local tasks with prop changes
   useEffect(() => {
@@ -178,6 +224,13 @@ export function InteractiveTaskList({ tasks }: InteractiveTaskListProps) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!deletingTask) return;
+    
+    await deleteTask.mutateAsync(deletingTask.id);
+    setDeletingTask(null);
+  };
+
   if (tasks.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -213,11 +266,41 @@ export function InteractiveTaskList({ tasks }: InteractiveTaskListProps) {
         >
           <div className="space-y-3">
             {localTasks.map((task) => (
-              <SortableTaskCard key={task.id} task={task} />
+              <SortableTaskCard 
+                key={task.id} 
+                task={task}
+                onEdit={setEditingTask}
+                onDelete={setDeletingTask}
+              />
             ))}
           </div>
         </SortableContext>
       </DndContext>
+
+      {/* Edit Task Dialog */}
+      <TaskEditDialog
+        task={editingTask}
+        open={!!editingTask}
+        onOpenChange={(open) => !open && setEditingTask(null)}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingTask} onOpenChange={(open) => !open && setDeletingTask(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Task</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deletingTask?.task_title}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
