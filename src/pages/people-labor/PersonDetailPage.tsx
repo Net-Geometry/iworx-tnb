@@ -4,8 +4,10 @@ import { usePerson } from '@/hooks/usePerson';
 import { usePeople, Person } from '@/hooks/usePeople';
 import { usePersonSkills } from '@/hooks/usePersonSkills';
 import { usePersonCrafts } from '@/hooks/usePersonCrafts';
+import { usePersonBusinessAreas, useRemoveBusinessArea, useSetPrimaryBusinessArea } from '@/hooks/usePersonBusinessAreas';
 import { useSkills } from '@/hooks/useSkills';
 import { useCrafts } from '@/hooks/useCrafts';
+import { useBusinessAreas } from '@/hooks/useBusinessAreas';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -19,6 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { PersonProfileEditForm } from '@/components/people-labor/PersonProfileEditForm';
 import { AssignSkillDialog } from '@/components/people-labor/AssignSkillDialog';
 import { AssignCraftDialog } from '@/components/people-labor/AssignCraftDialog';
+import { AssignBusinessAreaDialog } from '@/components/people-labor/AssignBusinessAreaDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import {
   ArrowLeft,
@@ -38,7 +41,9 @@ import {
   Wrench,
   Plus,
   Pencil,
-  Trash2
+  Trash2,
+  MapPin,
+  Star
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -57,10 +62,12 @@ const PersonDetailPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [skillDialogOpen, setSkillDialogOpen] = useState(false);
   const [craftDialogOpen, setCraftDialogOpen] = useState(false);
+  const [businessAreaDialogOpen, setBusinessAreaDialogOpen] = useState(false);
   const [editingSkill, setEditingSkill] = useState<any>(null);
   const [editingCraft, setEditingCraft] = useState<any>(null);
   const [deletingSkill, setDeletingSkill] = useState<any>(null);
   const [deletingCraft, setDeletingCraft] = useState<any>(null);
+  const [deletingBusinessArea, setDeletingBusinessArea] = useState<any>(null);
   
   
   // Fetch person data with optimized single query
@@ -72,8 +79,12 @@ const PersonDetailPage: React.FC = () => {
   // Fetch related data
   const { personSkills, isLoading: skillsLoading, removeSkill } = usePersonSkills(id);
   const { personCrafts, isLoading: craftsLoading, removePersonCraft } = usePersonCrafts(id);
+  const { data: personBusinessAreas, isLoading: businessAreasLoading } = usePersonBusinessAreas(id);
   const { skills } = useSkills();
   const { crafts } = useCrafts();
+  const { data: businessAreas } = useBusinessAreas();
+  const removeBusinessArea = useRemoveBusinessArea();
+  const setPrimaryBusinessArea = useSetPrimaryBusinessArea();
   
   // Get business area from person object (with type assertion for nested data)
   const businessArea = React.useMemo(() => (person as any)?.business_area, [person]);
@@ -100,6 +111,25 @@ const PersonDetailPage: React.FC = () => {
     if (deletingCraft) {
       await removePersonCraft.mutateAsync(deletingCraft.id);
       setDeletingCraft(null);
+    }
+  };
+
+  const handleDeleteBusinessArea = async () => {
+    if (deletingBusinessArea && id) {
+      await removeBusinessArea.mutateAsync({ 
+        id: deletingBusinessArea.id, 
+        person_id: id 
+      });
+      setDeletingBusinessArea(null);
+    }
+  };
+
+  const handleSetPrimaryBusinessArea = async (businessAreaId: string) => {
+    if (id) {
+      await setPrimaryBusinessArea.mutateAsync({ 
+        id: businessAreaId, 
+        person_id: id 
+      });
     }
   };
 
@@ -349,15 +379,39 @@ const PersonDetailPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {businessArea && (
-                    <div className="group">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Business Area</label>
-                      <p className="text-sm text-foreground mt-1.5">
-                        {businessArea.business_area}
-                        {businessArea.region && ` (${businessArea.region})`}
-                      </p>
+                  <div className="group">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Business Areas</label>
+                    <div className="mt-1.5 space-y-2">
+                      {personBusinessAreas && personBusinessAreas.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {personBusinessAreas.map((ba) => (
+                            <Badge 
+                              key={ba.id} 
+                              variant="secondary" 
+                              className="flex items-center gap-1"
+                            >
+                              <MapPin className="h-3 w-3" />
+                              {ba.business_area?.business_area || 'Unknown'}
+                              {ba.is_primary && (
+                                <Star className="h-3 w-3 fill-yellow-500 text-yellow-500 ml-1" />
+                              )}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No business areas assigned</p>
+                      )}
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setBusinessAreaDialogOpen(true)}
+                        className="mt-1"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Assign Business Area
+                      </Button>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
 
@@ -789,6 +843,14 @@ const PersonDetailPage: React.FC = () => {
         editingCraft={editingCraft}
       />
 
+      {/* Business Area Assignment Dialog */}
+      <AssignBusinessAreaDialog
+        open={businessAreaDialogOpen}
+        onOpenChange={setBusinessAreaDialogOpen}
+        personId={id!}
+        existingAssignments={personBusinessAreas || []}
+      />
+
       {/* Delete Skill Confirmation */}
       <AlertDialog open={!!deletingSkill} onOpenChange={() => setDeletingSkill(null)}>
         <AlertDialogContent>
@@ -817,6 +879,22 @@ const PersonDetailPage: React.FC = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteCraft}>Remove</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Business Area Confirmation */}
+      <AlertDialog open={!!deletingBusinessArea} onOpenChange={() => setDeletingBusinessArea(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Business Area?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this business area assignment? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteBusinessArea}>Remove</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -24,7 +24,6 @@ const profileSchema = z.object({
   job_title: z.string().optional(),
   department: z.string().optional(),
   hourly_rate: z.string().optional(),
-  business_area_id: z.string().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -66,12 +65,10 @@ export const PersonProfileEditForm: React.FC<PersonProfileEditFormProps> = ({
       job_title: person.job_title || '',
       department: person.department || '',
       hourly_rate: person.hourly_rate?.toString() || '',
-      business_area_id: person.business_area_id || '',
     },
   });
 
   const employmentStatus = watch("employment_status");
-  const selectedBusinessArea = watch("business_area_id");
 
   const onSubmit = async (data: ProfileFormData) => {
     await onSave({
@@ -85,7 +82,6 @@ export const PersonProfileEditForm: React.FC<PersonProfileEditFormProps> = ({
       hire_date: data.hire_date || undefined,
       hourly_rate: data.hourly_rate ? parseFloat(data.hourly_rate) : undefined,
       employment_status: data.employment_status,
-      business_area_id: data.business_area_id || null,
     });
   };
 
@@ -132,27 +128,6 @@ export const PersonProfileEditForm: React.FC<PersonProfileEditFormProps> = ({
                   placeholder="(555) 123-4567"
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="business_area_id" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Business Area
-              </Label>
-              <Select
-                value={selectedBusinessArea || undefined}
-                onValueChange={(value) => setValue("business_area_id", value || "")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select business area" />
-                </SelectTrigger>
-                <SelectContent>
-                  {businessAreas?.map((ba) => (
-                    <SelectItem key={ba.id} value={ba.id}>
-                      {ba.business_area} {ba.region && `- ${ba.region}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </div>

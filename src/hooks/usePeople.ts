@@ -18,11 +18,23 @@ export interface Person {
   hourly_rate?: number;
   certifications?: string[];
   notes?: string;
-  business_area_id?: string;
   is_active: boolean;
   organization_id: string;
   created_at: string;
   updated_at: string;
+  business_areas?: Array<{
+    id: string;
+    business_area_id: string;
+    is_primary: boolean;
+    assigned_date: string;
+    business_area: {
+      id: string;
+      business_area: string | null;
+      region: string | null;
+      state: string | null;
+      station: string | null;
+    };
+  }>;
 }
 
 export const usePeople = () => {

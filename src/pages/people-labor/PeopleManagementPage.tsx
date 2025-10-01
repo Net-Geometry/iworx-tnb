@@ -128,8 +128,12 @@ const PeopleManagementPage = () => {
                     <TableCell>{person.job_title || '-'}</TableCell>
                     <TableCell>{person.department || '-'}</TableCell>
                     <TableCell>
-                      {person.business_area_id 
-                        ? businessAreas?.find(ba => ba.id === person.business_area_id)?.business_area || '-'
+                      {person.business_areas && person.business_areas.length > 0
+                        ? person.business_areas
+                            .filter(ba => ba.is_primary)
+                            .map(ba => ba.business_area?.business_area)
+                            .filter(Boolean)
+                            .join(', ') || person.business_areas[0]?.business_area?.business_area || '-'
                         : '-'
                       }
                     </TableCell>

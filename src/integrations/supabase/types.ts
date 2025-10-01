@@ -522,34 +522,40 @@ export type Database = {
       }
       crafts: {
         Row: {
-          code: string | null
+          contract: string | null
           created_at: string
           description: string | null
           id: string
           is_active: boolean | null
           name: string
           organization_id: string
+          skill_level: string | null
           updated_at: string
+          vendor_id: string | null
         }
         Insert: {
-          code?: string | null
+          contract?: string | null
           created_at?: string
           description?: string | null
           id?: string
           is_active?: boolean | null
           name: string
           organization_id: string
+          skill_level?: string | null
           updated_at?: string
+          vendor_id?: string | null
         }
         Update: {
-          code?: string | null
+          contract?: string | null
           created_at?: string
           description?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
           organization_id?: string
+          skill_level?: string | null
           updated_at?: string
+          vendor_id?: string | null
         }
         Relationships: []
       }
@@ -1704,7 +1710,6 @@ export type Database = {
       }
       people: {
         Row: {
-          business_area_id: string | null
           certifications: string[] | null
           complemented: string | null
           cost_center: string | null
@@ -1748,7 +1753,6 @@ export type Database = {
           vacancy_status: string | null
         }
         Insert: {
-          business_area_id?: string | null
           certifications?: string[] | null
           complemented?: string | null
           cost_center?: string | null
@@ -1792,7 +1796,6 @@ export type Database = {
           vacancy_status?: string | null
         }
         Update: {
-          business_area_id?: string | null
           certifications?: string[] | null
           complemented?: string | null
           cost_center?: string | null
@@ -1837,13 +1840,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "people_business_area_id_fkey"
-            columns: ["business_area_id"]
-            isOneToOne: false
-            referencedRelation: "business_area"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "people_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -1855,6 +1851,57 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      person_business_areas: {
+        Row: {
+          assigned_date: string | null
+          business_area_id: string
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          organization_id: string
+          person_id: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_date?: string | null
+          business_area_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          organization_id: string
+          person_id: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_date?: string | null
+          business_area_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          organization_id?: string
+          person_id?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_business_areas_business_area_id_fkey"
+            columns: ["business_area_id"]
+            isOneToOne: false
+            referencedRelation: "business_area"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_business_areas_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
             referencedColumns: ["id"]
           },
         ]

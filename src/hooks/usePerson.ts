@@ -19,12 +19,18 @@ export const usePerson = (personId: string | undefined) => {
         .from("people")
         .select(`
           *,
-          business_area (
+          person_business_areas!inner (
             id,
-            business_area,
-            region,
-            state,
-            station
+            business_area_id,
+            is_primary,
+            assigned_date,
+            business_area (
+              id,
+              business_area,
+              region,
+              state,
+              station
+            )
           )
         `)
         .eq("id", personId);
@@ -36,7 +42,18 @@ export const usePerson = (personId: string | undefined) => {
       const { data, error } = await query.maybeSingle();
 
       if (error) throw error;
-      return data as any as Person | null;
+      
+      // Transform the data to match Person interface with business_areas array
+      if (data) {
+        const transformed = {
+          ...data,
+          business_areas: (data as any).person_business_areas || [],
+        };
+        delete (transformed as any).person_business_areas;
+        return transformed as Person;
+      }
+      
+      return null;
     },
     enabled: !!personId && (!!currentOrganization || hasCrossProjectAccess),
   });

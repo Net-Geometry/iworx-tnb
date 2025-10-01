@@ -33,7 +33,6 @@ const personSchema = z.object({
   hourly_rate: z.string().optional(),
   notes: z.string().optional(),
   certifications: z.string().optional(),
-  business_area_id: z.string().optional(),
 });
 
 type PersonFormData = z.infer<typeof personSchema>;
@@ -95,7 +94,6 @@ export default function EditPersonPage() {
           setValue("hourly_rate", data.hourly_rate?.toString() || "");
           setValue("notes", data.notes || "");
           setValue("certifications", Array.isArray(data.certifications) ? data.certifications.join(", ") : (data.certifications || ""));
-          setValue("business_area_id", data.business_area_id || "");
         }
       } catch (error: any) {
         console.error("Error fetching person:", error);
@@ -132,7 +130,6 @@ export default function EditPersonPage() {
         employment_status: data.employment_status,
         notes: data.notes || undefined,
         certifications: data.certifications ? data.certifications.split(",").map(c => c.trim()).filter(c => c) : undefined,
-        business_area_id: data.business_area_id || null,
       });
 
       toast({
@@ -309,25 +306,6 @@ export default function EditPersonPage() {
                   {...register("hourly_rate")}
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="business_area_id">Business Area (Optional)</Label>
-              <Select
-                value={watch("business_area_id") || undefined}
-                onValueChange={(value) => setValue("business_area_id", value || "")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select business area (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {businessAreas?.map((ba) => (
-                    <SelectItem key={ba.id} value={ba.id}>
-                      {ba.business_area} {ba.region && `- ${ba.region}`} {ba.state && `(${ba.state})`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </CardContent>
         </Card>
