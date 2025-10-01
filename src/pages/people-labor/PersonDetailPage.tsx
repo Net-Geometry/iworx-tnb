@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { usePeople } from '@/hooks/usePeople';
+import { usePeople, Person } from '@/hooks/usePeople';
 import { usePersonSkills } from '@/hooks/usePersonSkills';
 import { usePersonCrafts } from '@/hooks/usePersonCrafts';
-import { useBusinessArea } from '@/hooks/useBusinessAreas';
+import { useBusinessAreas, useBusinessArea } from '@/hooks/useBusinessAreas';
 import { useSkills } from '@/hooks/useSkills';
 import { useCrafts } from '@/hooks/useCrafts';
+import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
+import { PersonProfileEditForm } from '@/components/people-labor/PersonProfileEditForm';
 import {
   ArrowLeft,
   Edit,
@@ -29,7 +32,8 @@ import {
   AlertTriangle,
   UserCheck,
   FileText,
-  Wrench
+  Wrench,
+  Plus
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -41,20 +45,51 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 const PersonDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Fetch person data
-  const { people, isLoading: peopleLoading } = usePeople();
+  const { people, isLoading: peopleLoading, updatePerson } = usePeople();
   const person = people.find(p => p.id === id);
   
   // Fetch related data
   const { personSkills, isLoading: skillsLoading } = usePersonSkills(id);
   const { personCrafts, isLoading: craftsLoading } = usePersonCrafts(id);
+  const { data: businessAreas, isLoading: businessAreasLoading } = useBusinessAreas();
   const { data: businessArea, isLoading: businessAreaLoading } = useBusinessArea(person?.business_area_id || null);
   const { skills } = useSkills();
   const { crafts } = useCrafts();
 
+  // Handle save profile
+  const handleSaveProfile = async (data: Partial<Person>) => {
+    if (!id) return;
+    
+    setIsSubmitting(true);
+    try {
+      await updatePerson.mutateAsync({ id, ...data });
+      
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+      
+      setIsEditing(false);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error?.message || "Failed to update profile",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Loading state
-  if (peopleLoading || skillsLoading || craftsLoading || businessAreaLoading) {
+  if (peopleLoading || skillsLoading || craftsLoading || businessAreaLoading || businessAreasLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-full" />
@@ -214,9 +249,13 @@ const PersonDetailPage: React.FC = () => {
             </div>
 
             {/* Action Button */}
-            <Button onClick={() => navigate(`/people-labor/people/${id}/edit`)} className="shrink-0">
+            <Button 
+              onClick={() => setIsEditing(!isEditing)} 
+              variant={isEditing ? "outline" : "default"}
+              className="shrink-0"
+            >
               <Edit className="w-4 h-4 mr-2" />
-              Edit Person
+              {isEditing ? "Cancel Edit" : "Edit Profile"}
             </Button>
           </div>
         </div>
@@ -226,122 +265,134 @@ const PersonDetailPage: React.FC = () => {
       <Card className="border-border shadow-sm">
         <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
           <CardTitle>Profile Overview</CardTitle>
-          <CardDescription>Complete employment and contact information</CardDescription>
+          <CardDescription>
+            {isEditing ? "Edit basic employment and contact information" : "Complete employment and contact information"}
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Contact Information Section */}
-            <div className="space-y-5">
-              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
-                <Mail className="h-4 w-4 text-primary" />
-                Contact Information
-              </h3>
-              <Separator />
-              
-              <div className="space-y-4">
-                <div className="group">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    <span className="text-sm text-foreground">{person.email || 'N/A'}</span>
-                  </div>
-                </div>
+          {isEditing ? (
+            <PersonProfileEditForm
+              person={person}
+              businessAreas={businessAreas || []}
+              onSave={handleSaveProfile}
+              onCancel={() => setIsEditing(false)}
+              isSubmitting={isSubmitting}
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* Contact Information Section */}
+              <div className="space-y-5">
+                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-primary" />
+                  Contact Information
+                </h3>
+                <Separator />
                 
-                <div className="group">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Phone</label>
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    <span className="text-sm text-foreground">{person.phone || 'N/A'}</span>
-                  </div>
-                </div>
-
-                {businessArea && (
+                <div className="space-y-4">
                   <div className="group">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Business Area</label>
-                    <p className="text-sm text-foreground mt-1.5">
-                      {businessArea.business_area}
-                      {businessArea.region && ` (${businessArea.region})`}
-                    </p>
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <span className="text-sm text-foreground">{person.email || 'N/A'}</span>
+                    </div>
                   </div>
-                )}
+                  
+                  <div className="group">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Phone</label>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <span className="text-sm text-foreground">{person.phone || 'N/A'}</span>
+                    </div>
+                  </div>
+
+                  {businessArea && (
+                    <div className="group">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Business Area</label>
+                      <p className="text-sm text-foreground mt-1.5">
+                        {businessArea.business_area}
+                        {businessArea.region && ` (${businessArea.region})`}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Employment Information Section */}
-            <div className="space-y-5">
-              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
-                <Briefcase className="h-4 w-4 text-primary" />
-                Employment Details
-              </h3>
-              <Separator />
-              
-              <div className="space-y-4">
-                <div className="group">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Job Title</label>
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <Briefcase className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    <span className="text-sm text-foreground font-medium">{person.job_title || 'N/A'}</span>
-                  </div>
-                </div>
-
-                <div className="group">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Department</label>
-                  <p className="text-sm text-foreground mt-1.5">{person.department || 'N/A'}</p>
-                </div>
-              
-                <div className="group">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Hire Date</label>
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    <span className="text-sm text-foreground">{formatDate(person.hire_date)}</span>
-                  </div>
-                </div>
+              {/* Employment Information Section */}
+              <div className="space-y-5">
+                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
+                  <Briefcase className="h-4 w-4 text-primary" />
+                  Employment Details
+                </h3>
+                <Separator />
                 
-                <div className="group">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Hourly Rate</label>
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    <span className="text-sm text-foreground font-semibold">
-                      {person.hourly_rate ? `$${person.hourly_rate}/hr` : 'N/A'}
-                    </span>
+                <div className="space-y-4">
+                  <div className="group">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Job Title</label>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <span className="text-sm text-foreground font-medium">{person.job_title || 'N/A'}</span>
+                    </div>
+                  </div>
+
+                  <div className="group">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Department</label>
+                    <p className="text-sm text-foreground mt-1.5">{person.department || 'N/A'}</p>
+                  </div>
+                
+                  <div className="group">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Hire Date</label>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <span className="text-sm text-foreground">{formatDate(person.hire_date)}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="group">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Hourly Rate</label>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <span className="text-sm text-foreground font-semibold">
+                        {person.hourly_rate ? `$${person.hourly_rate}/hr` : 'N/A'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Certifications & Qualifications Section */}
-            <div className="space-y-5">
-              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
-                <Award className="h-4 w-4 text-primary" />
-                Certifications
-              </h3>
-              <Separator />
-              
-              <div className="space-y-3">
-                {person.certifications && person.certifications.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {person.certifications.map((cert, idx) => (
-                      <Badge key={idx} variant="secondary" className="px-3 py-1">
-                        <Shield className="w-3 h-3 mr-1" />
-                        {cert}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">No certifications recorded</p>
-                )}
+              {/* Certifications & Qualifications Section */}
+              <div className="space-y-5">
+                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
+                  <Award className="h-4 w-4 text-primary" />
+                  Certifications
+                </h3>
+                <Separator />
+                
+                <div className="space-y-3">
+                  {person.certifications && person.certifications.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {person.certifications.map((cert, idx) => (
+                        <Badge key={idx} variant="secondary" className="px-3 py-1">
+                          <Shield className="w-3 h-3 mr-1" />
+                          {cert}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">No certifications recorded</p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Enhanced Tabs with Icons */}
-      <Tabs defaultValue="details" className="space-y-6">
+      <Tabs defaultValue="notes" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4 h-auto p-1">
-          <TabsTrigger value="details" className="flex items-center gap-2 py-3">
+          <TabsTrigger value="notes" className="flex items-center gap-2 py-3">
             <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Details</span>
+            <span className="hidden sm:inline">Notes</span>
           </TabsTrigger>
           <TabsTrigger value="skills" className="flex items-center gap-2 py-3">
             <Award className="h-4 w-4" />
@@ -359,20 +410,31 @@ const PersonDetailPage: React.FC = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Details Tab */}
-        <TabsContent value="details" className="space-y-4">
+        {/* Notes Tab */}
+        <TabsContent value="notes" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Additional Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {person.notes ? (
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
+              <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Notes</label>
-                  <p className="text-sm text-foreground mt-1 whitespace-pre-wrap">{person.notes}</p>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-primary" />
+                    Notes & Additional Information
+                  </CardTitle>
+                  <CardDescription>Internal notes and remarks</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {person.notes ? (
+                <div className="prose prose-sm max-w-none">
+                  <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{person.notes}</p>
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-4">No additional notes</p>
+                <div className="text-center py-12">
+                  <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                  <p className="text-muted-foreground">No additional notes recorded</p>
+                  <p className="text-xs text-muted-foreground mt-1">Edit profile to add notes</p>
+                </div>
               )}
             </CardContent>
           </Card>
