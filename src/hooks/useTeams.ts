@@ -156,6 +156,7 @@ export const useTeams = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-members"] });
+      queryClient.invalidateQueries({ queryKey: ["team"] });
       toast({
         title: "Member Added",
         description: "Team member has been added successfully.",
@@ -181,6 +182,7 @@ export const useTeams = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-members"] });
+      queryClient.invalidateQueries({ queryKey: ["team"] });
       toast({
         title: "Member Removed",
         description: "Team member has been removed successfully.",

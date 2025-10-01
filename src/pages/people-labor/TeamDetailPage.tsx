@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTeam } from "@/hooks/useTeam";
 import { useTeams } from "@/hooks/useTeams";
@@ -7,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Users, Mail, Phone, Calendar, Edit, UserPlus, Shield } from "lucide-react";
+import { AddTeamMemberDialog } from "@/components/people-labor/AddTeamMemberDialog";
 import { format } from "date-fns";
 import {
   Select,
@@ -41,6 +43,7 @@ export default function TeamDetailPage() {
   const navigate = useNavigate();
   const { team, isLoading, updateTeamMemberRole } = useTeam(id);
   const { removeTeamMember } = useTeams();
+  const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
 
   if (isLoading) {
     return (
@@ -103,7 +106,7 @@ export default function TeamDetailPage() {
             <Edit className="mr-2 h-4 w-4" />
             Edit Team
           </Button>
-          <Button>
+          <Button onClick={() => setShowAddMemberDialog(true)}>
             <UserPlus className="mr-2 h-4 w-4" />
             Add Member
           </Button>
@@ -356,6 +359,14 @@ export default function TeamDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Add Member Dialog */}
+      <AddTeamMemberDialog
+        open={showAddMemberDialog}
+        onOpenChange={setShowAddMemberDialog}
+        teamId={id!}
+        existingMemberIds={activeMembers.map(m => m.person_id)}
+      />
     </div>
   );
 }
