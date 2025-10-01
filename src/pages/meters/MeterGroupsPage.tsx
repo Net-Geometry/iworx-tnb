@@ -1,11 +1,20 @@
 import { useState } from 'react';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Users, Zap } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useMeterGroups, MeterGroup } from '@/hooks/useMeterGroups';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+import { MeterGroupKPICards } from '@/components/meters/MeterGroupKPICards';
 import {
   Table,
   TableBody,
@@ -69,57 +78,96 @@ export default function MeterGroupsPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Meter Groups</h1>
-            <p className="text-muted-foreground">
-              Organize meters into logical groups
-            </p>
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/">Home</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/meters">Meters</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Meter Groups</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        {/* Header Section */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="flex gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
+              <Zap className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Meter Groups</h1>
+              <p className="text-muted-foreground mt-1">
+                Organize and manage meters into logical groups for better monitoring
+              </p>
+            </div>
           </div>
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreate} size="lg" className="shrink-0">
             <Plus className="mr-2 h-4 w-4" />
             Create Group
           </Button>
         </div>
 
-        {/* Search */}
+        {/* KPI Cards */}
+        <MeterGroupKPICards meterGroups={meterGroups} />
+
+        {/* Search and Filters */}
         <Card className="p-4">
-          <Input
-            placeholder="Search by group name, number, or description..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            <Input
+              placeholder="Search by group name, number, or description..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="md:max-w-md"
+            />
+          </div>
         </Card>
 
         {/* Groups Table */}
         <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Group Number</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
+          {loading ? (
+            <div className="flex items-center justify-center p-12">
+              <div className="text-center space-y-2">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+                <p className="text-sm text-muted-foreground">Loading meter groups...</p>
+              </div>
+            </div>
+          ) : filteredGroups.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-12 text-center">
+              <div className="rounded-full bg-muted p-6 mb-4">
+                <Users className="h-10 w-10 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">No meter groups found</h3>
+              <p className="text-sm text-muted-foreground mb-6 max-w-md">
+                {searchTerm
+                  ? 'Try adjusting your search terms or create a new meter group.'
+                  : 'Get started by creating your first meter group to organize your meters.'}
+              </p>
+              <Button onClick={handleCreate}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Meter Group
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">
-                    Loading meter groups...
-                  </TableCell>
+                  <TableHead>Group Number</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ) : filteredGroups.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center">
-                    No meter groups found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredGroups.map((group) => (
+              </TableHeader>
+              <TableBody>
+                {filteredGroups.map((group) => (
                   <TableRow key={group.id}>
                     <TableCell className="font-medium">
                       {group.group_number}
@@ -160,10 +208,10 @@ export default function MeterGroupsPage() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </Card>
       </div>
 
