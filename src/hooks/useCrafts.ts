@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { peopleApi } from "@/services/api-client";
 
 export interface Craft {
   id: string;
@@ -27,20 +28,29 @@ export const useCrafts = () => {
   const { data: crafts = [], isLoading } = useQuery({
     queryKey: ["crafts", currentOrganization?.id],
     queryFn: async () => {
-      let query = supabase
-        .from("crafts")
-        .select("*")
-        .eq("is_active", true)
-        .order("name");
+      try {
+        // Try microservice first
+        const data = await peopleApi.getCrafts();
+        return data as any as Craft[];
+      } catch (microserviceError) {
+        console.warn('[useCrafts] Microservice failed, falling back to direct Supabase:', microserviceError);
+        
+        // Fallback to direct Supabase call
+        let query = supabase
+          .from("crafts")
+          .select("*")
+          .eq("is_active", true)
+          .order("name");
 
-      if (!hasCrossProjectAccess && currentOrganization) {
-        query = query.eq("organization_id", currentOrganization.id);
+        if (!hasCrossProjectAccess && currentOrganization) {
+          query = query.eq("organization_id", currentOrganization.id);
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+        return data as any as Craft[];
       }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      return data as any as Craft[];
     },
     enabled: !!currentOrganization || hasCrossProjectAccess,
   });

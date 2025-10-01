@@ -182,6 +182,115 @@ export const assetApi = {
   },
 };
 
+/**
+ * People & Labor Management API
+ */
+export const peopleApi = {
+  // People endpoints
+  async getPeople() {
+    return apiClient.get('/api/people');
+  },
+  async getPerson(id: string) {
+    return apiClient.get(`/api/people/${id}`);
+  },
+  async createPerson(data: any) {
+    return apiClient.post('/api/people', data);
+  },
+  async updatePerson(id: string, data: any) {
+    return apiClient.put(`/api/people/${id}`, data);
+  },
+  async deletePerson(id: string) {
+    return apiClient.delete(`/api/people/${id}`);
+  },
+
+  // Teams endpoints
+  async getTeams() {
+    return apiClient.get('/api/people/teams');
+  },
+  async getTeam(id: string) {
+    return apiClient.get(`/api/people/teams/${id}`);
+  },
+  async createTeam(data: any) {
+    return apiClient.post('/api/people/teams', data);
+  },
+  async updateTeam(id: string, data: any) {
+    return apiClient.put(`/api/people/teams/${id}`, data);
+  },
+  async deleteTeam(id: string) {
+    return apiClient.delete(`/api/people/teams/${id}`);
+  },
+
+  // Team members endpoints
+  async getTeamMembers(params?: { person_id?: string; team_id?: string }) {
+    return apiClient.get('/api/people/team-members', params);
+  },
+  async addTeamMember(data: any) {
+    return apiClient.post('/api/people/team-members', data);
+  },
+  async updateTeamMember(id: string, data: any) {
+    return apiClient.put(`/api/people/team-members/${id}`, data);
+  },
+  async removeTeamMember(id: string) {
+    return apiClient.delete(`/api/people/team-members/${id}`);
+  },
+
+  // Skills endpoints
+  async getSkills() {
+    return apiClient.get('/api/people/skills');
+  },
+  async createSkill(data: any) {
+    return apiClient.post('/api/people/skills', data);
+  },
+  async updateSkill(id: string, data: any) {
+    return apiClient.put(`/api/people/skills/${id}`, data);
+  },
+  async deleteSkill(id: string) {
+    return apiClient.delete(`/api/people/skills/${id}`);
+  },
+
+  // Person skills endpoints
+  async getPersonSkills(personId?: string) {
+    return apiClient.get('/api/people/person-skills', personId ? { person_id: personId } : undefined);
+  },
+  async assignPersonSkill(data: any) {
+    return apiClient.post('/api/people/person-skills', data);
+  },
+  async updatePersonSkill(id: string, data: any) {
+    return apiClient.put(`/api/people/person-skills/${id}`, data);
+  },
+  async removePersonSkill(id: string) {
+    return apiClient.delete(`/api/people/person-skills/${id}`);
+  },
+
+  // Crafts endpoints
+  async getCrafts() {
+    return apiClient.get('/api/people/crafts');
+  },
+  async createCraft(data: any) {
+    return apiClient.post('/api/people/crafts', data);
+  },
+  async updateCraft(id: string, data: any) {
+    return apiClient.put(`/api/people/crafts/${id}`, data);
+  },
+  async deleteCraft(id: string) {
+    return apiClient.delete(`/api/people/crafts/${id}`);
+  },
+
+  // Person crafts endpoints
+  async getPersonCrafts(personId?: string) {
+    return apiClient.get('/api/people/person-crafts', personId ? { person_id: personId } : undefined);
+  },
+  async assignPersonCraft(data: any) {
+    return apiClient.post('/api/people/person-crafts', data);
+  },
+  async updatePersonCraft(id: string, data: any) {
+    return apiClient.put(`/api/people/person-crafts/${id}`, data);
+  },
+  async removePersonCraft(id: string) {
+    return apiClient.delete(`/api/people/person-crafts/${id}`);
+  },
+};
+
 // Work Order API methods
 export const workOrderApi = {
   async getWorkOrders() {

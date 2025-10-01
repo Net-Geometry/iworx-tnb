@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { peopleApi } from "@/services/api-client";
 
 export interface Team {
   id: string;
@@ -44,61 +45,70 @@ export const useTeams = () => {
   const { data: teams = [], isLoading } = useQuery({
     queryKey: ["teams", currentOrganization?.id],
     queryFn: async () => {
-      let query = supabase
-        .from("teams")
-        .select(`
-          *,
-          team_members!inner(
-            id,
-            role_in_team,
-            people!inner(
+      try {
+        // Try microservice first
+        const data = await peopleApi.getTeams();
+        return data as Team[];
+      } catch (microserviceError) {
+        console.warn('[useTeams] Microservice failed, falling back to direct Supabase:', microserviceError);
+        
+        // Fallback to direct Supabase call
+        let query = supabase
+          .from("teams")
+          .select(`
+            *,
+            team_members!inner(
               id,
-              first_name,
-              last_name
+              role_in_team,
+              people!inner(
+                id,
+                first_name,
+                last_name
+              )
             )
-          )
-        `)
-        .order("team_name");
+          `)
+          .order("team_name");
 
-      if (!hasCrossProjectAccess && currentOrganization) {
-        query = query.eq("organization_id", currentOrganization.id);
+        if (!hasCrossProjectAccess && currentOrganization) {
+          query = query.eq("organization_id", currentOrganization.id);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        
+        // Transform data to include member statistics
+        const teamsWithStats = (data || []).map((team: any) => {
+          const members = team.team_members || [];
+          const memberCount = members.length;
+          
+          const roleDistribution = {
+            leaders: members.filter((m: any) => m.role_in_team === 'leader').length,
+            supervisors: members.filter((m: any) => m.role_in_team === 'supervisor').length,
+            members: members.filter((m: any) => m.role_in_team === 'member').length,
+          };
+          
+          const leader = members.find((m: any) => m.role_in_team === 'leader');
+          const leaderName = leader?.people 
+            ? `${leader.people.first_name} ${leader.people.last_name}`.trim()
+            : undefined;
+          
+          const memberNames = members
+            .slice(0, 3)
+            .map((m: any) => `${m.people.first_name} ${m.people.last_name}`.trim());
+          
+          const { team_members, ...teamData } = team;
+          
+          return {
+            ...teamData,
+            member_count: memberCount,
+            leader_name: leaderName,
+            member_names: memberNames,
+            role_distribution: roleDistribution,
+          } as Team;
+        });
+        
+        return teamsWithStats;
       }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      
-      // Transform data to include member statistics
-      const teamsWithStats = (data || []).map((team: any) => {
-        const members = team.team_members || [];
-        const memberCount = members.length;
-        
-        const roleDistribution = {
-          leaders: members.filter((m: any) => m.role_in_team === 'leader').length,
-          supervisors: members.filter((m: any) => m.role_in_team === 'supervisor').length,
-          members: members.filter((m: any) => m.role_in_team === 'member').length,
-        };
-        
-        const leader = members.find((m: any) => m.role_in_team === 'leader');
-        const leaderName = leader?.people 
-          ? `${leader.people.first_name} ${leader.people.last_name}`.trim()
-          : undefined;
-        
-        const memberNames = members
-          .slice(0, 3)
-          .map((m: any) => `${m.people.first_name} ${m.people.last_name}`.trim());
-        
-        const { team_members, ...teamData } = team;
-        
-        return {
-          ...teamData,
-          member_count: memberCount,
-          leader_name: leaderName,
-          member_names: memberNames,
-          role_distribution: roleDistribution,
-        } as Team;
-      });
-      
-      return teamsWithStats;
     },
     enabled: !!currentOrganization || hasCrossProjectAccess,
   });

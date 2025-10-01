@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { peopleApi } from "@/services/api-client";
 
 export interface Person {
   id: string;
@@ -45,37 +46,54 @@ export const usePeople = () => {
   const { data: people = [], isLoading } = useQuery({
     queryKey: ["people", currentOrganization?.id],
     queryFn: async () => {
-      let query = supabase
-        .from("people")
-        .select("*")
-        .order("last_name");
+      try {
+        // Try microservice first
+        const data = await peopleApi.getPeople();
+        return data as Person[];
+      } catch (microserviceError) {
+        console.warn('[usePeople] Microservice failed, falling back to direct Supabase:', microserviceError);
+        
+        // Fallback to direct Supabase call
+        let query = supabase
+          .from("people")
+          .select("*")
+          .order("last_name");
 
-      if (!hasCrossProjectAccess && currentOrganization) {
-        query = query.eq("organization_id", currentOrganization.id);
+        if (!hasCrossProjectAccess && currentOrganization) {
+          query = query.eq("organization_id", currentOrganization.id);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        return data as Person[];
       }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Person[];
     },
     enabled: !!currentOrganization || hasCrossProjectAccess,
   });
 
   const createPerson = useMutation({
     mutationFn: async (personData: Partial<Person>) => {
-      const dataWithOrg = {
-        ...personData,
-        organization_id: currentOrganization?.id,
-      };
-      
-      const { data, error } = await supabase
-        .from("people")
-        .insert([dataWithOrg as any])
-        .select()
-        .single();
+      try {
+        return await peopleApi.createPerson({
+          ...personData,
+          organization_id: currentOrganization?.id,
+        });
+      } catch (microserviceError) {
+        console.warn('[createPerson] Microservice failed, falling back to direct Supabase:', microserviceError);
+        const dataWithOrg = {
+          ...personData,
+          organization_id: currentOrganization?.id,
+        };
+        
+        const { data, error } = await supabase
+          .from("people")
+          .insert([dataWithOrg as any])
+          .select()
+          .single();
 
-      if (error) throw error;
-      return data;
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["people"] });
@@ -95,15 +113,20 @@ export const usePeople = () => {
 
   const updatePerson = useMutation({
     mutationFn: async ({ id, ...personData }: Partial<Person> & { id: string }) => {
-      const { data, error } = await supabase
-        .from("people")
-        .update(personData)
-        .eq("id", id)
-        .select()
-        .single();
+      try {
+        return await peopleApi.updatePerson(id, personData);
+      } catch (microserviceError) {
+        console.warn('[updatePerson] Microservice failed, falling back to direct Supabase:', microserviceError);
+        const { data, error } = await supabase
+          .from("people")
+          .update(personData)
+          .eq("id", id)
+          .select()
+          .single();
 
-      if (error) throw error;
-      return data;
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["people"] });
@@ -123,12 +146,17 @@ export const usePeople = () => {
 
   const deletePerson = useMutation({
     mutationFn: async (personId: string) => {
-      const { error } = await supabase
-        .from("people")
-        .delete()
-        .eq("id", personId);
+      try {
+        await peopleApi.deletePerson(personId);
+      } catch (microserviceError) {
+        console.warn('[deletePerson] Microservice failed, falling back to direct Supabase:', microserviceError);
+        const { error } = await supabase
+          .from("people")
+          .delete()
+          .eq("id", personId);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["people"] });

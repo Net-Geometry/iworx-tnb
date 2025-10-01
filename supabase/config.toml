@@ -12,5 +12,8 @@ verify_jwt = true
 [functions.inventory-service]
 verify_jwt = true
 
+[functions.people-service]
+verify_jwt = true
+
 [functions.api-gateway]
 verify_jwt = true
