@@ -27,6 +27,7 @@ import {
   Users,
   UserCheck,
   GraduationCap,
+  Hammer,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -148,6 +149,7 @@ const systemAdminModules = [
   { title: "User Registration", url: "/admin/users/register", icon: UserPlus },
   { title: "Role Management", url: "/admin/roles", icon: Shield },
   { title: "Verticals", url: "/admin/organizations", icon: Building },
+  { title: "Crafts Management", url: "/admin/crafts", icon: Hammer },
 ];
 
 export function AppSidebar() {

@@ -51,6 +51,7 @@ import UserRolesPage from "@/pages/admin/UserRolesPage";
 import RoleManagementPage from "@/pages/admin/RoleManagementPage";
 import RoleFormPage from "@/pages/admin/RoleFormPage";
 import OrganizationManagementPage from "./pages/admin/OrganizationManagementPage";
+import CraftsManagementPage from "./pages/admin/CraftsManagementPage";
 import PeopleLaborPage from "./pages/people-labor/PeopleLaborPage";
 import PeopleManagementPage from "./pages/people-labor/PeopleManagementPage";
 import PersonDetailPage from "./pages/people-labor/PersonDetailPage";
@@ -403,6 +404,13 @@ const App = () => (
               <AdminGuard>
                 <Layout>
                   <OrganizationManagementPage />
+                </Layout>
+              </AdminGuard>
+            } />
+            <Route path="/admin/crafts" element={
+              <AdminGuard>
+                <Layout>
+                  <CraftsManagementPage />
                 </Layout>
               </AdminGuard>
             } />
