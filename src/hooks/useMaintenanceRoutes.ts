@@ -158,24 +158,9 @@ export const useMaintenanceRoute = (routeId: string | undefined) => {
 
       const { data, error } = await supabase
         .from("maintenance_routes")
-        .select(`
-          *,
-          route_assets(
-            id,
-            sequence_order,
-            estimated_time_minutes,
-            notes,
-            asset:assets(
-              id,
-              name,
-              asset_number,
-              category,
-              status
-            )
-          )
-        `)
+        .select("*")
         .eq("id", routeId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;

@@ -2907,6 +2907,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "route_assets_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "route_assets_route_id_fkey"
             columns: ["route_id"]
             isOneToOne: false

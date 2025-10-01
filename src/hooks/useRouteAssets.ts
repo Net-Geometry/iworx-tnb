@@ -41,7 +41,7 @@ export const useRouteAssets = (routeId: string | undefined) => {
         .from("route_assets")
         .select(`
           *,
-          assets!inner(
+          asset:assets(
             id,
             name,
             asset_number,
@@ -55,10 +55,7 @@ export const useRouteAssets = (routeId: string | undefined) => {
 
       if (error) throw error;
       
-      return (data || []).map((item: any) => ({
-        ...item,
-        asset: item.assets,
-      })) as RouteAsset[];
+      return (data || []) as RouteAsset[];
     },
     enabled: !!routeId && !!currentOrganization,
   });
