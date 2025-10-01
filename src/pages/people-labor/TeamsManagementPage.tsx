@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/select";
 
 const TeamsManagementPage = () => {
+  const navigate = useNavigate();
   const { teams, isLoading, createTeam } = useTeams();
   const [searchTerm, setSearchTerm] = useState("");
   const [open, setOpen] = useState(false);
@@ -154,7 +156,11 @@ const TeamsManagementPage = () => {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredTeams.map((team) => (
-            <Card key={team.id} className="hover:shadow-lg transition-shadow">
+            <Card 
+              key={team.id} 
+              className="hover:shadow-lg transition-all cursor-pointer hover:border-primary"
+              onClick={() => navigate(`/people-labor/teams/${team.id}`)}
+            >
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>{team.team_name}</span>

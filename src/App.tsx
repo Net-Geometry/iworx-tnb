@@ -60,6 +60,7 @@ import PeopleManagementPage from "./pages/people-labor/PeopleManagementPage";
 import PersonDetailPage from "./pages/people-labor/PersonDetailPage";
 import EditPersonPage from "./pages/people-labor/EditPersonPage";
 import TeamsManagementPage from "./pages/people-labor/TeamsManagementPage";
+import TeamDetailPage from "./pages/people-labor/TeamDetailPage";
 import SkillsLibraryPage from "./pages/people-labor/SkillsLibraryPage";
 import MyVerticals from "./pages/MyVerticals";
 import CrossProjectAnalytics from "./pages/CrossProjectAnalytics";
@@ -358,6 +359,13 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <TeamsManagementPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/people-labor/teams/:id" element={
+              <AuthGuard>
+                <Layout>
+                  <TeamDetailPage />
                 </Layout>
               </AuthGuard>
             } />
