@@ -164,7 +164,22 @@ export type Database = {
           purpose?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "asset_meter_groups_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_meter_groups_meter_group_id_fkey"
+            columns: ["meter_group_id"]
+            isOneToOne: false
+            referencedRelation: "meter_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       assets: {
         Row: {
@@ -1757,7 +1772,22 @@ export type Database = {
           status?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "meter_group_assignments_meter_group_id_fkey"
+            columns: ["meter_group_id"]
+            isOneToOne: false
+            referencedRelation: "meter_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meter_group_assignments_meter_id_fkey"
+            columns: ["meter_id"]
+            isOneToOne: false
+            referencedRelation: "meters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       meter_groups: {
         Row: {
