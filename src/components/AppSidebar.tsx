@@ -32,6 +32,14 @@ import {
   Gauge,
   Layers,
   Route,
+  Factory,
+  TreePine,
+  ListChecks,
+  Grid3x3,
+  ClipboardList,
+  FileBarChart2,
+  PackageSearch,
+  UsersRound,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -65,17 +73,17 @@ const coreAssetModules = [
   {
     title: "Asset Management",
     url: "/assets",
-    icon: Settings,
+    icon: Factory,
   },
   {
     title: "Asset Hierarchy Management",
     url: "/assets/hierarchy",
-    icon: Layers,
+    icon: TreePine,
   },
   {
     title: "Bill of Materials",
     url: "/bom",
-    icon: FileSpreadsheet,
+    icon: ListChecks,
   },
   {
     title: "Meter Registration",
@@ -85,7 +93,7 @@ const coreAssetModules = [
   {
     title: "Meter Groups",
     url: "/meter-groups",
-    icon: Layers,
+    icon: Grid3x3,
   },
 ];
 
@@ -99,7 +107,7 @@ const workMaintenanceModules = [
   {
     title: "Job Plans",
     url: "/job-plans",
-    icon: FileSpreadsheet,
+    icon: ClipboardList,
   },
   {
     title: "Preventive Maintenance",
@@ -154,11 +162,11 @@ const safetySubModules = [
   { title: "LOTO Procedures", url: "/safety/loto", icon: Lock },
   { title: "Precaution Library", url: "/safety/precautions", icon: BookOpen },
   { title: "CAPA Management", url: "/safety/capa", icon: CheckCircle },
-  { title: "Safety Reports", url: "/safety/reports", icon: BarChart3 },
+  { title: "Safety Reports", url: "/safety/reports", icon: FileBarChart2 },
 ];
 
 const inventorySubModules = [
-  { title: "Inventory Overview", url: "/inventory", icon: BarChart3 },
+  { title: "Inventory Overview", url: "/inventory", icon: PackageSearch },
   { title: "Items & Stock", url: "/inventory/items", icon: Package },
   { title: "Locations", url: "/inventory/locations", icon: MapPin },
   { title: "Reorder Management", url: "/inventory/reorder", icon: RotateCcw },
@@ -172,7 +180,7 @@ const inventorySubModules = [
 const peopleAndLaborModules = [
   { title: "People & Labor Overview", url: "/people-labor", icon: Users },
   { title: "People Management", url: "/people-labor/people", icon: UserCheck },
-  { title: "Teams & Groups", url: "/people-labor/teams", icon: Users },
+  { title: "Teams & Groups", url: "/people-labor/teams", icon: UsersRound },
   { title: "Skills Library", url: "/people-labor/skills", icon: GraduationCap },
 ];
 
@@ -426,7 +434,7 @@ export function AppSidebar() {
             <SidebarGroupLabel asChild>
               <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
                 <div className="flex items-center gap-2">
-                  <Link className="w-4 h-4" />
+                  <Smartphone className="w-4 h-4" />
                   Integration & Mobility
                 </div>
                 <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
