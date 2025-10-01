@@ -76,7 +76,7 @@ const PersonDetailPage: React.FC = () => {
   const { crafts } = useCrafts();
   
   // Get business area from person object (with type assertion for nested data)
-  const businessArea = (person as any)?.business_area;
+  const businessArea = React.useMemo(() => (person as any)?.business_area, [person]);
 
   // Handler functions for skills and crafts
   const handleEditSkill = (skill: any) => {
@@ -289,12 +289,6 @@ const PersonDetailPage: React.FC = () => {
                   <Wrench className="w-4 h-4 text-accent" />
                   <span className="text-sm font-medium">{personCrafts.length} Crafts</span>
                 </div>
-                {person.certifications && person.certifications.length > 0 && (
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-background/80 backdrop-blur-sm rounded-lg border border-border">
-                    <Shield className="w-4 h-4 text-success" />
-                    <span className="text-sm font-medium">{person.certifications.length} Certifications</span>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -398,38 +392,24 @@ const PersonDetailPage: React.FC = () => {
                   </div>
                   
                   <div className="group">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Hourly Rate</label>
-                    <div className="mt-1.5 flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                      <span className="text-sm text-foreground font-semibold">
-                        {person.hourly_rate ? `$${person.hourly_rate}/hr` : 'N/A'}
-                      </span>
-                    </div>
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Job Title</label>
+                    <p className="text-sm text-foreground mt-1.5">{person.job_title || 'N/A'}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Certifications & Qualifications Section */}
+              {/* Notes Section */}
               <div className="space-y-5">
                 <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide flex items-center gap-2">
-                  <Award className="h-4 w-4 text-primary" />
-                  Certifications
+                  <FileText className="h-4 w-4 text-primary" />
+                  Additional Notes
                 </h3>
                 <Separator />
                 
                 <div className="space-y-3">
-                  {person.certifications && person.certifications.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {person.certifications.map((cert, idx) => (
-                        <Badge key={idx} variant="secondary" className="px-3 py-1">
-                          <Shield className="w-3 h-3 mr-1" />
-                          {cert}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground italic">No certifications recorded</p>
-                  )}
+                  <p className="text-sm text-muted-foreground">
+                    {person.notes || 'No additional notes'}
+                  </p>
                 </div>
               </div>
             </div>
