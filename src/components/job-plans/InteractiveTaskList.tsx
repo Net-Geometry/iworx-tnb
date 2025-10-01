@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -18,8 +18,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { GripVertical, Edit3, Save, X, Shield } from "lucide-react";
+import { GripVertical, Shield } from "lucide-react";
 import { useUpdateTaskSequence } from "@/hooks/useUpdateTaskSequence";
 
 interface Task {
@@ -43,7 +42,7 @@ interface InteractiveTaskListProps {
  * Sortable Task Card Component
  * Individual task card with drag-and-drop functionality
  */
-function SortableTaskCard({ task, isEditMode }: { task: Task; isEditMode: boolean }) {
+function SortableTaskCard({ task }: { task: Task }) {
   const {
     attributes,
     listeners,
@@ -51,7 +50,7 @@ function SortableTaskCard({ task, isEditMode }: { task: Task; isEditMode: boolea
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: task.id, disabled: !isEditMode });
+  } = useSortable({ id: task.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -63,16 +62,14 @@ function SortableTaskCard({ task, isEditMode }: { task: Task; isEditMode: boolea
     <Card ref={setNodeRef} style={style} className={isDragging ? "shadow-lg" : ""}>
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          {/* Drag Handle - only visible in edit mode */}
-          {isEditMode && (
-            <div
-              {...attributes}
-              {...listeners}
-              className="cursor-grab active:cursor-grabbing pt-1 hover:bg-accent rounded p-1 transition-colors"
-            >
-              <GripVertical className="w-5 h-5 text-muted-foreground" />
-            </div>
-          )}
+          {/* Drag Handle - Always visible */}
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing pt-1 hover:bg-accent rounded p-1 transition-colors"
+          >
+            <GripVertical className="w-5 h-5 text-muted-foreground" />
+          </div>
 
           <div className="flex-1 space-y-2">
             {/* Task Header */}
@@ -135,17 +132,16 @@ function SortableTaskCard({ task, isEditMode }: { task: Task; isEditMode: boolea
 
 /**
  * Interactive Task List Component
- * Displays tasks with drag-and-drop reordering functionality
+ * Displays tasks with drag-and-drop reordering functionality (always active)
  */
 export function InteractiveTaskList({ tasks }: InteractiveTaskListProps) {
-  const [isEditMode, setIsEditMode] = useState(false);
   const [localTasks, setLocalTasks] = useState(tasks);
   const updateSequence = useUpdateTaskSequence();
 
-  // Sync local tasks with prop changes when not in edit mode
-  if (!isEditMode && JSON.stringify(tasks) !== JSON.stringify(localTasks)) {
+  // Sync local tasks with prop changes
+  useEffect(() => {
     setLocalTasks(tasks);
-  }
+  }, [tasks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -154,38 +150,32 @@ export function InteractiveTaskList({ tasks }: InteractiveTaskListProps) {
     })
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (over && active.id !== over.id) {
-      setLocalTasks((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  };
+    if (!over || active.id === over.id) return;
 
-  const handleSave = () => {
-    // Prepare updates with new sequence numbers
-    const updates = localTasks.map((task, index) => ({
+    const oldIndex = localTasks.findIndex((item) => item.id === active.id);
+    const newIndex = localTasks.findIndex((item) => item.id === over.id);
+
+    const reorderedTasks = arrayMove(localTasks, oldIndex, newIndex);
+    
+    // Update local state immediately for responsiveness
+    setLocalTasks(reorderedTasks);
+
+    // Auto-save: Create updates with new sequence numbers
+    const updates = reorderedTasks.map((task, index) => ({
       id: task.id,
       task_sequence: index + 1,
     }));
 
-    updateSequence.mutate(
-      { updates },
-      {
-        onSuccess: () => {
-          setIsEditMode(false);
-        },
-      }
-    );
-  };
-
-  const handleCancel = () => {
-    setLocalTasks(tasks); // Reset to original order
-    setIsEditMode(false);
+    try {
+      await updateSequence.mutateAsync({ updates });
+    } catch (error) {
+      // Revert on error (error toast is handled by the hook)
+      setLocalTasks(tasks);
+      console.error("Failed to save task order:", error);
+    }
   };
 
   if (tasks.length === 0) {
@@ -198,46 +188,20 @@ export function InteractiveTaskList({ tasks }: InteractiveTaskListProps) {
 
   return (
     <div className="space-y-4">
-      {/* Edit Mode Controls */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          {isEditMode && (
-            <p className="text-sm text-muted-foreground">
-              Drag tasks to reorder them
-            </p>
-          )}
+          <h3 className="text-lg font-semibold">Tasks</h3>
+          <p className="text-sm text-muted-foreground">
+            Drag and drop tasks to reorder
+          </p>
         </div>
-        <div className="flex gap-2">
-          {!isEditMode ? (
-            <Button onClick={() => setIsEditMode(true)} variant="outline" size="sm">
-              <Edit3 className="w-4 h-4 mr-2" />
-              Edit Order
-            </Button>
-          ) : (
-            <>
-              <Button
-                onClick={handleCancel}
-                variant="outline"
-                size="sm"
-                disabled={updateSequence.isPending}
-              >
-                <X className="w-4 h-4 mr-2" />
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSave}
-                size="sm"
-                disabled={updateSequence.isPending}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {updateSequence.isPending ? "Saving..." : "Save Order"}
-              </Button>
-            </>
-          )}
-        </div>
+        {updateSequence.isPending && (
+          <Badge variant="secondary">Saving...</Badge>
+        )}
       </div>
 
-      {/* Task List */}
+      {/* Task List with Drag & Drop */}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -249,7 +213,7 @@ export function InteractiveTaskList({ tasks }: InteractiveTaskListProps) {
         >
           <div className="space-y-3">
             {localTasks.map((task) => (
-              <SortableTaskCard key={task.id} task={task} isEditMode={isEditMode} />
+              <SortableTaskCard key={task.id} task={task} />
             ))}
           </div>
         </SortableContext>

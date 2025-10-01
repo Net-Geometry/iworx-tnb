@@ -26,6 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, X, Save } from "lucide-react";
 import { useCreateJobPlan, useUpdateJobPlan, type JobPlanWithDetails, type CreateJobPlanData } from "@/hooks/useJobPlans";
+import { InteractiveTaskList } from "@/components/job-plans/InteractiveTaskList";
 
 // Form validation schema
 const formSchema = z.object({
@@ -424,43 +425,83 @@ export const JobPlanFormContent = ({ jobPlan, mode, onSuccess }: JobPlanFormCont
 
               {/* Tasks Tab */}
               <TabsContent value="tasks" className="space-y-4 mt-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Task Breakdown</h3>
-                  <Button type="button" onClick={addTask} size="sm">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Task
-                  </Button>
-                </div>
-                
-                <div className="space-y-4">
-                  {tasks.map((task, index) => (
-                    <Card key={index}>
-                      <CardHeader>
-                        <CardTitle className="text-sm">Task {index + 1}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <Input
-                          placeholder="Task title..."
-                          value={task.task_title}
-                          onChange={(e) => {
-                            const newTasks = [...tasks];
-                            newTasks[index].task_title = e.target.value;
-                            setTasks(newTasks);
-                          }}
-                        />
-                        <Textarea
-                          placeholder="Task description..."
-                          value={task.task_description || ""}
-                          onChange={(e) => {
-                            const newTasks = [...tasks];
-                            newTasks[index].task_description = e.target.value;
-                            setTasks(newTasks);
-                          }}
-                        />
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                {mode === "edit" && jobPlan?.tasks && jobPlan.tasks.length > 0 ? (
+                  <InteractiveTaskList 
+                    tasks={jobPlan.tasks.map(t => ({
+                      id: t.id,
+                      task_sequence: t.task_sequence,
+                      task_title: t.task_title,
+                      task_description: t.task_description,
+                      estimated_duration_minutes: t.estimated_duration_minutes,
+                      skill_required: t.skill_required,
+                      is_critical_step: t.is_critical_step,
+                      safety_precaution_ids: t.safety_precaution_ids,
+                    }))}
+                  />
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="text-lg font-semibold">Task Breakdown</h3>
+                        <p className="text-sm text-muted-foreground">Add tasks that will be performed</p>
+                      </div>
+                      <Button type="button" onClick={addTask} size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Task
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {tasks.length === 0 ? (
+                        <Card className="border-dashed">
+                          <CardContent className="p-12 text-center">
+                            <p className="text-muted-foreground mb-4">No tasks added yet</p>
+                            <Button type="button" onClick={addTask} variant="outline" size="sm">
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add First Task
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        tasks.map((task, index) => (
+                          <Card key={index}>
+                            <CardHeader className="flex flex-row items-center justify-between">
+                              <CardTitle className="text-sm">Task {index + 1}</CardTitle>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setTasks(tasks.filter((_, i) => i !== index))}
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                              <Input
+                                placeholder="Task title..."
+                                value={task.task_title}
+                                onChange={(e) => {
+                                  const newTasks = [...tasks];
+                                  newTasks[index].task_title = e.target.value;
+                                  setTasks(newTasks);
+                                }}
+                              />
+                              <Textarea
+                                placeholder="Task description..."
+                                value={task.task_description || ""}
+                                onChange={(e) => {
+                                  const newTasks = [...tasks];
+                                  newTasks[index].task_description = e.target.value;
+                                  setTasks(newTasks);
+                                }}
+                              />
+                            </CardContent>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                  </>
+                )}
               </TabsContent>
 
               {/* Resources Tab */}
