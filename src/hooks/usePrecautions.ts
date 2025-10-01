@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { safetyApi } from '@/services/api-client';
 import type { Database } from '@/integrations/supabase/types';
 
 type SafetyPrecaution = Database['public']['Tables']['safety_precautions']['Row'];
@@ -27,6 +28,16 @@ export const usePrecautions = () => {
       setLoading(true);
       setError(null);
 
+      // Try microservice first
+      try {
+        const data = await safetyApi.precautions.getAll(filters);
+        setPrecautions(data || []);
+        return;
+      } catch (apiError) {
+        console.warn('Safety microservice unavailable, falling back to direct DB access:', apiError);
+      }
+
+      // Fallback to direct Supabase query
       let query = supabase
         .from('safety_precautions')
         .select('*')
@@ -66,6 +77,20 @@ export const usePrecautions = () => {
 
   const addPrecaution = async (precautionData: SafetyPrecautionInsert) => {
     try {
+      // Try microservice first
+      try {
+        const data = await safetyApi.precautions.create(precautionData);
+        toast({
+          title: "Success",
+          description: "Safety precaution created successfully",
+        });
+        await fetchPrecautions();
+        return data;
+      } catch (apiError) {
+        console.warn('Safety microservice unavailable, falling back to direct DB access:', apiError);
+      }
+
+      // Fallback to direct Supabase query
       const dataWithOrg = {
         ...precautionData,
         organization_id: currentOrganization?.id
@@ -99,6 +124,20 @@ export const usePrecautions = () => {
 
   const updatePrecaution = async (id: string, precautionData: SafetyPrecautionUpdate) => {
     try {
+      // Try microservice first
+      try {
+        const data = await safetyApi.precautions.update(id, precautionData);
+        toast({
+          title: "Success",
+          description: "Safety precaution updated successfully",
+        });
+        await fetchPrecautions();
+        return data;
+      } catch (apiError) {
+        console.warn('Safety microservice unavailable, falling back to direct DB access:', apiError);
+      }
+
+      // Fallback to direct Supabase query
       const { data, error } = await supabase
         .from('safety_precautions')
         .update(precautionData)
@@ -128,6 +167,20 @@ export const usePrecautions = () => {
 
   const deletePrecaution = async (id: string) => {
     try {
+      // Try microservice first
+      try {
+        await safetyApi.precautions.delete(id);
+        toast({
+          title: "Success",
+          description: "Safety precaution deleted successfully",
+        });
+        await fetchPrecautions();
+        return;
+      } catch (apiError) {
+        console.warn('Safety microservice unavailable, falling back to direct DB access:', apiError);
+      }
+
+      // Fallback to direct Supabase query
       const { error } = await supabase
         .from('safety_precautions')
         .delete()
@@ -154,7 +207,16 @@ export const usePrecautions = () => {
 
   const incrementUsageCount = async (id: string) => {
     try {
-      // Get current usage count first
+      // Try microservice first
+      try {
+        await safetyApi.precautions.incrementUsage(id);
+        await fetchPrecautions();
+        return;
+      } catch (apiError) {
+        console.warn('Safety microservice unavailable, falling back to direct DB access:', apiError);
+      }
+
+      // Fallback to direct Supabase query
       const { data: currentData, error: fetchError } = await supabase
         .from('safety_precautions')
         .select('usage_count')

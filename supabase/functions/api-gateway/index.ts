@@ -39,6 +39,10 @@ const SERVICE_REGISTRY = {
     url: `${SUPABASE_URL}/functions/v1/people-service`,
     healthEndpoint: "/health",
   },
+  safety: {
+    url: `${SUPABASE_URL}/functions/v1/safety-service`,
+    healthEndpoint: "/health",
+  },
 };
 
 /**

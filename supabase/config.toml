@@ -15,5 +15,8 @@ verify_jwt = true
 [functions.people-service]
 verify_jwt = true
 
+[functions.safety-service]
+verify_jwt = true
+
 [functions.api-gateway]
 verify_jwt = true

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { safetyApi } from "@/services/api-client";
 
 // Incident interface matching database schema
 export interface Incident {
@@ -28,6 +29,7 @@ export interface Incident {
   created_by: string | null;
   updated_by: string | null;
   organization_id: string;
+  closure_date?: string | null;
 }
 
 export interface IncidentStats {
@@ -53,6 +55,32 @@ export const useIncidents = () => {
     try {
       setLoading(true);
       
+      // Try microservice first
+      try {
+        const data = await safetyApi.incidents.getAll();
+        setIncidents(data || []);
+        
+        // Calculate statistics
+        const now = new Date();
+        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        const newStats: IncidentStats = {
+          total: data?.length || 0,
+          critical: data?.filter((i: Incident) => i.severity === 'critical').length || 0,
+          investigating: data?.filter((i: Incident) => i.status === 'investigating').length || 0,
+          resolvedThisMonth: data?.filter((i: Incident) => 
+            i.status === 'resolved' && 
+            new Date(i.updated_at) >= firstDayOfMonth
+          ).length || 0,
+        };
+
+        setStats(newStats);
+        return;
+      } catch (apiError) {
+        console.warn('Safety microservice unavailable, falling back to direct DB access:', apiError);
+      }
+
+      // Fallback to direct Supabase query
       let query = supabase
         .from("safety_incidents")
         .select("*")
@@ -109,6 +137,26 @@ export const useIncidents = () => {
       // Generate incident number
       const incidentNumber = `INC-${Date.now().toString().slice(-8)}`;
 
+      // Try microservice first
+      try {
+        const data = await safetyApi.incidents.create({
+          incident_number: incidentNumber,
+          ...incidentData,
+          status: incidentData.status || 'reported',
+        });
+
+        toast({
+          title: "Success",
+          description: "Incident report created successfully",
+        });
+
+        await fetchIncidents();
+        return data;
+      } catch (apiError) {
+        console.warn('Safety microservice unavailable, falling back to direct DB access:', apiError);
+      }
+
+      // Fallback to direct Supabase query
       const { data, error } = await supabase
         .from("safety_incidents")
         .insert({
@@ -156,6 +204,22 @@ export const useIncidents = () => {
 
   const updateIncident = async (id: string, updates: Partial<Incident>) => {
     try {
+      // Try microservice first
+      try {
+        await safetyApi.incidents.update(id, updates);
+
+        toast({
+          title: "Success",
+          description: "Incident updated successfully",
+        });
+
+        await fetchIncidents();
+        return;
+      } catch (apiError) {
+        console.warn('Safety microservice unavailable, falling back to direct DB access:', apiError);
+      }
+
+      // Fallback to direct Supabase query
       const { error } = await supabase
         .from("safety_incidents")
         .update(updates)
@@ -182,6 +246,22 @@ export const useIncidents = () => {
 
   const deleteIncident = async (id: string) => {
     try {
+      // Try microservice first
+      try {
+        await safetyApi.incidents.delete(id);
+
+        toast({
+          title: "Success",
+          description: "Incident deleted successfully",
+        });
+
+        await fetchIncidents();
+        return;
+      } catch (apiError) {
+        console.warn('Safety microservice unavailable, falling back to direct DB access:', apiError);
+      }
+
+      // Fallback to direct Supabase query
       const { error } = await supabase
         .from("safety_incidents")
         .delete()

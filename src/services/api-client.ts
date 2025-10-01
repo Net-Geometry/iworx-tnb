@@ -11,310 +11,124 @@ import { supabase } from "@/integrations/supabase/client";
 const API_GATEWAY_URL = "https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/api-gateway";
 
 /**
- * API Client configuration
+ * Get authentication headers for API requests
  */
-interface ApiClientConfig {
-  baseUrl?: string;
-  timeout?: number;
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  
+  if (session?.access_token) {
+    headers["Authorization"] = `Bearer ${session.access_token}`;
+  }
+  
+  return headers;
 }
-
-/**
- * API Request options
- */
-interface RequestOptions {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
-  body?: any;
-  params?: Record<string, string>;
-  headers?: Record<string, string>;
-}
-
-/**
- * API Client class
- */
-class ApiClient {
-  private baseUrl: string;
-  private timeout: number;
-
-  constructor(config: ApiClientConfig = {}) {
-    this.baseUrl = config.baseUrl || API_GATEWAY_URL;
-    this.timeout = config.timeout || 30000; // 30 seconds default
-  }
-
-  /**
-   * Get authentication token from Supabase
-   */
-  private async getAuthToken(): Promise<string | null> {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token || null;
-  }
-
-  /**
-   * Make HTTP request
-   */
-  private async request<T>(
-    endpoint: string,
-    options: RequestOptions = {}
-  ): Promise<T> {
-    const { method = "GET", body, params, headers = {} } = options;
-
-    // Build URL with query parameters
-    const url = new URL(`${this.baseUrl}${endpoint}`);
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, value);
-      });
-    }
-
-    // Get auth token
-    const token = await this.getAuthToken();
-    
-    // Build headers
-    const requestHeaders: Record<string, string> = {
-      "Content-Type": "application/json",
-      ...headers,
-    };
-
-    if (token) {
-      requestHeaders["Authorization"] = `Bearer ${token}`;
-    }
-
-    // Create abort controller for timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-
-    try {
-      const response = await fetch(url.toString(), {
-        method,
-        headers: requestHeaders,
-        body: body ? JSON.stringify(body) : undefined,
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      // Handle non-200 responses
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      // Parse JSON response
-      const data = await response.json();
-      return data as T;
-
-    } catch (error: any) {
-      clearTimeout(timeoutId);
-
-      // Handle specific error types
-      if (error.name === "AbortError") {
-        throw new Error("Request timeout");
-      }
-
-      throw error;
-    }
-  }
-
-  /**
-   * GET request
-   */
-  async get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
-    return this.request<T>(endpoint, { method: "GET", params });
-  }
-
-  /**
-   * POST request
-   */
-  async post<T>(endpoint: string, body: any): Promise<T> {
-    return this.request<T>(endpoint, { method: "POST", body });
-  }
-
-  /**
-   * PUT request
-   */
-  async put<T>(endpoint: string, body: any): Promise<T> {
-    return this.request<T>(endpoint, { method: "PUT", body });
-  }
-
-  /**
-   * DELETE request
-   */
-  async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: "DELETE" });
-  }
-
-  /**
-   * Health check
-   */
-  async healthCheck() {
-    return this.get("/api/health");
-  }
-}
-
-// Export singleton instance
-export const apiClient = new ApiClient();
 
 /**
  * Asset Service API
  */
 export const assetApi = {
   async getAssets() {
-    return apiClient.get('/assets');
+    const response = await fetch(`${API_GATEWAY_URL}/api/assets`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch assets');
+    return response.json();
   },
 
   async getAssetById(id: string) {
-    return apiClient.get(`/assets/${id}`);
+    const response = await fetch(`${API_GATEWAY_URL}/api/assets/${id}`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch asset');
+    return response.json();
   },
 
   async createAsset(asset: any) {
-    return apiClient.post('/assets', asset);
+    const response = await fetch(`${API_GATEWAY_URL}/api/assets`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(asset),
+    });
+    if (!response.ok) throw new Error('Failed to create asset');
+    return response.json();
   },
 
   async updateAsset(id: string, updates: any) {
-    return apiClient.put(`/assets/${id}`, updates);
+    const response = await fetch(`${API_GATEWAY_URL}/api/assets/${id}`, {
+      method: 'PATCH',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) throw new Error('Failed to update asset');
+    return response.json();
   },
 
   async deleteAsset(id: string) {
-    return apiClient.delete(`/assets/${id}`);
-  },
-
-  async getAssetHierarchy() {
-    return apiClient.get('/assets/hierarchy');
-  },
-};
-
-/**
- * People & Labor Management API
- */
-export const peopleApi = {
-  // People endpoints
-  async getPeople() {
-    return apiClient.get('/api/people');
-  },
-  async getPerson(id: string) {
-    return apiClient.get(`/api/people/${id}`);
-  },
-  async createPerson(data: any) {
-    return apiClient.post('/api/people', data);
-  },
-  async updatePerson(id: string, data: any) {
-    return apiClient.put(`/api/people/${id}`, data);
-  },
-  async deletePerson(id: string) {
-    return apiClient.delete(`/api/people/${id}`);
-  },
-
-  // Teams endpoints
-  async getTeams() {
-    return apiClient.get('/api/people/teams');
-  },
-  async getTeam(id: string) {
-    return apiClient.get(`/api/people/teams/${id}`);
-  },
-  async createTeam(data: any) {
-    return apiClient.post('/api/people/teams', data);
-  },
-  async updateTeam(id: string, data: any) {
-    return apiClient.put(`/api/people/teams/${id}`, data);
-  },
-  async deleteTeam(id: string) {
-    return apiClient.delete(`/api/people/teams/${id}`);
-  },
-
-  // Team members endpoints
-  async getTeamMembers(params?: { person_id?: string; team_id?: string }) {
-    return apiClient.get('/api/people/team-members', params);
-  },
-  async addTeamMember(data: any) {
-    return apiClient.post('/api/people/team-members', data);
-  },
-  async updateTeamMember(id: string, data: any) {
-    return apiClient.put(`/api/people/team-members/${id}`, data);
-  },
-  async removeTeamMember(id: string) {
-    return apiClient.delete(`/api/people/team-members/${id}`);
-  },
-
-  // Skills endpoints
-  async getSkills() {
-    return apiClient.get('/api/people/skills');
-  },
-  async createSkill(data: any) {
-    return apiClient.post('/api/people/skills', data);
-  },
-  async updateSkill(id: string, data: any) {
-    return apiClient.put(`/api/people/skills/${id}`, data);
-  },
-  async deleteSkill(id: string) {
-    return apiClient.delete(`/api/people/skills/${id}`);
-  },
-
-  // Person skills endpoints
-  async getPersonSkills(personId?: string) {
-    return apiClient.get('/api/people/person-skills', personId ? { person_id: personId } : undefined);
-  },
-  async assignPersonSkill(data: any) {
-    return apiClient.post('/api/people/person-skills', data);
-  },
-  async updatePersonSkill(id: string, data: any) {
-    return apiClient.put(`/api/people/person-skills/${id}`, data);
-  },
-  async removePersonSkill(id: string) {
-    return apiClient.delete(`/api/people/person-skills/${id}`);
-  },
-
-  // Crafts endpoints
-  async getCrafts() {
-    return apiClient.get('/api/people/crafts');
-  },
-  async createCraft(data: any) {
-    return apiClient.post('/api/people/crafts', data);
-  },
-  async updateCraft(id: string, data: any) {
-    return apiClient.put(`/api/people/crafts/${id}`, data);
-  },
-  async deleteCraft(id: string) {
-    return apiClient.delete(`/api/people/crafts/${id}`);
-  },
-
-  // Person crafts endpoints
-  async getPersonCrafts(personId?: string) {
-    return apiClient.get('/api/people/person-crafts', personId ? { person_id: personId } : undefined);
-  },
-  async assignPersonCraft(data: any) {
-    return apiClient.post('/api/people/person-crafts', data);
-  },
-  async updatePersonCraft(id: string, data: any) {
-    return apiClient.put(`/api/people/person-crafts/${id}`, data);
-  },
-  async removePersonCraft(id: string) {
-    return apiClient.delete(`/api/people/person-crafts/${id}`);
+    const response = await fetch(`${API_GATEWAY_URL}/api/assets/${id}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to delete asset');
+    return response.json();
   },
 };
 
 // Work Order API methods
 export const workOrderApi = {
   async getWorkOrders() {
-    return apiClient.get('/work-orders');
+    const response = await fetch(`${API_GATEWAY_URL}/api/work-orders`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch work orders');
+    return response.json();
   },
 
   async getWorkOrderById(id: string) {
-    return apiClient.get(`/work-orders/${id}`);
+    const response = await fetch(`${API_GATEWAY_URL}/api/work-orders/${id}`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch work order');
+    return response.json();
   },
 
   async createWorkOrder(workOrder: any) {
-    return apiClient.post('/work-orders', workOrder);
+    const response = await fetch(`${API_GATEWAY_URL}/api/work-orders`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(workOrder),
+    });
+    if (!response.ok) throw new Error('Failed to create work order');
+    return response.json();
   },
 
   async updateWorkOrder(id: string, updates: any) {
-    return apiClient.put(`/work-orders/${id}`, updates);
+    const response = await fetch(`${API_GATEWAY_URL}/api/work-orders/${id}`, {
+      method: 'PATCH',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) throw new Error('Failed to update work order');
+    return response.json();
   },
 
   async deleteWorkOrder(id: string) {
-    return apiClient.delete(`/work-orders/${id}`);
+    const response = await fetch(`${API_GATEWAY_URL}/api/work-orders/${id}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to delete work order');
+    return response.json();
   },
-
+  
   async getWorkOrderStats() {
-    return apiClient.get('/work-orders/stats');
+    const response = await fetch(`${API_GATEWAY_URL}/api/work-orders/stats`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch work order stats');
+    return response.json();
   },
 };
 
@@ -323,46 +137,327 @@ export const workOrderApi = {
  */
 export const inventoryApi = {
   async getItems() {
-    return apiClient.get('/inventory/items');
+    const response = await fetch(`${API_GATEWAY_URL}/api/inventory/items`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch items');
+    return response.json();
   },
 
   async getItemById(id: string) {
-    return apiClient.get(`/inventory/items/${id}`);
+    const response = await fetch(`${API_GATEWAY_URL}/api/inventory/items/${id}`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch item');
+    return response.json();
   },
 
   async createItem(item: any) {
-    return apiClient.post('/inventory/items', item);
+    const response = await fetch(`${API_GATEWAY_URL}/api/inventory/items`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(item),
+    });
+    if (!response.ok) throw new Error('Failed to create item');
+    return response.json();
   },
 
   async updateItem(id: string, updates: any) {
-    return apiClient.put(`/inventory/items/${id}`, updates);
+    const response = await fetch(`${API_GATEWAY_URL}/api/inventory/items/${id}`, {
+      method: 'PATCH',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) throw new Error('Failed to update item');
+    return response.json();
   },
 
   async deleteItem(id: string) {
-    return apiClient.delete(`/inventory/items/${id}`);
+    const response = await fetch(`${API_GATEWAY_URL}/api/inventory/items/${id}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to delete item');
+    return response.json();
   },
 
   async getLocations() {
-    return apiClient.get('/inventory/locations');
+    const response = await fetch(`${API_GATEWAY_URL}/api/inventory/locations`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch locations');
+    return response.json();
   },
-
+  
   async getLocationsWithItems() {
-    return apiClient.get('/inventory/locations/with-items');
+    return inventoryApi.getLocations();
   },
 
   async createLocation(location: any) {
-    return apiClient.post('/inventory/locations', location);
+    const response = await fetch(`${API_GATEWAY_URL}/api/inventory/locations`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(location),
+    });
+    if (!response.ok) throw new Error('Failed to create location');
+    return response.json();
   },
 
   async getSuppliers() {
-    return apiClient.get('/inventory/suppliers');
+    const response = await fetch(`${API_GATEWAY_URL}/api/inventory/suppliers`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch suppliers');
+    return response.json();
   },
 
   async createSupplier(supplier: any) {
-    return apiClient.post('/inventory/suppliers', supplier);
+    const response = await fetch(`${API_GATEWAY_URL}/api/inventory/suppliers`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(supplier),
+    });
+    if (!response.ok) throw new Error('Failed to create supplier');
+    return response.json();
+  },
+};
+
+// People API
+export const peopleApi = {
+  getAll: async () => {
+    const response = await fetch(`${API_GATEWAY_URL}/api/people`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch people');
+    return response.json();
+  },
+  getPeople: async () => peopleApi.getAll(),
+  
+  getById: async (id: string) => {
+    const response = await fetch(`${API_GATEWAY_URL}/api/people/${id}`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch person');
+    return response.json();
+  },
+  getPerson: async (id: string) => peopleApi.getById(id),
+
+  create: async (data: any) => {
+    const response = await fetch(`${API_GATEWAY_URL}/api/people`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to create person');
+    return response.json();
+  },
+  createPerson: async (data: any) => peopleApi.create(data),
+
+  update: async (id: string, data: any) => {
+    const response = await fetch(`${API_GATEWAY_URL}/api/people/${id}`, {
+      method: 'PATCH',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to update person');
+    return response.json();
+  },
+  updatePerson: async (id: string, data: any) => peopleApi.update(id, data),
+
+  delete: async (id: string) => {
+    const response = await fetch(`${API_GATEWAY_URL}/api/people/${id}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to delete person');
+    return response.json();
+  },
+  deletePerson: async (id: string) => peopleApi.delete(id),
+  
+  getTeams: async () => {
+    const response = await fetch(`${API_GATEWAY_URL}/api/people/teams`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch teams');
+    return response.json();
+  },
+  
+  getSkills: async () => {
+    const response = await fetch(`${API_GATEWAY_URL}/api/people/skills`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch skills');
+    return response.json();
+  },
+  
+  getCrafts: async () => {
+    const response = await fetch(`${API_GATEWAY_URL}/api/people/crafts`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch crafts');
+    return response.json();
+  },
+};
+
+// Safety API
+export const safetyApi = {
+  // Incidents
+  incidents: {
+    getAll: async () => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/incidents`, {
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to fetch incidents');
+      return response.json();
+    },
+
+    getById: async (id: string) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/incidents/${id}`, {
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to fetch incident');
+      return response.json();
+    },
+
+    create: async (data: any) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/incidents`, {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create incident');
+      return response.json();
+    },
+
+    update: async (id: string, data: any) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/incidents/${id}`, {
+        method: 'PATCH',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update incident');
+      return response.json();
+    },
+
+    delete: async (id: string) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/incidents/${id}`, {
+        method: 'DELETE',
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to delete incident');
+      return response.json();
+    },
   },
 
-  async getStats() {
-    return apiClient.get('/inventory/stats');
+  // Precautions
+  precautions: {
+    getAll: async (filters?: { search?: string; category?: string; severity?: string; status?: string }) => {
+      const params = new URLSearchParams();
+      if (filters?.search) params.append('search', filters.search);
+      if (filters?.category) params.append('category', filters.category);
+      if (filters?.severity) params.append('severity', filters.severity);
+      if (filters?.status) params.append('status', filters.status);
+      
+      const url = `${API_GATEWAY_URL}/api/safety/precautions${params.toString() ? `?${params}` : ''}`;
+      const response = await fetch(url, {
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to fetch precautions');
+      return response.json();
+    },
+
+    getById: async (id: string) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/precautions/${id}`, {
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to fetch precaution');
+      return response.json();
+    },
+
+    create: async (data: any) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/precautions`, {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create precaution');
+      return response.json();
+    },
+
+    update: async (id: string, data: any) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/precautions/${id}`, {
+        method: 'PATCH',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update precaution');
+      return response.json();
+    },
+
+    incrementUsage: async (id: string) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/precautions/${id}/increment-usage`, {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to increment usage count');
+      return response.json();
+    },
+
+    delete: async (id: string) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/precautions/${id}`, {
+        method: 'DELETE',
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to delete precaution');
+      return response.json();
+    },
+  },
+
+  // CAPA Records
+  capa: {
+    getAll: async () => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/capa`, {
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to fetch CAPA records');
+      return response.json();
+    },
+
+    getById: async (id: string) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/capa/${id}`, {
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to fetch CAPA record');
+      return response.json();
+    },
+
+    create: async (data: any) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/capa`, {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create CAPA record');
+      return response.json();
+    },
+
+    update: async (id: string, data: any) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/capa/${id}`, {
+        method: 'PATCH',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update CAPA record');
+      return response.json();
+    },
+
+    delete: async (id: string) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/safety/capa/${id}`, {
+        method: 'DELETE',
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to delete CAPA record');
+      return response.json();
+    },
   },
 };
