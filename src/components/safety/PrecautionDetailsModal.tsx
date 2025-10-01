@@ -6,7 +6,25 @@ import { Separator } from "@/components/ui/separator";
 import { Edit, Eye, AlertTriangle, ShieldCheck, Zap, Wrench, Globe, Heart, Calendar, User } from "lucide-react";
 import type { Database } from '@/integrations/supabase/types';
 
-type SafetyPrecaution = Database['public']['Tables']['safety_precautions']['Row'];
+// Local type definition for safety_precautions (now a view in microservices architecture)
+interface SafetyPrecaution {
+  id: string;
+  precaution_code: string;
+  title: string;
+  description: string;
+  category: string;
+  subcategory?: string;
+  severity_level: string;
+  status: string;
+  required_actions?: string[];
+  associated_hazards?: string[];
+  regulatory_references?: string[];
+  applicable_scenarios?: any;
+  usage_count: number;
+  created_at: string;
+  updated_at: string;
+  organization_id: string;
+}
 
 interface PrecautionDetailsModalProps {
   open: boolean;

@@ -361,7 +361,33 @@ export const useAssetBOMs = (assetId?: string) => {
       const { data, error } = await query.order('assigned_date', { ascending: false });
 
       if (error) throw error;
-      setAssetBOMs(data || []);
+      
+      // Fetch BOM details separately (cross-schema relationship)
+      const enrichedData = await Promise.all(
+        (data || []).map(async (assetBOM) => {
+          const { data: bomData } = await supabase
+            .from('bill_of_materials')
+            .select('*')
+            .eq('id', assetBOM.bom_id)
+            .single();
+          
+          return {
+            ...assetBOM,
+            bom: bomData || { 
+              id: assetBOM.bom_id, 
+              name: 'Unknown BOM', 
+              version: '', 
+              bom_type: 'maintenance' as const,
+              status: 'active' as const,
+              organization_id: assetBOM.organization_id,
+              created_at: '',
+              updated_at: ''
+            }
+          };
+        })
+      );
+      
+      setAssetBOMs(enrichedData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch asset BOMs';
       setError(errorMessage);
@@ -387,15 +413,33 @@ export const useAssetBOMs = (assetId?: string) => {
           is_primary: isPrimary,
           organization_id: currentOrganization?.id
         }])
-        .select(`
-          *,
-          bom:bill_of_materials(*)
-        `)
+        .select('*')
         .single();
 
       if (error) throw error;
       
-      setAssetBOMs(prev => [data, ...prev]);
+      // Fetch BOM details separately
+      const { data: bomData } = await supabase
+        .from('bill_of_materials')
+        .select('*')
+        .eq('id', bomId)
+        .single();
+      
+      const enrichedData = {
+        ...data,
+        bom: bomData || {
+          id: bomId,
+          name: 'Unknown BOM',
+          version: '',
+          bom_type: 'maintenance' as const,
+          status: 'active' as const,
+          organization_id: data.organization_id,
+          created_at: '',
+          updated_at: ''
+        }
+      };
+      
+      setAssetBOMs(prev => [enrichedData, ...prev]);
       toast({
         title: "Success",
         description: "BOM assigned to asset successfully",

@@ -91,20 +91,27 @@ export const useInventoryLocationWithItems = () => {
         }
 
         // Calculate item counts and utilization for each location
-        const locationsWithStats = locationsData?.map(location => {
-          const itemLocations = location.inventory_item_locations || [];
-          const itemCount = itemLocations.length;
-          const totalQuantity = itemLocations.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
+        const locationsWithStats = await Promise.all(
+          (locationsData || []).map(async (location) => {
+            // Fetch item locations separately (cross-schema relationship)
+            const { data: itemLocations } = await supabase
+              .from('inventory_item_locations')
+              .select('quantity')
+              .eq('location_id', location.id);
+            
+            const itemCount = itemLocations?.length || 0;
+            const totalQuantity = (itemLocations || []).reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
           
-          return {
-            ...location,
-            itemCount,
-            totalQuantity,
-            utilizationPercentage: location.capacity_limit 
-              ? Math.round((location.current_utilization || 0) / location.capacity_limit * 100)
-              : 0
-          };
-        }) || [];
+            return {
+              ...location,
+              itemCount,
+              totalQuantity,
+              utilizationPercentage: location.capacity_limit 
+                ? Math.round((location.current_utilization || 0) / location.capacity_limit * 100)
+                : 0
+            };
+          })
+        );
 
         return locationsWithStats;
       }

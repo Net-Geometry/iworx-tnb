@@ -212,6 +212,7 @@ export const JobPlanFormContent = ({ jobPlan, mode, onSuccess }: JobPlanFormCont
         frequency_type: data.frequency_type,
         frequency_interval: data.frequency_interval,
         applicable_asset_types: assetTypes,
+        status: 'draft',
         tasks: tasks.map(task => ({
           task_sequence: task.task_sequence,
           task_title: task.task_title,

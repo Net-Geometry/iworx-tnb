@@ -38,18 +38,7 @@ export const usePMScheduleAssignments = (scheduleId?: string) => {
 
       let query = supabase
         .from("pm_schedule_assignments")
-        .select(`
-          *,
-          person:assigned_person_id (
-            id,
-            first_name,
-            last_name,
-            employee_number,
-            email,
-            job_title,
-            hourly_rate
-          )
-        `)
+        .select("*")
         .eq("pm_schedule_id", scheduleId);
 
       if (!hasCrossProjectAccess && currentOrganization) {
@@ -58,7 +47,32 @@ export const usePMScheduleAssignments = (scheduleId?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as PMScheduleAssignment[];
+      
+      // Fetch person details separately (cross-schema relationship)
+      const enrichedData = await Promise.all(
+        (data || []).map(async (assignment) => {
+          const { data: personData } = await supabase
+            .from("people")
+            .select("id, first_name, last_name, employee_number, email, job_title, hourly_rate")
+            .eq("id", assignment.assigned_person_id)
+            .single();
+          
+          return {
+            ...assignment,
+            person: personData || {
+              id: assignment.assigned_person_id,
+              first_name: 'Unknown',
+              last_name: '',
+              employee_number: '',
+              email: '',
+              job_title: '',
+              hourly_rate: 0
+            }
+          };
+        })
+      );
+      
+      return enrichedData as PMScheduleAssignment[];
     },
     enabled: !!scheduleId && (!!currentOrganization || hasCrossProjectAccess),
   });

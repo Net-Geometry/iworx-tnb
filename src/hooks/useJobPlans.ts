@@ -4,14 +4,95 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Database } from "@/integrations/supabase/types";
 
-type JobPlan = Database["public"]["Tables"]["job_plans"]["Row"];
-type JobPlanInsert = Database["public"]["Tables"]["job_plans"]["Insert"];
-type JobPlanUpdate = Database["public"]["Tables"]["job_plans"]["Update"];
+// Local type definitions for job_plans (now a view in microservices architecture)
+interface JobPlan {
+  id: string;
+  job_plan_number: string;
+  title: string;
+  description?: string;
+  job_type: 'preventive' | 'corrective' | 'predictive' | 'emergency' | 'shutdown';
+  category?: string;
+  subcategory?: string;
+  estimated_duration_hours?: number;
+  skill_level_required?: 'basic' | 'intermediate' | 'advanced' | 'specialist';
+  status: 'draft' | 'active' | 'inactive' | 'archived';
+  version?: string;
+  created_by?: string;
+  approved_by?: string;
+  approved_at?: string;
+  applicable_asset_types?: string[];
+  frequency_type?: 'time_based' | 'usage_based' | 'condition_based';
+  frequency_interval?: number;
+  priority?: string;
+  cost_estimate?: number;
+  usage_count?: number;
+  created_at: string;
+  updated_at: string;
+  organization_id: string;
+}
 
-type JobPlanTask = Database["public"]["Tables"]["job_plan_tasks"]["Row"];
-type JobPlanPart = Database["public"]["Tables"]["job_plan_parts"]["Row"];
-type JobPlanTool = Database["public"]["Tables"]["job_plan_tools"]["Row"];
-type JobPlanDocument = Database["public"]["Tables"]["job_plan_documents"]["Row"];
+type JobPlanInsert = Omit<JobPlan, 'id' | 'created_at' | 'updated_at'>;
+type JobPlanUpdate = Partial<JobPlanInsert>;
+
+// Local type definitions for related tables
+interface JobPlanTask {
+  id: string;
+  job_plan_id: string;
+  task_sequence: number;
+  task_title: string;
+  task_description?: string;
+  estimated_duration_minutes?: number;
+  skill_required?: string;
+  is_critical_step?: boolean;
+  safety_precaution_ids?: string[];
+  completion_criteria?: string;
+  notes?: string;
+  meter_group_id?: string;
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface JobPlanPart {
+  id: string;
+  job_plan_id: string;
+  part_name: string;
+  part_number?: string;
+  quantity_required?: number;
+  inventory_item_id?: string;
+  is_critical_part?: boolean;
+  alternative_part_ids?: string[];
+  notes?: string;
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface JobPlanTool {
+  id: string;
+  job_plan_id: string;
+  tool_name: string;
+  tool_description?: string;
+  quantity_required?: number;
+  is_specialized_tool?: boolean;
+  notes?: string;
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface JobPlanDocument {
+  id: string;
+  job_plan_id: string;
+  document_name: string;
+  document_type: string;
+  file_path?: string;
+  file_size?: number;
+  is_required?: boolean;
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface JobPlanWithDetails {
   id: string;
@@ -58,13 +139,7 @@ export const useJobPlans = () => {
     queryFn: async () => {
       let query = supabase
         .from("job_plans")
-        .select(`
-          *,
-          tasks:job_plan_tasks(*),
-          parts:job_plan_parts(*),
-          tools:job_plan_tools(*),
-          documents:job_plan_documents(*)
-        `);
+        .select("*");
 
       if (!hasCrossProjectAccess && currentOrganization) {
         query = query.eq("organization_id", currentOrganization.id);
@@ -73,7 +148,28 @@ export const useJobPlans = () => {
       const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as JobPlanWithDetails[];
+      
+      // Fetch related data separately (cross-schema relationships)
+      const enrichedData = await Promise.all(
+        (data || []).map(async (jobPlan) => {
+          const [tasksData, partsData, toolsData, docsData] = await Promise.all([
+            supabase.from("job_plan_tasks").select("*").eq("job_plan_id", jobPlan.id).order("task_sequence"),
+            supabase.from("job_plan_parts").select("*").eq("job_plan_id", jobPlan.id),
+            supabase.from("job_plan_tools").select("*").eq("job_plan_id", jobPlan.id),
+            supabase.from("job_plan_documents").select("*").eq("job_plan_id", jobPlan.id),
+          ]);
+          
+          return {
+            ...jobPlan,
+            tasks: tasksData.data || [],
+            parts: partsData.data || [],
+            tools: toolsData.data || [],
+            documents: docsData.data || [],
+          };
+        })
+      );
+      
+      return enrichedData as JobPlanWithDetails[];
     },
     enabled: !!currentOrganization || hasCrossProjectAccess,
   });

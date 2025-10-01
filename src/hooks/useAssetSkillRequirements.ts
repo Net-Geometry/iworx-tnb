@@ -42,14 +42,7 @@ export const useAssetSkillRequirements = (assetId?: string) => {
 
       let query = supabase
         .from("asset_skill_requirements")
-        .select(`
-          *,
-          skills:skill_id (
-            skill_name,
-            skill_code,
-            category
-          )
-        `)
+        .select("*")
         .eq("asset_id", assetId)
         .order("priority_order", { ascending: true });
 
@@ -59,7 +52,24 @@ export const useAssetSkillRequirements = (assetId?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as AssetSkillRequirement[];
+      
+      // Fetch skill details separately (cross-schema relationship)
+      const enrichedData = await Promise.all(
+        (data || []).map(async (req) => {
+          const { data: skillData } = await supabase
+            .from("skills")
+            .select("skill_name, skill_code, category")
+            .eq("id", req.skill_id)
+            .single();
+          
+          return {
+            ...req,
+            skills: skillData || { skill_name: 'Unknown', skill_code: '', category: '' }
+          };
+        })
+      );
+      
+      return enrichedData as AssetSkillRequirement[];
     },
     enabled: !!assetId && (!!currentOrganization || hasCrossProjectAccess),
   });

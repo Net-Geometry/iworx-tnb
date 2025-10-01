@@ -91,18 +91,33 @@ export const usePMSchedules = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pm_schedules")
-        .select(`
-          *,
-          asset:assets(name, asset_number),
-          job_plan:job_plans(title, job_plan_number),
-          assigned_person:people(first_name, last_name),
-          maintenance_route:maintenance_routes(route_number, name)
-        `)
+        .select("*")
         .eq("organization_id", currentOrganization?.id)
         .order("next_due_date", { ascending: true, nullsFirst: false });
 
       if (error) throw error;
-      return data as PMSchedule[];
+      
+      // Fetch related data separately (cross-schema relationships)
+      const enrichedData = await Promise.all(
+        (data || []).map(async (schedule) => {
+          const [assetData, jobPlanData, personData, routeData] = await Promise.all([
+            schedule.asset_id ? supabase.from("assets").select("name, asset_number").eq("id", schedule.asset_id).maybeSingle() : Promise.resolve(null),
+            schedule.job_plan_id ? supabase.from("job_plans").select("title, job_plan_number").eq("id", schedule.job_plan_id).maybeSingle() : Promise.resolve(null),
+            schedule.assigned_to ? supabase.from("people").select("first_name, last_name").eq("id", schedule.assigned_to).maybeSingle() : Promise.resolve(null),
+            schedule.maintenance_route_id ? supabase.from("maintenance_routes").select("route_number, name").eq("id", schedule.maintenance_route_id).maybeSingle() : Promise.resolve(null),
+          ]);
+          
+          return {
+            ...schedule,
+            asset: assetData?.data || null,
+            job_plan: jobPlanData?.data || null,
+            assigned_person: personData?.data || null,
+            maintenance_route: routeData?.data || null,
+          };
+        })
+      );
+      
+      return enrichedData as PMSchedule[];
     },
     enabled: !!currentOrganization?.id,
   });

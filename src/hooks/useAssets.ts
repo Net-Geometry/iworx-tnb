@@ -85,13 +85,34 @@ export const useAssets = () => {
 
         if (fetchError) throw fetchError;
 
-        const transformedAssets: Asset[] = (data || []).map(asset => ({
-          ...asset,
-          status: asset.status as Asset['status'],
-          criticality: asset.criticality as Asset['criticality'],
-          location: asset.hierarchy_nodes?.name || 'Unassigned',
-          hierarchy_path: asset.hierarchy_nodes?.path || asset.hierarchy_nodes?.name || 'Unassigned'
-        }));
+        const transformedAssets: Asset[] = await Promise.all(
+          (data || []).map(async (asset) => {
+            // Fetch hierarchy node separately (cross-schema relationship)
+            let locationName = 'Unassigned';
+            let hierarchyPath = 'Unassigned';
+            
+            if (asset.hierarchy_node_id) {
+              const { data: nodeData } = await supabase
+                .from('hierarchy_nodes')
+                .select('name, path')
+                .eq('id', asset.hierarchy_node_id)
+                .single();
+              
+              if (nodeData) {
+                locationName = nodeData.name;
+                hierarchyPath = nodeData.path || nodeData.name;
+              }
+            }
+            
+            return {
+              ...asset,
+              status: asset.status as Asset['status'],
+              criticality: asset.criticality as Asset['criticality'],
+              location: locationName,
+              hierarchy_path: hierarchyPath
+            };
+          })
+        );
 
         setAssets(transformedAssets);
         setError(null); // Clear error on successful fallback

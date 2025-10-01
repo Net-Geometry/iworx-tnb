@@ -35,20 +35,34 @@ export const usePMScheduleMaterials = (pmScheduleId?: string) => {
 
       const { data, error } = await supabase
         .from("pm_schedule_materials")
-        .select(`
-          *,
-          bom_items (
-            item_name,
-            item_number,
-            unit,
-            cost_per_unit,
-            inventory_item_id
-          )
-        `)
+        .select("*")
         .eq("pm_schedule_id", pmScheduleId);
 
       if (error) throw error;
-      return data as PMScheduleMaterial[];
+      
+      // Fetch BOM item details separately (cross-schema relationship)
+      const enrichedData = await Promise.all(
+        (data || []).map(async (material) => {
+          const { data: bomItemData } = await supabase
+            .from("bom_items")
+            .select("item_name, item_number, unit, cost_per_unit, inventory_item_id")
+            .eq("id", material.bom_item_id)
+            .single();
+          
+          return {
+            ...material,
+            bom_items: bomItemData || {
+              item_name: 'Unknown Item',
+              item_number: '',
+              unit: 'EA',
+              cost_per_unit: 0,
+              inventory_item_id: null
+            }
+          };
+        })
+      );
+      
+      return enrichedData as PMScheduleMaterial[];
     },
     enabled: !!pmScheduleId,
   });

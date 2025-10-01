@@ -12,7 +12,25 @@ import { Badge } from "@/components/ui/badge";
 import { X, Plus } from "lucide-react";
 import type { Database } from '@/integrations/supabase/types';
 
-type SafetyPrecaution = Database['public']['Tables']['safety_precautions']['Row'];
+// Local type definition for safety_precautions (now a view in microservices architecture)
+interface SafetyPrecaution {
+  id: string;
+  precaution_code: string;
+  title: string;
+  description: string;
+  category: string;
+  subcategory?: string;
+  severity_level: string;
+  status: string;
+  required_actions?: string[];
+  associated_hazards?: string[];
+  regulatory_references?: string[];
+  applicable_scenarios?: any;
+  usage_count: number;
+  created_at: string;
+  updated_at: string;
+  organization_id: string;
+}
 
 const formSchema = z.object({
   precaution_code: z.string().min(1, "Precaution code is required"),
@@ -67,8 +85,8 @@ export function PrecautionForm({ open, onOpenChange, onSubmit, precaution, mode 
       description: precaution?.description || "",
       category: precaution?.category || "",
       subcategory: precaution?.subcategory || "",
-      severity_level: precaution?.severity_level || 'medium',
-      status: precaution?.status || 'active',
+      severity_level: (precaution?.severity_level as 'critical' | 'high' | 'medium' | 'low') || 'medium',
+      status: (precaution?.status as 'active' | 'under_review' | 'archived') || 'active',
     },
   });
 

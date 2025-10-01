@@ -42,14 +42,7 @@ export const useJobPlanTaskSkills = (jobPlanTaskId?: string) => {
 
       let query = supabase
         .from("job_plan_task_skills")
-        .select(`
-          *,
-          skills:skill_id (
-            skill_name,
-            skill_code,
-            category
-          )
-        `)
+        .select("*")
         .eq("job_plan_task_id", jobPlanTaskId);
 
       if (!hasCrossProjectAccess && currentOrganization) {
@@ -58,7 +51,24 @@ export const useJobPlanTaskSkills = (jobPlanTaskId?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as JobPlanTaskSkill[];
+      
+      // Fetch skill details separately (cross-schema relationship)
+      const enrichedData = await Promise.all(
+        (data || []).map(async (taskSkill) => {
+          const { data: skillData } = await supabase
+            .from("skills")
+            .select("skill_name, skill_code, category")
+            .eq("id", taskSkill.skill_id)
+            .single();
+          
+          return {
+            ...taskSkill,
+            skills: skillData || { skill_name: 'Unknown', skill_code: '', category: '' }
+          };
+        })
+      );
+      
+      return enrichedData as JobPlanTaskSkill[];
     },
     enabled: !!jobPlanTaskId && (!!currentOrganization || hasCrossProjectAccess),
   });
