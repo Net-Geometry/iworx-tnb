@@ -17,6 +17,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { PersonProfileEditForm } from '@/components/people-labor/PersonProfileEditForm';
+import { AssignSkillDialog } from '@/components/people-labor/AssignSkillDialog';
+import { AssignCraftDialog } from '@/components/people-labor/AssignCraftDialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import {
   ArrowLeft,
   Edit,
@@ -33,7 +36,9 @@ import {
   UserCheck,
   FileText,
   Wrench,
-  Plus
+  Plus,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -50,18 +55,59 @@ const PersonDetailPage: React.FC = () => {
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [skillDialogOpen, setSkillDialogOpen] = useState(false);
+  const [craftDialogOpen, setCraftDialogOpen] = useState(false);
+  const [editingSkill, setEditingSkill] = useState<any>(null);
+  const [editingCraft, setEditingCraft] = useState<any>(null);
+  const [deletingSkill, setDeletingSkill] = useState<any>(null);
+  const [deletingCraft, setDeletingCraft] = useState<any>(null);
   
   // Fetch person data
   const { people, isLoading: peopleLoading, updatePerson } = usePeople();
   const person = people.find(p => p.id === id);
   
   // Fetch related data
-  const { personSkills, isLoading: skillsLoading } = usePersonSkills(id);
-  const { personCrafts, isLoading: craftsLoading } = usePersonCrafts(id);
+  const { personSkills, isLoading: skillsLoading, removeSkill } = usePersonSkills(id);
+  const { personCrafts, isLoading: craftsLoading, removePersonCraft } = usePersonCrafts(id);
   const { data: businessAreas, isLoading: businessAreasLoading } = useBusinessAreas();
   const { data: businessArea, isLoading: businessAreaLoading } = useBusinessArea(person?.business_area_id || null);
   const { skills } = useSkills();
   const { crafts } = useCrafts();
+
+  // Handler functions for skills and crafts
+  const handleEditSkill = (skill: any) => {
+    setEditingSkill(skill);
+    setSkillDialogOpen(true);
+  };
+
+  const handleEditCraft = (craft: any) => {
+    setEditingCraft(craft);
+    setCraftDialogOpen(true);
+  };
+
+  const handleDeleteSkill = async () => {
+    if (deletingSkill) {
+      await removeSkill.mutateAsync(deletingSkill.id);
+      setDeletingSkill(null);
+    }
+  };
+
+  const handleDeleteCraft = async () => {
+    if (deletingCraft) {
+      await removePersonCraft.mutateAsync(deletingCraft.id);
+      setDeletingCraft(null);
+    }
+  };
+
+  const handleSkillDialogClose = (open: boolean) => {
+    setSkillDialogOpen(open);
+    if (!open) setEditingSkill(null);
+  };
+
+  const handleCraftDialogClose = (open: boolean) => {
+    setCraftDialogOpen(open);
+    if (!open) setEditingCraft(null);
+  };
 
   // Handle save profile
   const handleSaveProfile = async (data: Partial<Person>) => {
@@ -444,11 +490,19 @@ const PersonDetailPage: React.FC = () => {
         <TabsContent value="skills" className="space-y-4">
           <Card>
             <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-primary" />
-                Skills & Proficiency
-              </CardTitle>
-              <CardDescription>Technical skills and competency levels</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Award className="h-5 w-5 text-primary" />
+                    Skills & Proficiency
+                  </CardTitle>
+                  <CardDescription>Technical skills and competency levels</CardDescription>
+                </div>
+                <Button onClick={() => setSkillDialogOpen(true)} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Assign Skill
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="pt-6">
               {skillsLoading ? (
@@ -468,9 +522,29 @@ const PersonDetailPage: React.FC = () => {
                             <h4 className="font-semibold text-foreground text-lg mb-1">{skill?.skill_name || 'Unknown Skill'}</h4>
                             <p className="text-sm text-muted-foreground">{skill?.category}</p>
                           </div>
-                          <Badge className={`${getProficiencyColor(personSkill.proficiency_level)} ml-2 shrink-0`}>
-                            {personSkill.proficiency_level}
-                          </Badge>
+                          <div className="flex gap-2 items-start">
+                            <Badge className={`${getProficiencyColor(personSkill.proficiency_level)} shrink-0`}>
+                              {personSkill.proficiency_level}
+                            </Badge>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => handleEditSkill(personSkill)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                onClick={() => setDeletingSkill(personSkill)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
                         </div>
 
                         {/* Proficiency Progress Bar */}
@@ -542,11 +616,19 @@ const PersonDetailPage: React.FC = () => {
         <TabsContent value="craft" className="space-y-4">
           <Card>
             <CardHeader className="bg-gradient-to-r from-accent/5 to-transparent">
-              <CardTitle className="flex items-center gap-2">
-                <Wrench className="h-5 w-5 text-accent" />
-                Craft Assignments
-              </CardTitle>
-              <CardDescription>Specialized craft skills and certifications</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Wrench className="h-5 w-5 text-accent" />
+                    Craft Assignments
+                  </CardTitle>
+                  <CardDescription>Specialized craft skills and certifications</CardDescription>
+                </div>
+                <Button onClick={() => setCraftDialogOpen(true)} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Assign Craft
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="pt-6">
               {craftsLoading ? (
@@ -566,13 +648,33 @@ const PersonDetailPage: React.FC = () => {
                             <p className="text-sm text-muted-foreground font-mono">Code: {assignment.crafts.code}</p>
                           )}
                         </div>
-                        <div className="flex flex-col gap-2 ml-2">
-                          <Badge className={`${getProficiencyColor(assignment.proficiency_level)} shrink-0`}>
-                            {assignment.proficiency_level}
-                          </Badge>
-                          <Badge variant="outline" className="shrink-0">
-                            {assignment.certification_status}
-                          </Badge>
+                        <div className="flex gap-2 items-start">
+                          <div className="flex flex-col gap-2">
+                            <Badge className={`${getProficiencyColor(assignment.proficiency_level)} shrink-0`}>
+                              {assignment.proficiency_level}
+                            </Badge>
+                            <Badge variant="outline" className="shrink-0">
+                              {assignment.certification_status}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-1 ml-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleEditCraft(assignment)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              onClick={() => setDeletingCraft(assignment)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
 
@@ -689,6 +791,54 @@ const PersonDetailPage: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Skill Assignment Dialog */}
+      <AssignSkillDialog
+        open={skillDialogOpen}
+        onOpenChange={handleSkillDialogClose}
+        personId={id!}
+        editingSkill={editingSkill}
+      />
+
+      {/* Craft Assignment Dialog */}
+      <AssignCraftDialog
+        open={craftDialogOpen}
+        onOpenChange={handleCraftDialogClose}
+        personId={id!}
+        editingCraft={editingCraft}
+      />
+
+      {/* Delete Skill Confirmation */}
+      <AlertDialog open={!!deletingSkill} onOpenChange={() => setDeletingSkill(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Skill?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this skill assignment? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSkill}>Remove</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Craft Confirmation */}
+      <AlertDialog open={!!deletingCraft} onOpenChange={() => setDeletingCraft(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Craft?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this craft assignment? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteCraft}>Remove</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
