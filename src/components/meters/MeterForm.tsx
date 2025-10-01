@@ -43,10 +43,31 @@ export function MeterForm({ meter, onClose }: MeterFormProps) {
   const onSubmit = async (data: any) => {
     try {
       setLoading(true);
+      
+      // Transform empty strings to null for numeric fields
+      const numericFields = [
+        'voltage_rating',
+        'current_rating',
+        'meter_constant',
+        'multiplier',
+        'health_score',
+        'last_reading'
+      ];
+      
+      const transformedData = { ...data };
+      numericFields.forEach(field => {
+        if (transformedData[field] === '' || transformedData[field] === undefined) {
+          transformedData[field] = null;
+        } else if (transformedData[field] !== null) {
+          // Convert to number if it's not already
+          transformedData[field] = Number(transformedData[field]);
+        }
+      });
+      
       if (meter) {
-        await updateMeter(meter.id, data);
+        await updateMeter(meter.id, transformedData);
       } else {
-        await addMeter(data);
+        await addMeter(transformedData);
       }
       onClose();
     } catch (error) {
