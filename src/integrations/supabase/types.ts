@@ -1894,6 +1894,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           current_rating: number | null
+          description: string | null
           health_score: number | null
           id: string
           installation_date: string | null
@@ -1923,6 +1924,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           current_rating?: number | null
+          description?: string | null
           health_score?: number | null
           id?: string
           installation_date?: string | null
@@ -1952,6 +1954,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           current_rating?: number | null
+          description?: string | null
           health_score?: number | null
           id?: string
           installation_date?: string | null
