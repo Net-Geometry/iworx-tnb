@@ -520,6 +520,39 @@ export type Database = {
           },
         ]
       }
+      crafts: {
+        Row: {
+          code: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hierarchy_levels: {
         Row: {
           color_code: string
@@ -1825,6 +1858,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      person_crafts: {
+        Row: {
+          assigned_date: string | null
+          certification_status: string | null
+          craft_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          organization_id: string
+          person_id: string
+          proficiency_level: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_date?: string | null
+          certification_status?: string | null
+          craft_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          person_id: string
+          proficiency_level?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_date?: string | null
+          certification_status?: string | null
+          craft_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          person_id?: string
+          proficiency_level?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       person_skills: {
         Row: {
