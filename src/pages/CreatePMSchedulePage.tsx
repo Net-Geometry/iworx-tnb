@@ -335,28 +335,42 @@ const CreatePMSchedulePage = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Maintenance Route (Optional)</FormLabel>
-                        <Select
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            // Clear asset selection when route changes
-                            form.setValue("asset_id", "");
-                          }}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a route (optional)" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="">No Route</SelectItem>
-                            {routes?.map((route) => (
-                              <SelectItem key={route.id} value={route.id}>
-                                {route.route_number} - {route.name} ({route.asset_count || 0} assets)
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="flex gap-2">
+                          <Select
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              // Clear asset selection when route changes
+                              form.setValue("asset_id", "");
+                            }}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a route (optional)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {routes?.map((route) => (
+                                <SelectItem key={route.id} value={route.id}>
+                                  {route.route_number} - {route.name} ({route.asset_count || 0} assets)
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {field.value && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                field.onChange("");
+                                form.setValue("asset_id", "");
+                              }}
+                            >
+                              ×
+                            </Button>
+                          )}
+                        </div>
                         <FormDescription>
                           {selectedRouteId 
                             ? "Work orders will be generated for all assets in this route"
