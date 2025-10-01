@@ -1,19 +1,11 @@
 import { useState } from 'react';
-import { Plus, Filter, Activity } from 'lucide-react';
+import { Plus, Filter } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useMeters, Meter } from '@/hooks/useMeters';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 import {
   Table,
   TableBody,
@@ -29,7 +21,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { MeterForm } from '@/components/meters/MeterForm';
-import { MeterKPICards } from '@/components/meters/MeterKPICards';
 
 /**
  * MetersPage - Main page for meter registration and management
@@ -81,40 +72,19 @@ export default function MetersPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Breadcrumb Navigation */}
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/">Home</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Meters</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-
-        {/* Header Section */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500">
-              <Activity className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold">Meter Registration</h1>
-              <p className="text-muted-foreground mt-1">
-                Register and manage electricity meters across your organization
-              </p>
-            </div>
+        {/* Header */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Meter Registration</h1>
+            <p className="text-muted-foreground">
+              Register and manage electricity meters
+            </p>
           </div>
-          <Button onClick={handleCreate} size="lg">
+          <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Register Meter
           </Button>
         </div>
-
-        {/* KPI Cards */}
-        <MeterKPICards meters={meters} />
 
         {/* Filters */}
         <Card className="p-4">
