@@ -1389,6 +1389,7 @@ export type Database = {
           id: string
           is_critical_step: boolean | null
           job_plan_id: string
+          meter_group_id: string | null
           notes: string | null
           organization_id: string
           safety_precaution_ids: string[] | null
@@ -1405,6 +1406,7 @@ export type Database = {
           id?: string
           is_critical_step?: boolean | null
           job_plan_id: string
+          meter_group_id?: string | null
           notes?: string | null
           organization_id: string
           safety_precaution_ids?: string[] | null
@@ -1421,6 +1423,7 @@ export type Database = {
           id?: string
           is_critical_step?: boolean | null
           job_plan_id?: string
+          meter_group_id?: string | null
           notes?: string | null
           organization_id?: string
           safety_precaution_ids?: string[] | null
@@ -1436,6 +1439,13 @@ export type Database = {
             columns: ["job_plan_id"]
             isOneToOne: false
             referencedRelation: "job_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_plan_tasks_meter_group_id_fkey"
+            columns: ["meter_group_id"]
+            isOneToOne: false
+            referencedRelation: "meter_groups"
             referencedColumns: ["id"]
           },
           {

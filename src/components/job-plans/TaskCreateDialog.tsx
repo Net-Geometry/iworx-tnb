@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useCreateTask } from "@/hooks/useCreateTask";
+import { MeterGroupSelector } from "./MeterGroupSelector";
 
 interface TaskCreateDialogProps {
   jobPlanId: string;
@@ -35,6 +36,7 @@ export function TaskCreateDialog({
     is_critical_step: false,
     completion_criteria: "",
     notes: "",
+    meter_group_id: undefined as string | undefined,
   });
 
   const resetForm = () => {
@@ -46,6 +48,7 @@ export function TaskCreateDialog({
       is_critical_step: false,
       completion_criteria: "",
       notes: "",
+      meter_group_id: undefined,
     });
   };
 
@@ -161,6 +164,12 @@ export function TaskCreateDialog({
               placeholder="Additional notes or instructions"
             />
           </div>
+
+          {/* Meter Group */}
+          <MeterGroupSelector
+            value={formData.meter_group_id}
+            onChange={(value) => setFormData({ ...formData, meter_group_id: value })}
+          />
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-4">

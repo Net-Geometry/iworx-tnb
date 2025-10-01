@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useUpdateTask } from "@/hooks/useUpdateTask";
+import { MeterGroupSelector } from "./MeterGroupSelector";
 
 interface Task {
   id: string;
@@ -17,6 +18,7 @@ interface Task {
   is_critical_step?: boolean;
   completion_criteria?: string;
   notes?: string;
+  meter_group_id?: string;
 }
 
 interface TaskEditDialogProps {
@@ -39,6 +41,7 @@ export function TaskEditDialog({ task, open, onOpenChange }: TaskEditDialogProps
     is_critical_step: task?.is_critical_step || false,
     completion_criteria: task?.completion_criteria || "",
     notes: task?.notes || "",
+    meter_group_id: task?.meter_group_id,
   });
 
   // Update form when task changes
@@ -51,6 +54,7 @@ export function TaskEditDialog({ task, open, onOpenChange }: TaskEditDialogProps
       is_critical_step: task.is_critical_step || false,
       completion_criteria: task.completion_criteria || "",
       notes: task.notes || "",
+      meter_group_id: task.meter_group_id,
     });
   }
 
@@ -153,6 +157,12 @@ export function TaskEditDialog({ task, open, onOpenChange }: TaskEditDialogProps
               rows={2}
             />
           </div>
+
+          {/* Meter Group */}
+          <MeterGroupSelector
+            value={formData.meter_group_id}
+            onChange={(value) => setFormData({ ...formData, meter_group_id: value })}
+          />
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-4">

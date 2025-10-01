@@ -19,9 +19,10 @@ import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GripVertical, Shield, Pencil, Trash2, Plus } from "lucide-react";
+import { GripVertical, Shield, Pencil, Trash2, Plus, Gauge } from "lucide-react";
 import { useUpdateTaskSequence } from "@/hooks/useUpdateTaskSequence";
 import { useDeleteTask } from "@/hooks/useDeleteTask";
+import { useMeterGroups } from "@/hooks/useMeterGroups";
 import { TaskEditDialog } from "./TaskEditDialog";
 import { TaskCreateDialog } from "./TaskCreateDialog";
 import {
@@ -46,6 +47,7 @@ interface Task {
   safety_precaution_ids?: string[];
   completion_criteria?: string;
   notes?: string;
+  meter_group_id?: string;
 }
 
 interface InteractiveTaskListProps {
@@ -61,11 +63,13 @@ interface InteractiveTaskListProps {
 function SortableTaskCard({ 
   task, 
   onEdit, 
-  onDelete 
+  onDelete,
+  meterGroups,
 }: { 
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
+  meterGroups: Array<{ id: string; name: string; group_number: string }>;
 }) {
   const {
     attributes,
@@ -81,6 +85,11 @@ function SortableTaskCard({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
+  // Find the meter group for this task
+  const meterGroup = task.meter_group_id 
+    ? meterGroups.find(mg => mg.id === task.meter_group_id)
+    : null;
 
   return (
     <Card ref={setNodeRef} style={style} className={isDragging ? "shadow-lg" : ""}>
@@ -152,6 +161,12 @@ function SortableTaskCard({
                   {task.safety_precaution_ids.length} Safety Precaution(s)
                 </Badge>
               )}
+              {meterGroup && (
+                <Badge variant="outline" className="gap-1">
+                  <Gauge className="w-3 h-3" />
+                  {meterGroup.name} {meterGroup.group_number ? `(${meterGroup.group_number})` : ""}
+                </Badge>
+              )}
             </div>
 
             {/* Completion Criteria */}
@@ -187,6 +202,7 @@ export function InteractiveTaskList({ tasks, jobPlanId, organizationId }: Intera
   const [isCreating, setIsCreating] = useState(false);
   const updateSequence = useUpdateTaskSequence();
   const deleteTask = useDeleteTask();
+  const { meterGroups } = useMeterGroups();
 
   // Sync local tasks with prop changes
   useEffect(() => {
@@ -279,6 +295,7 @@ export function InteractiveTaskList({ tasks, jobPlanId, organizationId }: Intera
                   task={task}
                   onEdit={setEditingTask}
                   onDelete={setDeletingTask}
+                  meterGroups={meterGroups}
                 />
               ))}
             </div>

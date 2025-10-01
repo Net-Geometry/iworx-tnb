@@ -61,6 +61,7 @@ interface NewTask {
   completion_criteria: string;
   notes: string;
   safety_precaution_ids: string[];
+  meter_group_id?: string;
 }
 
 interface NewPart {
@@ -215,6 +216,7 @@ export const JobPlanForm = ({ jobPlan, open, onOpenChange, mode = "create" }: Jo
           completion_criteria: task.completion_criteria,
           notes: task.notes,
           safety_precaution_ids: task.safety_precaution_ids,
+          meter_group_id: task.meter_group_id,
         })),
         parts: parts.map(part => ({
           part_name: part.part_name,
