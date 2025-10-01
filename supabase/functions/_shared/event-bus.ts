@@ -127,6 +127,7 @@ export const DomainEvents = {
 
   // Work Order events
   WORK_ORDER_CREATED: 'work_order.created',
+  WORK_ORDER_UPDATED: 'work_order.updated',
   WORK_ORDER_ASSIGNED: 'work_order.assigned',
   WORK_ORDER_STARTED: 'work_order.started',
   WORK_ORDER_COMPLETED: 'work_order.completed',

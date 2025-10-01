@@ -59,6 +59,48 @@ export type Database = {
         }
         Relationships: []
       }
+      domain_events: {
+        Row: {
+          correlation_id: string | null
+          created_at: string
+          event_id: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          payload: Json
+          processed_at: string | null
+          processed_by: string[] | null
+          published_at: string
+          service_name: string
+        }
+        Insert: {
+          correlation_id?: string | null
+          created_at?: string
+          event_id: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          payload: Json
+          processed_at?: string | null
+          processed_by?: string[] | null
+          published_at?: string
+          service_name: string
+        }
+        Update: {
+          correlation_id?: string | null
+          created_at?: string
+          event_id?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          payload?: Json
+          processed_at?: string | null
+          processed_by?: string[] | null
+          published_at?: string
+          service_name?: string
+        }
+        Relationships: []
+      }
       loto_procedures: {
         Row: {
           approval_required: boolean | null

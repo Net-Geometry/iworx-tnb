@@ -17,7 +17,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-correlation-id, x-calling-service",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
 };
 
@@ -188,6 +188,16 @@ serve(async (req) => {
   const url = new URL(req.url);
   const path = url.pathname;
 
+  // Generate or extract correlation ID for request tracing
+  const correlationId = req.headers.get("x-correlation-id") || 
+    `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const callingService = req.headers.get("x-calling-service");
+
+  console.log(`[API Gateway] Request: ${req.method} ${path}`, {
+    correlationId,
+    callingService: callingService || 'external',
+  });
+
   try {
     // Health check endpoint
     if (path === "/health" || path === "/api/health") {
@@ -205,8 +215,12 @@ serve(async (req) => {
       );
     }
 
-    // Add auth info to request headers for downstream services
+    // Add auth info and correlation tracking to request headers for downstream services
     const modifiedHeaders = new Headers(req.headers);
+    modifiedHeaders.set("x-correlation-id", correlationId);
+    if (callingService) {
+      modifiedHeaders.set("x-calling-service", callingService);
+    }
     if (authInfo) {
       modifiedHeaders.set("x-user-id", authInfo.userId);
       modifiedHeaders.set("x-organization-id", authInfo.organizationId);
