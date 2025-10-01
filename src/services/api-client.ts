@@ -157,50 +157,54 @@ export const apiClient = new ApiClient();
  * Asset Service API
  */
 export const assetApi = {
-  /**
-   * Get all assets with optional filters
-   */
-  getAssets: (filters?: {
-    status?: string;
-    criticality?: string;
-    type?: string;
-    search?: string;
-  }) => {
-    return apiClient.get("/api/assets", filters as Record<string, string>);
+  async getAssets() {
+    return apiClient.get('/assets');
   },
 
-  /**
-   * Get single asset by ID
-   */
-  getAssetById: (id: string) => {
-    return apiClient.get(`/api/assets/${id}`);
+  async getAssetById(id: string) {
+    return apiClient.get(`/assets/${id}`);
   },
 
-  /**
-   * Create new asset
-   */
-  createAsset: (assetData: any) => {
-    return apiClient.post("/api/assets", assetData);
+  async createAsset(asset: any) {
+    return apiClient.post('/assets', asset);
   },
 
-  /**
-   * Update existing asset
-   */
-  updateAsset: (id: string, assetData: any) => {
-    return apiClient.put(`/api/assets/${id}`, assetData);
+  async updateAsset(id: string, updates: any) {
+    return apiClient.put(`/assets/${id}`, updates);
   },
 
-  /**
-   * Delete asset
-   */
-  deleteAsset: (id: string) => {
-    return apiClient.delete(`/api/assets/${id}`);
+  async deleteAsset(id: string) {
+    return apiClient.delete(`/assets/${id}`);
   },
 
-  /**
-   * Get asset hierarchy
-   */
-  getAssetHierarchy: (id: string) => {
-    return apiClient.get(`/api/assets/${id}/hierarchy`);
+  async getAssetHierarchy() {
+    return apiClient.get('/assets/hierarchy');
+  },
+};
+
+// Work Order API methods
+export const workOrderApi = {
+  async getWorkOrders() {
+    return apiClient.get('/work-orders');
+  },
+
+  async getWorkOrderById(id: string) {
+    return apiClient.get(`/work-orders/${id}`);
+  },
+
+  async createWorkOrder(workOrder: any) {
+    return apiClient.post('/work-orders', workOrder);
+  },
+
+  async updateWorkOrder(id: string, updates: any) {
+    return apiClient.put(`/work-orders/${id}`, updates);
+  },
+
+  async deleteWorkOrder(id: string) {
+    return apiClient.delete(`/work-orders/${id}`);
+  },
+
+  async getWorkOrderStats() {
+    return apiClient.get('/work-orders/stats');
   },
 };

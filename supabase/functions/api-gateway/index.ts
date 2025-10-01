@@ -27,8 +27,11 @@ const SERVICE_REGISTRY = {
     url: `${SUPABASE_URL}/functions/v1/asset-service`,
     healthEndpoint: "/health",
   },
+  "work-orders": {
+    url: `${SUPABASE_URL}/functions/v1/work-order-service`,
+    healthEndpoint: "/health",
+  },
   // Future services will be added here
-  // workOrders: { url: `${SUPABASE_URL}/functions/v1/work-order-service` },
   // inventory: { url: `${SUPABASE_URL}/functions/v1/inventory-service` },
 };
 
@@ -127,7 +130,7 @@ async function healthCheck(): Promise<Response> {
 /**
  * Verify JWT token and extract user information
  */
-async function verifyAuth(authHeader: string | null): Promise<{ userId: string; organizationId: string } | null> {
+async function verifyAuth(authHeader: string | null): Promise<{ userId: string; organizationId: string; hasCrossProjectAccess: boolean } | null> {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return null;
   }
@@ -151,9 +154,14 @@ async function verifyAuth(authHeader: string | null): Promise<{ userId: string; 
       .limit(1)
       .single();
 
+    // Check if user has cross-project access
+    const { data: hasCrossAccess } = await supabase
+      .rpc("has_cross_project_access", { _user_id: user.id });
+
     return {
       userId: user.id,
       organizationId: orgData?.organization_id || "",
+      hasCrossProjectAccess: hasCrossAccess || false,
     };
   } catch (error) {
     console.error("[API Gateway] Auth verification failed:", error);
@@ -192,6 +200,7 @@ serve(async (req) => {
     if (authInfo) {
       modifiedHeaders.set("x-user-id", authInfo.userId);
       modifiedHeaders.set("x-organization-id", authInfo.organizationId);
+      modifiedHeaders.set("x-cross-project-access", authInfo.hasCrossProjectAccess.toString());
     }
 
     // Create modified request with auth headers

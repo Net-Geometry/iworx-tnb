@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { workOrderApi } from '@/services/api-client';
 
 export interface WorkOrder {
   id: string;
@@ -48,6 +49,29 @@ export const useWorkOrders = () => {
   const fetchWorkOrders = async () => {
     try {
       setLoading(true);
+      
+      // Try microservice first
+      try {
+        const data = await workOrderApi.getWorkOrders() as any[];
+        const stats = await workOrderApi.getWorkOrderStats() as WorkOrderStats;
+        
+        const typedData: WorkOrder[] = (data || []).map((order: any) => ({
+          ...order,
+          maintenance_type: order.maintenance_type as WorkOrder['maintenance_type'],
+          priority: order.priority as WorkOrder['priority'],
+          status: order.status as WorkOrder['status'],
+          generation_type: order.generation_type as WorkOrder['generation_type']
+        }));
+
+        setWorkOrders(typedData);
+        setStats(stats);
+        console.log('[useWorkOrders] Loaded via microservice');
+        return;
+      } catch (microserviceError) {
+        console.warn('[useWorkOrders] Microservice failed, falling back to direct DB access:', microserviceError);
+      }
+
+      // Fallback to direct Supabase access
       let query = supabase
         .from('work_orders')
         .select('*');
@@ -84,6 +108,7 @@ export const useWorkOrders = () => {
         ).length
       };
       setStats(stats);
+      console.log('[useWorkOrders] Loaded via fallback');
 
     } catch (error: any) {
       console.error('Error fetching work orders:', error);
@@ -99,6 +124,20 @@ export const useWorkOrders = () => {
 
   const createWorkOrder = async (workOrder: Omit<WorkOrder, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      // Try microservice first
+      try {
+        const data = await workOrderApi.createWorkOrder(workOrder);
+        toast({
+          title: "Success",
+          description: "Work order created successfully"
+        });
+        fetchWorkOrders();
+        return data;
+      } catch (microserviceError) {
+        console.warn('[useWorkOrders] Microservice failed, falling back:', microserviceError);
+      }
+
+      // Fallback to direct Supabase access
       const { data, error } = await supabase
         .from('work_orders')
         .insert([workOrder])
@@ -127,6 +166,20 @@ export const useWorkOrders = () => {
 
   const updateWorkOrder = async (id: string, updates: Partial<WorkOrder>) => {
     try {
+      // Try microservice first
+      try {
+        await workOrderApi.updateWorkOrder(id, updates);
+        toast({
+          title: "Success",
+          description: "Work order updated successfully"
+        });
+        fetchWorkOrders();
+        return;
+      } catch (microserviceError) {
+        console.warn('[useWorkOrders] Microservice failed, falling back:', microserviceError);
+      }
+
+      // Fallback to direct Supabase access
       const { error } = await supabase
         .from('work_orders')
         .update(updates)
@@ -153,6 +206,20 @@ export const useWorkOrders = () => {
 
   const deleteWorkOrder = async (id: string) => {
     try {
+      // Try microservice first
+      try {
+        await workOrderApi.deleteWorkOrder(id);
+        toast({
+          title: "Success",
+          description: "Work order deleted successfully"
+        });
+        fetchWorkOrders();
+        return;
+      } catch (microserviceError) {
+        console.warn('[useWorkOrders] Microservice failed, falling back:', microserviceError);
+      }
+
+      // Fallback to direct Supabase access
       const { error } = await supabase
         .from('work_orders')
         .delete()
