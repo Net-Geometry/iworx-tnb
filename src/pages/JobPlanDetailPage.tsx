@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useJobPlan } from "@/hooks/useJobPlans";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InteractiveTaskList } from "@/components/job-plans/InteractiveTaskList";
+import { InteractivePartsList } from "@/components/job-plans/InteractivePartsList";
+import { InteractiveToolsList } from "@/components/job-plans/InteractiveToolsList";
 
 /**
  * Job Plan Detail Page
@@ -194,92 +196,20 @@ export default function JobPlanDetailPage() {
 
         {/* Parts Tab */}
         <TabsContent value="parts" className="space-y-4 mt-6">
-          {jobPlan.parts && jobPlan.parts.length > 0 ? (
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-4 font-medium">Part Name</th>
-                        <th className="text-left p-4 font-medium">Part Number</th>
-                        <th className="text-left p-4 font-medium">Quantity</th>
-                        <th className="text-left p-4 font-medium">Critical</th>
-                        <th className="text-left p-4 font-medium">Notes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {jobPlan.parts.map((part, index) => (
-                        <tr key={part.id || index} className="border-b">
-                          <td className="p-4">{part.part_name}</td>
-                          <td className="p-4 text-muted-foreground">{part.part_number || "N/A"}</td>
-                          <td className="p-4">{part.quantity_required}</td>
-                          <td className="p-4">
-                            {part.is_critical_part && (
-                              <Badge variant="destructive">Critical</Badge>
-                            )}
-                          </td>
-                          <td className="p-4 text-sm text-muted-foreground">{part.notes || "-"}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="text-center py-8">
-                <Package className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground">No parts defined for this job plan</p>
-              </CardContent>
-            </Card>
-          )}
+          <InteractivePartsList
+            parts={jobPlan.parts || []}
+            jobPlanId={jobPlan.id}
+            organizationId={jobPlan.organization_id}
+          />
         </TabsContent>
 
         {/* Tools Tab */}
         <TabsContent value="tools" className="space-y-4 mt-6">
-          {jobPlan.tools && jobPlan.tools.length > 0 ? (
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-4 font-medium">Tool Name</th>
-                        <th className="text-left p-4 font-medium">Description</th>
-                        <th className="text-left p-4 font-medium">Quantity</th>
-                        <th className="text-left p-4 font-medium">Specialized</th>
-                        <th className="text-left p-4 font-medium">Notes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {jobPlan.tools.map((tool, index) => (
-                        <tr key={tool.id || index} className="border-b">
-                          <td className="p-4">{tool.tool_name}</td>
-                          <td className="p-4 text-muted-foreground">{tool.tool_description || "N/A"}</td>
-                          <td className="p-4">{tool.quantity_required}</td>
-                          <td className="p-4">
-                            {tool.is_specialized_tool && (
-                              <Badge variant="secondary">Specialized</Badge>
-                            )}
-                          </td>
-                          <td className="p-4 text-sm text-muted-foreground">{tool.notes || "-"}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="text-center py-8">
-                <Wrench className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground">No tools defined for this job plan</p>
-              </CardContent>
-            </Card>
-          )}
+          <InteractiveToolsList
+            tools={jobPlan.tools || []}
+            jobPlanId={jobPlan.id}
+            organizationId={jobPlan.organization_id}
+          />
         </TabsContent>
       </Tabs>
 
