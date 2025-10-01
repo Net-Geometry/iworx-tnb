@@ -51,6 +51,7 @@ import RoleFormPage from "./pages/admin/RoleFormPage";
 import OrganizationManagementPage from "./pages/admin/OrganizationManagementPage";
 import PeopleLaborPage from "./pages/people-labor/PeopleLaborPage";
 import PeopleManagementPage from "./pages/people-labor/PeopleManagementPage";
+import PersonDetailPage from "./pages/people-labor/PersonDetailPage";
 import TeamsManagementPage from "./pages/people-labor/TeamsManagementPage";
 import SkillsLibraryPage from "./pages/people-labor/SkillsLibraryPage";
 import MyVerticals from "./pages/MyVerticals";
@@ -313,6 +314,13 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <PeopleManagementPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/people-labor/people/:id" element={
+              <AuthGuard>
+                <Layout>
+                  <PersonDetailPage />
                 </Layout>
               </AuthGuard>
             } />
