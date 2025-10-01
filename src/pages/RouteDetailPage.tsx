@@ -88,7 +88,7 @@ const RouteDetailPage = () => {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">Status</CardTitle>
@@ -123,19 +123,6 @@ const RouteDetailPage = () => {
           </CardHeader>
           <CardContent>
             <p className="text-lg font-semibold">{routeAssets.length}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Est. Duration</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg font-semibold">
-              {route.estimated_duration_hours
-                ? `${route.estimated_duration_hours}h`
-                : "N/A"}
-            </p>
           </CardContent>
         </Card>
       </div>
@@ -219,18 +206,6 @@ const RouteDetailPage = () => {
                   {route.description || "No description provided"}
                 </p>
               </div>
-              {route.frequency_type && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Frequency
-                  </p>
-                  <p className="mt-1 capitalize">
-                    {route.frequency_type}
-                    {route.frequency_interval &&
-                      ` (Every ${route.frequency_interval})`}
-                  </p>
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>

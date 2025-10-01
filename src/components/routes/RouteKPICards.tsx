@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Route, Clock, CheckCircle2, TrendingUp } from "lucide-react";
+import { Route, CheckCircle2, TrendingUp } from "lucide-react";
 
 /**
  * KPI Cards for Maintenance Routes overview
@@ -10,14 +10,12 @@ interface RouteKPICardsProps {
   totalRoutes: number;
   activeRoutes: number;
   totalAssets: number;
-  avgDuration: number;
 }
 
 export const RouteKPICards = ({
   totalRoutes,
   activeRoutes,
   totalAssets,
-  avgDuration,
 }: RouteKPICardsProps) => {
   const kpis = [
     {
@@ -38,16 +36,10 @@ export const RouteKPICards = ({
       icon: TrendingUp,
       color: "text-blue-600",
     },
-    {
-      title: "Avg Duration",
-      value: `${avgDuration.toFixed(1)}h`,
-      icon: Clock,
-      color: "text-orange-600",
-    },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {kpis.map((kpi) => {
         const Icon = kpi.icon;
         return (

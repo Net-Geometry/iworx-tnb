@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Route, Clock, MapPin, Edit, Trash2 } from "lucide-react";
+import { Route, MapPin, Edit, Trash2 } from "lucide-react";
 import { MaintenanceRoute } from "@/hooks/useMaintenanceRoutes";
 
 /**
@@ -83,12 +83,6 @@ export const RouteCard = ({
             <MapPin className="h-3 w-3" />
             {route.asset_count || 0} Assets
           </Badge>
-          {route.estimated_duration_hours && (
-            <Badge variant="outline" className="gap-1">
-              <Clock className="h-3 w-3" />
-              {route.estimated_duration_hours}h
-            </Badge>
-          )}
         </div>
 
         <div className="flex gap-2 pt-2 border-t" onClick={(e) => e.stopPropagation()}>

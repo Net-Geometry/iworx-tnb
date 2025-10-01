@@ -16,9 +16,6 @@ export interface MaintenanceRoute {
   description?: string;
   route_type?: string;
   status?: string;
-  estimated_duration_hours?: number;
-  frequency_type?: string;
-  frequency_interval?: number;
   is_optimized?: boolean;
   created_by?: string;
   created_at: string;
@@ -70,9 +67,6 @@ export const useMaintenanceRoutes = () => {
             description: routeData.description,
             route_type: routeData.route_type,
             status: routeData.status,
-            estimated_duration_hours: routeData.estimated_duration_hours,
-            frequency_type: routeData.frequency_type,
-            frequency_interval: routeData.frequency_interval,
             organization_id: currentOrganization?.id!,
           },
         ])

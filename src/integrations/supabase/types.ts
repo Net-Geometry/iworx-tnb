@@ -1737,9 +1737,6 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
-          estimated_duration_hours: number | null
-          frequency_interval: number | null
-          frequency_type: string | null
           id: string
           is_optimized: boolean | null
           name: string
@@ -1753,9 +1750,6 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
-          estimated_duration_hours?: number | null
-          frequency_interval?: number | null
-          frequency_type?: string | null
           id?: string
           is_optimized?: boolean | null
           name: string
@@ -1769,9 +1763,6 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
-          estimated_duration_hours?: number | null
-          frequency_interval?: number | null
-          frequency_type?: string | null
           id?: string
           is_optimized?: boolean | null
           name?: string

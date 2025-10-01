@@ -32,9 +32,6 @@ const routeSchema = z.object({
   description: z.string().optional(),
   route_type: z.string().optional(),
   status: z.string().optional(),
-  estimated_duration_hours: z.coerce.number().optional(),
-  frequency_type: z.string().optional(),
-  frequency_interval: z.coerce.number().optional(),
 });
 
 type RouteFormValues = z.infer<typeof routeSchema>;
@@ -54,9 +51,6 @@ export const RouteForm = ({ route, onSubmit, onCancel }: RouteFormProps) => {
       description: route?.description || "",
       route_type: route?.route_type || "maintenance",
       status: route?.status || "active",
-      estimated_duration_hours: route?.estimated_duration_hours || undefined,
-      frequency_type: route?.frequency_type || "",
-      frequency_interval: route?.frequency_interval || undefined,
     },
   });
 
@@ -137,100 +131,32 @@ export const RouteForm = ({ route, onSubmit, onCancel }: RouteFormProps) => {
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="route_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Route Type</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="inspection">Inspection</SelectItem>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="repair">Repair</SelectItem>
-                    <SelectItem value="cleaning">Cleaning</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="estimated_duration_hours"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Est. Duration (hours)</FormLabel>
+        <FormField
+          control={form.control}
+          name="route_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Route Type</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
                 <FormControl>
-                  <Input
-                    type="number"
-                    step="0.5"
-                    placeholder="2.5"
-                    {...field}
-                  />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="frequency_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Frequency Type</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select frequency" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="quarterly">Quarterly</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="frequency_interval"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Frequency Interval</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="1"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                <SelectContent>
+                  <SelectItem value="inspection">Inspection</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                  <SelectItem value="repair">Repair</SelectItem>
+                  <SelectItem value="cleaning">Cleaning</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="flex justify-end gap-2 pt-4">
           <Button type="button" variant="outline" onClick={onCancel}>

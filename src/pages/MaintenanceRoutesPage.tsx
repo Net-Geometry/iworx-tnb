@@ -58,9 +58,6 @@ const MaintenanceRoutesPage = () => {
   const totalRoutes = routes.length;
   const activeRoutes = routes.filter((r) => r.status === "active").length;
   const totalAssets = routes.reduce((sum, r) => sum + (r.asset_count || 0), 0);
-  const avgDuration =
-    routes.reduce((sum, r) => sum + (r.estimated_duration_hours || 0), 0) /
-      (routes.length || 1);
 
   const handleCreateRoute = (data: any) => {
     createRoute(data);
@@ -108,12 +105,11 @@ const MaintenanceRoutesPage = () => {
       </div>
 
       {/* KPI Cards */}
-      <RouteKPICards
-        totalRoutes={totalRoutes}
-        activeRoutes={activeRoutes}
-        totalAssets={totalAssets}
-        avgDuration={avgDuration}
-      />
+        <RouteKPICards
+          totalRoutes={totalRoutes}
+          activeRoutes={activeRoutes}
+          totalAssets={totalAssets}
+        />
 
       {/* Search and Filters */}
       <div className="flex gap-4">
