@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Edit, Clock, User, Calendar, DollarSign, Package, Wrench, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { InteractiveTaskList } from "@/components/job-plans/InteractiveTaskList";
 import { InteractivePartsList } from "@/components/job-plans/InteractivePartsList";
 import { InteractiveToolsList } from "@/components/job-plans/InteractiveToolsList";
+import { JobPlanOverviewEdit } from "@/components/job-plans/JobPlanOverviewEdit";
 
 /**
  * Job Plan Detail Page
@@ -18,6 +20,8 @@ import { InteractiveToolsList } from "@/components/job-plans/InteractiveToolsLis
 export default function JobPlanDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("overview");
+  const [isEditingOverview, setIsEditingOverview] = useState(false);
   const { data: jobPlan, isLoading } = useJobPlan(id!);
 
   // Helper function to get status badge styling
@@ -98,78 +102,88 @@ export default function JobPlanDetailPage() {
           <Badge className={getJobTypeColor(jobPlan.job_type)}>
             {jobPlan.job_type}
           </Badge>
-          <Button onClick={() => navigate(`/job-plans/${id}/edit`)}>
-            <Edit className="w-4 h-4 mr-2" />
-            Edit Plan
-          </Button>
+          {activeTab === "overview" && !isEditingOverview && (
+            <Button onClick={() => setIsEditingOverview(true)} variant="outline">
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Plan
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Overview Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Overview</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">{jobPlan.description}</p>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Duration</p>
-                <p className="text-sm text-muted-foreground">
-                  {jobPlan.estimated_duration_hours ? `${jobPlan.estimated_duration_hours}h` : "N/A"}
-                </p>
+      {isEditingOverview ? (
+        <JobPlanOverviewEdit
+          jobPlan={jobPlan}
+          onCancel={() => setIsEditingOverview(false)}
+          onSaveSuccess={() => setIsEditingOverview(false)}
+        />
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">{jobPlan.description}</p>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Duration</p>
+                  <p className="text-sm text-muted-foreground">
+                    {jobPlan.estimated_duration_hours ? `${jobPlan.estimated_duration_hours}h` : "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Skill Level</p>
+                  <p className="text-sm text-muted-foreground capitalize">
+                    {jobPlan.skill_level_required}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Frequency</p>
+                  <p className="text-sm text-muted-foreground">
+                    {jobPlan.frequency_interval} {jobPlan.frequency_type?.replace('_', ' ')}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Est. Cost</p>
+                  <p className="text-sm text-muted-foreground">
+                    {jobPlan.cost_estimate ? `$${jobPlan.cost_estimate}` : "N/A"}
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-muted-foreground" />
+            {jobPlan.applicable_asset_types && jobPlan.applicable_asset_types.length > 0 && (
               <div>
-                <p className="text-sm font-medium">Skill Level</p>
-                <p className="text-sm text-muted-foreground capitalize">
-                  {jobPlan.skill_level_required}
-                </p>
+                <p className="text-sm font-medium mb-2">Applicable Asset Types:</p>
+                <div className="flex flex-wrap gap-2">
+                  {jobPlan.applicable_asset_types.map((type, index) => (
+                    <Badge key={index} variant="outline">{type}</Badge>
+                  ))}
+                </div>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Frequency</p>
-                <p className="text-sm text-muted-foreground">
-                  {jobPlan.frequency_interval} {jobPlan.frequency_type?.replace('_', ' ')}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Est. Cost</p>
-                <p className="text-sm text-muted-foreground">
-                  {jobPlan.cost_estimate ? `$${jobPlan.cost_estimate}` : "N/A"}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {jobPlan.applicable_asset_types && jobPlan.applicable_asset_types.length > 0 && (
-            <div>
-              <p className="text-sm font-medium mb-2">Applicable Asset Types:</p>
-              <div className="flex flex-wrap gap-2">
-                {jobPlan.applicable_asset_types.map((type, index) => (
-                  <Badge key={index} variant="outline">{type}</Badge>
-                ))}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Detailed Information Tabs */}
-      <Tabs defaultValue="tasks" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="tasks" className="gap-2">
             <FileText className="w-4 h-4" />
