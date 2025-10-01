@@ -14,7 +14,6 @@ import { usePeople } from "@/hooks/usePeople";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusinessAreas } from "@/hooks/useBusinessAreas";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ArrowLeft, User, Briefcase, FileText, Save } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -58,7 +57,6 @@ export default function EditPersonPage() {
     formState: { errors },
     setValue,
     watch,
-    control,
   } = useForm<PersonFormData>({
     resolver: zodResolver(personSchema),
     defaultValues: {
@@ -313,34 +311,25 @@ export default function EditPersonPage() {
               </div>
             </div>
 
-            <FormField
-              control={control}
-              name="business_area_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Business Area</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value || ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select business area" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      {businessAreas?.map((ba) => (
-                        <SelectItem key={ba.id} value={ba.id}>
-                          {ba.business_area} {ba.region && `- ${ba.region}`} {ba.state && `(${ba.state})`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="business_area_id">Business Area</Label>
+              <Select
+                value={watch("business_area_id") || ""}
+                onValueChange={(value) => setValue("business_area_id", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select business area" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {businessAreas?.map((ba) => (
+                    <SelectItem key={ba.id} value={ba.id}>
+                      {ba.business_area} {ba.region && `- ${ba.region}`} {ba.state && `(${ba.state})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
         </Card>
 
