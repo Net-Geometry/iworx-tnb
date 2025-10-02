@@ -448,6 +448,8 @@ export const useGenerateWorkOrder = () => {
           organization_id: currentOrganization?.id,
           estimated_cost: plannedCost,
           work_order_type: "pm",
+          // @ts-expect-error - location_node_id exists but types need regeneration
+          location_node_id: schedule.location_node_id, // Pass location for notification routing
         }])
         .select()
         .single();

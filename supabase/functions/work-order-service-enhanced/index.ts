@@ -170,13 +170,14 @@ Deno.serve(async (req) => {
       logWithCorrelation(correlationId, 'work-order-service', 'info', 
         `Created work order: ${data.id}`);
 
-      // Publish domain event
+      // Publish domain event with location information
       await eventBus.publish({
         eventType: DomainEvents.WORK_ORDER_CREATED,
         correlationId,
         payload: {
           workOrderId: data.id,
           assetId: data.asset_id,
+          locationNodeId: data.location_node_id, // Include location for notification routing
           priority: data.priority,
           scheduledDate: data.scheduled_date,
         },

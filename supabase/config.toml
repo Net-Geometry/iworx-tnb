@@ -9,6 +9,9 @@ verify_jwt = true
 [functions.work-order-service]
 verify_jwt = true
 
+[functions.work-order-service-enhanced]
+verify_jwt = true
+
 [functions.inventory-service]
 verify_jwt = true
 
@@ -16,6 +19,9 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.safety-service]
+verify_jwt = true
+
+[functions.notification-service]
 verify_jwt = true
 
 [functions.api-gateway]
