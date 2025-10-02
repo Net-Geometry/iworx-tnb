@@ -305,8 +305,12 @@ export function useHierarchyNodes() {
   const addNode = async (nodeData: Omit<HierarchyNode, 'id' | 'children' | 'level_info' | 'organization_id'>) => {
     try {
       console.log('Adding new node:', nodeData);
+      
+      // Strip out frontend-only properties before sending to database
+      const { nodeType, ...dbData } = nodeData as any;
+      
       const dataWithOrg = {
-        ...nodeData,
+        ...dbData,
         organization_id: currentOrganization?.id
       };
 
@@ -333,10 +337,14 @@ export function useHierarchyNodes() {
   const updateNode = async (id: string, updates: Partial<HierarchyNode>) => {
     try {
       console.log('Updating node with ID:', id, 'Updates:', updates);
+      
+      // Strip out frontend-only properties before sending to database
+      const { nodeType, children, level_info, ...dbUpdates } = updates as any;
+      
       // Use public view for write operations
       const { data, error } = await supabase
         .from('hierarchy_nodes')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', id)
         .select()
         .single();
