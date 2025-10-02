@@ -148,6 +148,7 @@ export type Database = {
           pending_approval_from_role: string | null
           sla_due_at: string | null
           step_started_at: string | null
+          template_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -160,6 +161,7 @@ export type Database = {
           pending_approval_from_role?: string | null
           sla_due_at?: string | null
           step_started_at?: string | null
+          template_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -172,9 +174,18 @@ export type Database = {
           pending_approval_from_role?: string | null
           sla_due_at?: string | null
           step_started_at?: string | null
+          template_id?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "incident_workflow_state_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       loto_procedures: {
         Row: {
@@ -1172,6 +1183,7 @@ export type Database = {
           pending_approval_from_role: string | null
           sla_due_at: string | null
           step_started_at: string | null
+          template_id: string | null
           updated_at: string | null
           work_order_id: string
         }
@@ -1184,6 +1196,7 @@ export type Database = {
           pending_approval_from_role?: string | null
           sla_due_at?: string | null
           step_started_at?: string | null
+          template_id?: string | null
           updated_at?: string | null
           work_order_id: string
         }
@@ -1196,10 +1209,146 @@ export type Database = {
           pending_approval_from_role?: string | null
           sla_due_at?: string | null
           step_started_at?: string | null
+          template_id?: string | null
           updated_at?: string | null
           work_order_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "work_order_workflow_state_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_step_conditions: {
+        Row: {
+          action: string
+          condition_type: string
+          created_at: string | null
+          field_name: string | null
+          id: string
+          operator: string | null
+          organization_id: string
+          priority: number | null
+          step_id: string
+          target_step_id: string | null
+          value: Json | null
+        }
+        Insert: {
+          action: string
+          condition_type: string
+          created_at?: string | null
+          field_name?: string | null
+          id?: string
+          operator?: string | null
+          organization_id: string
+          priority?: number | null
+          step_id: string
+          target_step_id?: string | null
+          value?: Json | null
+        }
+        Update: {
+          action?: string
+          condition_type?: string
+          created_at?: string | null
+          field_name?: string | null
+          id?: string
+          operator?: string | null
+          organization_id?: string
+          priority?: number | null
+          step_id?: string
+          target_step_id?: string | null
+          value?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_step_conditions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_step_conditions_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_template_steps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_step_conditions_target_step_id_fkey"
+            columns: ["target_step_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_template_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_step_role_assignments: {
+        Row: {
+          assignment_logic: Json | null
+          can_approve: boolean | null
+          can_assign: boolean | null
+          can_edit: boolean | null
+          can_reject: boolean | null
+          can_view: boolean | null
+          created_at: string | null
+          id: string
+          is_backup_assignee: boolean | null
+          is_primary_assignee: boolean | null
+          organization_id: string
+          role_name: string
+          step_id: string
+        }
+        Insert: {
+          assignment_logic?: Json | null
+          can_approve?: boolean | null
+          can_assign?: boolean | null
+          can_edit?: boolean | null
+          can_reject?: boolean | null
+          can_view?: boolean | null
+          created_at?: string | null
+          id?: string
+          is_backup_assignee?: boolean | null
+          is_primary_assignee?: boolean | null
+          organization_id: string
+          role_name: string
+          step_id: string
+        }
+        Update: {
+          assignment_logic?: Json | null
+          can_approve?: boolean | null
+          can_assign?: boolean | null
+          can_edit?: boolean | null
+          can_reject?: boolean | null
+          can_view?: boolean | null
+          created_at?: string | null
+          id?: string
+          is_backup_assignee?: boolean | null
+          is_primary_assignee?: boolean | null
+          organization_id?: string
+          role_name?: string
+          step_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_step_role_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_step_role_assignments_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_template_steps"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workflow_steps: {
         Row: {
@@ -1254,6 +1403,190 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      workflow_template_steps: {
+        Row: {
+          approval_type: string | null
+          auto_assign_enabled: boolean | null
+          auto_assign_logic: Json | null
+          created_at: string | null
+          description: string | null
+          form_fields: Json | null
+          id: string
+          is_required: boolean | null
+          name: string
+          organization_id: string
+          sla_hours: number | null
+          step_order: number
+          step_type: string | null
+          template_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          approval_type?: string | null
+          auto_assign_enabled?: boolean | null
+          auto_assign_logic?: Json | null
+          created_at?: string | null
+          description?: string | null
+          form_fields?: Json | null
+          id?: string
+          is_required?: boolean | null
+          name: string
+          organization_id: string
+          sla_hours?: number | null
+          step_order: number
+          step_type?: string | null
+          template_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          approval_type?: string | null
+          auto_assign_enabled?: boolean | null
+          auto_assign_logic?: Json | null
+          created_at?: string | null
+          description?: string | null
+          form_fields?: Json | null
+          id?: string
+          is_required?: boolean | null
+          name?: string
+          organization_id?: string
+          sla_hours?: number | null
+          step_order?: number
+          step_type?: string | null
+          template_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_template_steps_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_template_steps_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_template_transitions: {
+        Row: {
+          condition_group_id: string | null
+          created_at: string | null
+          from_step_id: string | null
+          id: string
+          organization_id: string
+          requires_comment: boolean | null
+          template_id: string
+          to_step_id: string | null
+          transition_name: string | null
+        }
+        Insert: {
+          condition_group_id?: string | null
+          created_at?: string | null
+          from_step_id?: string | null
+          id?: string
+          organization_id: string
+          requires_comment?: boolean | null
+          template_id: string
+          to_step_id?: string | null
+          transition_name?: string | null
+        }
+        Update: {
+          condition_group_id?: string | null
+          created_at?: string | null
+          from_step_id?: string | null
+          id?: string
+          organization_id?: string
+          requires_comment?: boolean | null
+          template_id?: string
+          to_step_id?: string | null
+          transition_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_template_transitions_from_step_id_fkey"
+            columns: ["from_step_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_template_steps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_template_transitions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_template_transitions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_template_transitions_to_step_id_fkey"
+            columns: ["to_step_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_template_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          module: string
+          name: string
+          organization_id: string
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          module: string
+          name: string
+          organization_id: string
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          module?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

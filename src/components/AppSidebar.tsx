@@ -40,6 +40,7 @@ import {
   FileBarChart2,
   PackageSearch,
   UsersRound,
+  Workflow,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -189,6 +190,7 @@ const systemAdminModules = [
   { title: "System Settings", url: "/admin/settings", icon: Settings },
   { title: "User Registration", url: "/admin/users/register", icon: UserPlus },
   { title: "Role Management", url: "/admin/roles", icon: Shield },
+  { title: "Workflow Templates", url: "/admin/workflow-templates", icon: Workflow },
   { title: "Verticals", url: "/admin/organizations", icon: Building },
   { title: "Reference Data", url: "/admin/reference-data", icon: Database },
 ];

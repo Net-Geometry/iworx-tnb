@@ -58,6 +58,8 @@ import ReferenceDataPage from "./pages/admin/ReferenceDataPage";
 import CraftsManagementPage from "./pages/admin/CraftsManagementPage";
 import SkillsManagementPage from "./pages/admin/SkillsManagementPage";
 import BusinessAreasManagementPage from "./pages/admin/BusinessAreasManagementPage";
+import WorkflowTemplatesPage from "./pages/admin/WorkflowTemplatesPage";
+import WorkflowDesignerPage from "./pages/admin/WorkflowDesignerPage";
 import PeopleLaborPage from "./pages/people-labor/PeopleLaborPage";
 import PeopleManagementPage from "./pages/people-labor/PeopleManagementPage";
 import PersonDetailPage from "./pages/people-labor/PersonDetailPage";
@@ -481,6 +483,21 @@ const App = () => (
                 <Layout>
                   <RoleFormPage />
                 </Layout>
+              </AdminGuard>
+            } />
+            <Route path="/admin/workflow-templates" element={
+              <AdminGuard>
+                <WorkflowTemplatesPage />
+              </AdminGuard>
+            } />
+            <Route path="/admin/workflow-designer" element={
+              <AdminGuard>
+                <WorkflowDesignerPage />
+              </AdminGuard>
+            } />
+            <Route path="/admin/workflow-designer/:templateId" element={
+              <AdminGuard>
+                <WorkflowDesignerPage />
               </AdminGuard>
             } />
             <Route path="/admin/organizations" element={
