@@ -19,17 +19,12 @@ export const usePersonLocations = (personId?: string) => {
         .from('person_locations')
         .select(`
           *,
-          hierarchy_nodes!inner (
+          hierarchy_nodes (
             id,
             name,
-            path,
-            hierarchy_levels!inner (
-              id,
-              name,
-              level_order
-            )
+            path
           ),
-          people!inner (
+          people (
             id,
             first_name,
             last_name,
@@ -38,7 +33,6 @@ export const usePersonLocations = (personId?: string) => {
         `)
         .eq('person_id', personId)
         .eq('is_active', true)
-        .eq('hierarchy_nodes.hierarchy_levels.level_order', 4)
         .order('is_primary', { ascending: false })
         .order('assigned_date', { ascending: false });
 
