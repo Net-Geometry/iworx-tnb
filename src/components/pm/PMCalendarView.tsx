@@ -154,7 +154,7 @@ export function PMCalendarView({ schedules, onScheduleClick, onEdit }: PMCalenda
         <div className="grid lg:grid-cols-[1fr,420px] gap-6">
           {/* Enhanced Calendar */}
           <Card className="p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-6 flex-shrink-0">
+            <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <CalendarIcon className="h-5 w-5 text-primary" />
@@ -209,7 +209,7 @@ export function PMCalendarView({ schedules, onScheduleClick, onEdit }: PMCalenda
                 className="rounded-lg border-2 w-full shadow-sm"
               />
               <div className="absolute inset-0 pointer-events-none">
-                <div className="grid grid-cols-7 w-full pt-[4.5rem]">
+                <div className="grid grid-cols-7 w-full h-full pt-16">
                   {Array.from({ length: 42 }).map((_, i) => {
                     const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
                     const startDay = startOfMonth.getDay();
