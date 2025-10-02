@@ -34,7 +34,7 @@ export default function MetersPage() {
   // Filter meters based on search
   const filteredMeters = meters.filter(meter =>
     meter.meter_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    meter.serial_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    meter.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     meter.manufacturer?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -89,7 +89,7 @@ export default function MetersPage() {
           <div className="flex gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Search by meter number, serial, or manufacturer..."
+                placeholder="Search by meter number, description, or manufacturer..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -107,7 +107,7 @@ export default function MetersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Meter Number</TableHead>
-                <TableHead>Serial Number</TableHead>
+                <TableHead>Description</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Manufacturer</TableHead>
                 <TableHead>Model</TableHead>
@@ -136,7 +136,7 @@ export default function MetersPage() {
                     <TableCell className="font-medium">
                       {meter.meter_number}
                     </TableCell>
-                    <TableCell>{meter.serial_number}</TableCell>
+                    <TableCell>{meter.description || '-'}</TableCell>
                     <TableCell>
                       <Badge className={getMeterTypeColor(meter.meter_type)}>
                         {meter.meter_type}
