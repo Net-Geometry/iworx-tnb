@@ -101,6 +101,81 @@ export type Database = {
         }
         Relationships: []
       }
+      incident_approvals: {
+        Row: {
+          approval_action: string
+          approved_at: string | null
+          approved_by_user_id: string | null
+          comments: string | null
+          created_at: string | null
+          id: string
+          incident_id: string
+          organization_id: string | null
+          step_id: string | null
+        }
+        Insert: {
+          approval_action: string
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          comments?: string | null
+          created_at?: string | null
+          id?: string
+          incident_id: string
+          organization_id?: string | null
+          step_id?: string | null
+        }
+        Update: {
+          approval_action?: string
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          comments?: string | null
+          created_at?: string | null
+          id?: string
+          incident_id?: string
+          organization_id?: string | null
+          step_id?: string | null
+        }
+        Relationships: []
+      }
+      incident_workflow_state: {
+        Row: {
+          assigned_to_user_id: string | null
+          created_at: string | null
+          current_step_id: string | null
+          id: string
+          incident_id: string
+          organization_id: string | null
+          pending_approval_from_role: string | null
+          sla_due_at: string | null
+          step_started_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to_user_id?: string | null
+          created_at?: string | null
+          current_step_id?: string | null
+          id?: string
+          incident_id: string
+          organization_id?: string | null
+          pending_approval_from_role?: string | null
+          sla_due_at?: string | null
+          step_started_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to_user_id?: string | null
+          created_at?: string | null
+          current_step_id?: string | null
+          id?: string
+          incident_id?: string
+          organization_id?: string | null
+          pending_approval_from_role?: string | null
+          sla_due_at?: string | null
+          step_started_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       loto_procedures: {
         Row: {
           approval_required: boolean | null
@@ -748,6 +823,54 @@ export type Database = {
           },
         ]
       }
+      role_assignment_rules: {
+        Row: {
+          asset_type: string | null
+          auto_assign: boolean | null
+          backup_role_name: string | null
+          created_at: string | null
+          escalation_hours: number | null
+          id: string
+          maintenance_type: string | null
+          module: string
+          organization_id: string | null
+          priority: string | null
+          role_name: string
+          severity: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          asset_type?: string | null
+          auto_assign?: boolean | null
+          backup_role_name?: string | null
+          created_at?: string | null
+          escalation_hours?: number | null
+          id?: string
+          maintenance_type?: string | null
+          module: string
+          organization_id?: string | null
+          priority?: string | null
+          role_name: string
+          severity?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          asset_type?: string | null
+          auto_assign?: boolean | null
+          backup_role_name?: string | null
+          created_at?: string | null
+          escalation_hours?: number | null
+          id?: string
+          maintenance_type?: string | null
+          module?: string
+          organization_id?: string | null
+          priority?: string | null
+          role_name?: string
+          severity?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       roles: {
         Row: {
           created_at: string
@@ -955,6 +1078,42 @@ export type Database = {
           },
         ]
       }
+      work_order_approvals: {
+        Row: {
+          approval_action: string
+          approved_at: string | null
+          approved_by_user_id: string | null
+          comments: string | null
+          created_at: string | null
+          id: string
+          organization_id: string | null
+          step_id: string | null
+          work_order_id: string
+        }
+        Insert: {
+          approval_action: string
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          comments?: string | null
+          created_at?: string | null
+          id?: string
+          organization_id?: string | null
+          step_id?: string | null
+          work_order_id: string
+        }
+        Update: {
+          approval_action?: string
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          comments?: string | null
+          created_at?: string | null
+          id?: string
+          organization_id?: string | null
+          step_id?: string | null
+          work_order_id?: string
+        }
+        Relationships: []
+      }
       work_order_meter_readings: {
         Row: {
           created_at: string
@@ -1000,6 +1159,99 @@ export type Database = {
           validated_at?: string | null
           validated_by?: string | null
           work_order_id?: string
+        }
+        Relationships: []
+      }
+      work_order_workflow_state: {
+        Row: {
+          assigned_to_user_id: string | null
+          created_at: string | null
+          current_step_id: string | null
+          id: string
+          organization_id: string | null
+          pending_approval_from_role: string | null
+          sla_due_at: string | null
+          step_started_at: string | null
+          updated_at: string | null
+          work_order_id: string
+        }
+        Insert: {
+          assigned_to_user_id?: string | null
+          created_at?: string | null
+          current_step_id?: string | null
+          id?: string
+          organization_id?: string | null
+          pending_approval_from_role?: string | null
+          sla_due_at?: string | null
+          step_started_at?: string | null
+          updated_at?: string | null
+          work_order_id: string
+        }
+        Update: {
+          assigned_to_user_id?: string | null
+          created_at?: string | null
+          current_step_id?: string | null
+          id?: string
+          organization_id?: string | null
+          pending_approval_from_role?: string | null
+          sla_due_at?: string | null
+          step_started_at?: string | null
+          updated_at?: string | null
+          work_order_id?: string
+        }
+        Relationships: []
+      }
+      workflow_steps: {
+        Row: {
+          auto_assign_logic: Json | null
+          can_approve: boolean | null
+          can_assign: boolean | null
+          can_transition_to: string[] | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          module: string
+          name: string
+          organization_id: string | null
+          required_role: string
+          sla_hours: number | null
+          step_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          auto_assign_logic?: Json | null
+          can_approve?: boolean | null
+          can_assign?: boolean | null
+          can_transition_to?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          module: string
+          name: string
+          organization_id?: string | null
+          required_role: string
+          sla_hours?: number | null
+          step_order: number
+          updated_at?: string | null
+        }
+        Update: {
+          auto_assign_logic?: Json | null
+          can_approve?: boolean | null
+          can_assign?: boolean | null
+          can_transition_to?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          module?: string
+          name?: string
+          organization_id?: string | null
+          required_role?: string
+          sla_hours?: number | null
+          step_order?: number
+          updated_at?: string | null
         }
         Relationships: []
       }

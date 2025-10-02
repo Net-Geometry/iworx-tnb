@@ -9,6 +9,9 @@ import { WorkOrderKPICards } from "@/components/work-orders/WorkOrderKPICards";
 import { WorkOrderTable } from "@/components/work-orders/WorkOrderTable";
 import { WorkOrderForm } from "@/components/work-orders/WorkOrderForm";
 import { WorkOrderDetailsModal } from "@/components/work-orders/WorkOrderDetailsModal";
+import { useWorkflowSteps } from "@/hooks/useWorkflowSteps";
+import { WorkflowProgressTracker } from "@/components/workflow/WorkflowProgressTracker";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -19,6 +22,7 @@ import {
 
 const WorkOrdersPage = () => {
   const { workOrders, stats, loading, createWorkOrder, updateWorkOrder, deleteWorkOrder, refetch } = useWorkOrders();
+  const { data: workflowSteps = [] } = useWorkflowSteps("work_orders");
   
   // State for dialogs and modals
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -89,6 +93,40 @@ const WorkOrdersPage = () => {
 
       {/* KPI Cards */}
       <WorkOrderKPICards stats={stats} loading={loading} />
+
+      {/* Workflow Overview */}
+      {workflowSteps.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Work Order Workflow Process</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WorkflowProgressTracker 
+              steps={workflowSteps} 
+              currentState={null}
+              className="py-4"
+            />
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+              {workflowSteps.map((step) => (
+                <div key={step.id} className="p-4 border rounded-lg bg-card">
+                  <h4 className="font-medium text-sm mb-1">{step.name}</h4>
+                  <p className="text-xs text-muted-foreground mb-2">{step.description}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs px-2 py-1 rounded bg-primary/10 text-primary">
+                      {step.required_role}
+                    </span>
+                    {step.sla_hours && (
+                      <span className="text-xs text-muted-foreground">
+                        SLA: {step.sla_hours}h
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters and Search */}
       <div className="bg-gradient-card rounded-xl p-6 shadow-card border border-border/50">
