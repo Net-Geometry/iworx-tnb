@@ -22,6 +22,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAssets } from "@/hooks/useAssets";
 import { useAuth } from "@/contexts/AuthContext";
+import { useHierarchyNodes, useHierarchyLevels } from "@/hooks/useHierarchyData";
 
 // Form validation schema
 const incidentSchema = z.object({
@@ -48,6 +49,27 @@ interface IncidentReportFormProps {
 export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormProps) => {
   const { assets } = useAssets();
   const { user } = useAuth();
+  const { levels } = useHierarchyLevels();
+  const { nodes } = useHierarchyNodes();
+
+  // Filter for location nodes (level_order = 4)
+  const locationLevel = levels.find(level => level.level_order === 4);
+  const flattenNodes = (nodeArray: any[]): any[] => {
+    return nodeArray.reduce((acc, node) => {
+      acc.push(node);
+      if (node.children && node.children.length > 0) {
+        acc.push(...flattenNodes(node.children));
+      }
+      if (node.assets && node.assets.length > 0) {
+        acc.push(...node.assets);
+      }
+      return acc;
+    }, []);
+  };
+  const allNodes = flattenNodes(nodes);
+  const locationNodes = allNodes.filter(node => 
+    node.hierarchy_level_id === locationLevel?.id
+  );
 
   const form = useForm<IncidentFormValues>({
     resolver: zodResolver(incidentSchema),
@@ -113,9 +135,20 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
           render={({ field }) => (
             <FormItem>
               <FormLabel>Location *</FormLabel>
-              <FormControl>
-                <Input placeholder="Building, area, or specific location" {...field} />
-              </FormControl>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select location from asset hierarchy" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {locationNodes.map((node) => (
+                    <SelectItem key={node.id} value={node.name}>
+                      {node.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
