@@ -151,7 +151,7 @@ export function PMCalendarView({ schedules, onScheduleClick, onEdit }: PMCalenda
           </div>
         </Card>
 
-        <div className="grid lg:grid-cols-[1fr,320px] gap-6">
+        <div className="grid lg:grid-cols-[1fr,420px] gap-6">
           {/* Enhanced Calendar */}
           <Card className="p-6 shadow-lg">
             <div className="flex items-center justify-between mb-6">
