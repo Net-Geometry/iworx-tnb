@@ -24,6 +24,10 @@ export interface WorkOrder {
   generation_type?: 'manual' | 'automatic';
   created_at: string;
   updated_at: string;
+  target_start_date?: string;
+  target_finish_date?: string;
+  actual_start_date?: string;
+  actual_finish_date?: string;
 }
 
 export interface WorkOrderStats {

@@ -3745,6 +3745,8 @@ export type Database = {
       }
       work_orders: {
         Row: {
+          actual_finish_date: string | null
+          actual_start_date: string | null
           asset_id: string | null
           assigned_technician: string | null
           created_at: string | null
@@ -3761,10 +3763,14 @@ export type Database = {
           priority: string | null
           scheduled_date: string | null
           status: string | null
+          target_finish_date: string | null
+          target_start_date: string | null
           title: string | null
           updated_at: string | null
         }
         Insert: {
+          actual_finish_date?: string | null
+          actual_start_date?: string | null
           asset_id?: string | null
           assigned_technician?: string | null
           created_at?: string | null
@@ -3781,10 +3787,14 @@ export type Database = {
           priority?: string | null
           scheduled_date?: string | null
           status?: string | null
+          target_finish_date?: string | null
+          target_start_date?: string | null
           title?: string | null
           updated_at?: string | null
         }
         Update: {
+          actual_finish_date?: string | null
+          actual_start_date?: string | null
           asset_id?: string | null
           assigned_technician?: string | null
           created_at?: string | null
@@ -3801,6 +3811,8 @@ export type Database = {
           priority?: string | null
           scheduled_date?: string | null
           status?: string | null
+          target_finish_date?: string | null
+          target_start_date?: string | null
           title?: string | null
           updated_at?: string | null
         }

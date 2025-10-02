@@ -563,6 +563,90 @@ const WorkOrderDetailPage: React.FC = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Scheduling Information Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Scheduling Information
+              </CardTitle>
+              <CardDescription>
+                Planned and actual execution timeframes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="text-sm font-medium mb-3">Target Schedule</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Target Start</p>
+                      <p className="text-sm font-medium">
+                        {workOrder.target_start_date
+                          ? formatDateTime(workOrder.target_start_date)
+                          : <span className="text-muted-foreground">Not scheduled</span>}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Target Finish</p>
+                      <p className="text-sm font-medium">
+                        {workOrder.target_finish_date
+                          ? formatDateTime(workOrder.target_finish_date)
+                          : <span className="text-muted-foreground">Not scheduled</span>}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium mb-3">Actual Execution</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Actual Start</p>
+                      <p className="text-sm font-medium">
+                        {workOrder.actual_start_date ? (
+                          <span className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            {formatDateTime(workOrder.actual_start_date)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">Not started</span>
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Actual Finish</p>
+                      <p className="text-sm font-medium">
+                        {workOrder.actual_finish_date ? (
+                          <span className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            {formatDateTime(workOrder.actual_finish_date)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">Not completed</span>
+                        )}
+                      </p>
+                    </div>
+                    {workOrder.actual_start_date && workOrder.actual_finish_date && (
+                      <div className="pt-2 border-t">
+                        <p className="text-sm text-muted-foreground mb-1">Duration</p>
+                        <p className="text-sm font-medium">
+                          {(() => {
+                            const start = new Date(workOrder.actual_start_date);
+                            const finish = new Date(workOrder.actual_finish_date);
+                            const durationMs = finish.getTime() - start.getTime();
+                            const hours = Math.floor(durationMs / (1000 * 60 * 60));
+                            const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+                            return `${hours}h ${minutes}m`;
+                          })()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Workflow Tab */}
