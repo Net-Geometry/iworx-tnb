@@ -258,11 +258,10 @@ const EditPMSchedulePage = () => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Tabs defaultValue="details" className="w-full">
             {/* Tab Navigation */}
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="details">Schedule Details</TabsTrigger>
               <TabsTrigger value="asset">Asset & Job Plan</TabsTrigger>
-              <TabsTrigger value="safety">Safety & Frequency</TabsTrigger>
-              <TabsTrigger value="assignment">Assignment & Options</TabsTrigger>
+              <TabsTrigger value="configuration">Configuration</TabsTrigger>
               <TabsTrigger value="planned">Planned</TabsTrigger>
             </TabsList>
 
@@ -349,6 +348,170 @@ const EditPMSchedulePage = () => {
                   />
                 </CardContent>
               </Card>
+
+              {/* Frequency Configuration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Frequency Configuration</CardTitle>
+                  <CardDescription>
+                    Define how often this maintenance should occur
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="frequency_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Frequency Type</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="daily">Daily</SelectItem>
+                              <SelectItem value="weekly">Weekly</SelectItem>
+                              <SelectItem value="monthly">Monthly</SelectItem>
+                              <SelectItem value="quarterly">Quarterly</SelectItem>
+                              <SelectItem value="yearly">Yearly</SelectItem>
+                              <SelectItem value="custom">Custom</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="frequency_value"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Interval Value</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="1" {...field} />
+                          </FormControl>
+                          <FormDescription>E.g., "3" for every 3 months</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Show frequency unit selector only for custom frequency */}
+                  {form.watch('frequency_type') === 'custom' && (
+                    <FormField
+                      control={form.control}
+                      name="frequency_unit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Frequency Unit</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select unit" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="days">Days</SelectItem>
+                              <SelectItem value="weeks">Weeks</SelectItem>
+                              <SelectItem value="months">Months</SelectItem>
+                              <SelectItem value="years">Years</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Scheduling */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Scheduling</CardTitle>
+                  <CardDescription>
+                    Configure when this maintenance should start and duration
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="start_date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Start Date</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                                className={cn("p-3")}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="lead_time_days"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Lead Time (days)</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="0" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Days before due date to generate work order
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="estimated_duration_hours"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Estimated Duration (hours)</FormLabel>
+                        <FormControl>
+                          <Input type="number" min="0" step="0.5" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Expected time to complete this maintenance
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Tab 2: Asset & Job Plan */}
@@ -417,8 +580,8 @@ const EditPMSchedulePage = () => {
               </Card>
             </TabsContent>
 
-            {/* Tab 3: Safety & Frequency */}
-            <TabsContent value="safety">
+            {/* Tab 3: Configuration */}
+            <TabsContent value="configuration">
               <div className="space-y-6">
                 {/* Safety Precautions */}
                 <Card>
@@ -451,175 +614,6 @@ const EditPMSchedulePage = () => {
                   </CardContent>
                 </Card>
 
-                {/* Frequency Configuration */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Frequency Configuration</CardTitle>
-                    <CardDescription>
-                      Define how often this maintenance should occur
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="frequency_type"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Frequency Type</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="daily">Daily</SelectItem>
-                                <SelectItem value="weekly">Weekly</SelectItem>
-                                <SelectItem value="monthly">Monthly</SelectItem>
-                                <SelectItem value="quarterly">Quarterly</SelectItem>
-                                <SelectItem value="yearly">Yearly</SelectItem>
-                                <SelectItem value="custom">Custom</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="frequency_value"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Interval Value</FormLabel>
-                            <FormControl>
-                              <Input type="number" min="1" {...field} />
-                            </FormControl>
-                            <FormDescription>E.g., "3" for every 3 months</FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Show frequency unit selector only for custom frequency */}
-                    {form.watch('frequency_type') === 'custom' && (
-                      <FormField
-                        control={form.control}
-                        name="frequency_unit"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Frequency Unit</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select unit" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="days">Days</SelectItem>
-                                <SelectItem value="weeks">Weeks</SelectItem>
-                                <SelectItem value="months">Months</SelectItem>
-                                <SelectItem value="years">Years</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Scheduling */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Scheduling</CardTitle>
-                    <CardDescription>
-                      Configure when this maintenance should start and duration
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="start_date"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>Start Date</FormLabel>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <FormControl>
-                                  <Button
-                                    variant="outline"
-                                    className={cn(
-                                      "pl-3 text-left font-normal",
-                                      !field.value && "text-muted-foreground"
-                                    )}
-                                  >
-                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                  </Button>
-                                </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={field.value}
-                                  onSelect={field.onChange}
-                                  initialFocus
-                                  className={cn("p-3")}
-                                />
-                              </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="lead_time_days"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Lead Time (days)</FormLabel>
-                            <FormControl>
-                              <Input type="number" min="0" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              Days before due date to generate work order
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="estimated_duration_hours"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Estimated Duration (hours)</FormLabel>
-                          <FormControl>
-                            <Input type="number" min="0" step="0.5" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Expected time to complete this maintenance
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Tab 4: Assignment & Options */}
-            <TabsContent value="assignment">
-              <div className="space-y-6">
                 {/* Assignment */}
                 <Card>
                   <CardHeader>
@@ -656,10 +650,10 @@ const EditPMSchedulePage = () => {
                   </CardContent>
                 </Card>
 
-                {/* Settings */}
+                {/* Automation Settings */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Settings</CardTitle>
+                    <CardTitle>Automation Settings</CardTitle>
                     <CardDescription>
                       Configure automation and notification preferences
                     </CardDescription>
