@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Plus, Filter } from 'lucide-react';
-import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -70,8 +69,7 @@ export default function MetersPage() {
   };
 
   return (
-    <Layout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -180,10 +178,9 @@ export default function MetersPage() {
             </TableBody>
           </Table>
         </Card>
-      </div>
 
-      {/* Meter Form Dialog */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        {/* Meter Form Dialog */}
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
@@ -198,7 +195,7 @@ export default function MetersPage() {
             }}
           />
         </DialogContent>
-      </Dialog>
-    </Layout>
+        </Dialog>
+      </div>
   );
 }
