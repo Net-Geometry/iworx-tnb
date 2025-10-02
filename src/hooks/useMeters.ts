@@ -111,9 +111,12 @@ export const useMeters = () => {
 
   const updateMeter = async (id: string, meterData: Partial<Meter>) => {
     try {
+      // Clean the data to remove joined/computed fields
+      const { unit, ...cleanData } = meterData;
+      
       const { data, error } = await supabase
         .from('meters')
-        .update(meterData)
+        .update(cleanData)
         .eq('id', id)
         .select()
         .single();

@@ -58,8 +58,10 @@ export function MeterForm({ meter, onClose }: MeterFormProps) {
 
   useEffect(() => {
     if (meter) {
-      // Populate form with existing meter data
+      // Populate form with existing meter data, excluding joined fields
       Object.keys(meter).forEach((key) => {
+        // Skip the 'unit' object as it's joined data, not a database field
+        if (key === 'unit') return;
         setValue(key, meter[key as keyof Meter]);
       });
     }
