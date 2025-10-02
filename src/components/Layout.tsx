@@ -13,7 +13,7 @@ export function Layout({ children }: LayoutProps) {
       <div className="min-h-screen flex w-full bg-gradient-dashboard">
         <AppSidebar />
         <SidebarInset className="flex-1">
-          <Header />
+          <Header key="app-header" />
           <main className="flex-1 p-6 space-y-8">
             {children}
           </main>
