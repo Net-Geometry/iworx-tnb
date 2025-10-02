@@ -23,6 +23,9 @@ export interface PMSchedule {
   assigned_team_id?: string;
   priority: string;
   estimated_duration_hours?: number;
+  estimated_material_cost?: number;
+  estimated_labor_cost?: number;
+  other_costs?: number;
   is_active: boolean;
   status: 'active' | 'paused' | 'suspended' | 'completed';
   auto_generate_wo: boolean;
@@ -423,6 +426,9 @@ export const useGenerateWorkOrder = () => {
         throw new Error(`Work order already exists for this schedule`);
       }
 
+      // Calculate total planned cost from PM schedule
+      const plannedCost = (schedule.estimated_material_cost || 0) + (schedule.estimated_labor_cost || 0);
+
       // Create work order from PM schedule
       const { data: workOrder, error: woError } = await supabase
         .from("work_orders")
@@ -439,6 +445,8 @@ export const useGenerateWorkOrder = () => {
           pm_schedule_id: scheduleId,
           generation_type: "manual",
           organization_id: currentOrganization?.id,
+          estimated_cost: plannedCost,
+          work_order_type: "pm",
         }])
         .select()
         .single();

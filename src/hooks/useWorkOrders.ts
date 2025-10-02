@@ -28,6 +28,7 @@ export interface WorkOrder {
   target_finish_date?: string;
   actual_start_date?: string;
   actual_finish_date?: string;
+  work_order_type?: 'pm' | 'cm';
 }
 
 export interface WorkOrderStats {

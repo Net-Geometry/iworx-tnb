@@ -3747,8 +3747,13 @@ export type Database = {
         Row: {
           actual_finish_date: string | null
           actual_start_date: string | null
+          asset_category: string | null
           asset_id: string | null
+          asset_name: string | null
+          asset_number: string | null
+          asset_status: string | null
           assigned_technician: string | null
+          assigned_technician_name: string | null
           created_at: string | null
           description: string | null
           estimated_cost: number | null
@@ -3759,7 +3764,11 @@ export type Database = {
           maintenance_type: string | null
           notes: string | null
           organization_id: string | null
+          pm_frequency_type:
+            | Database["public"]["Enums"]["pm_frequency_type"]
+            | null
           pm_schedule_id: string | null
+          pm_schedule_name: string | null
           priority: string | null
           scheduled_date: string | null
           status: string | null
@@ -3767,54 +3776,7 @@ export type Database = {
           target_start_date: string | null
           title: string | null
           updated_at: string | null
-        }
-        Insert: {
-          actual_finish_date?: string | null
-          actual_start_date?: string | null
-          asset_id?: string | null
-          assigned_technician?: string | null
-          created_at?: string | null
-          description?: string | null
-          estimated_cost?: number | null
-          estimated_duration_hours?: number | null
-          generation_type?: string | null
-          id?: string | null
-          incident_report_id?: string | null
-          maintenance_type?: string | null
-          notes?: string | null
-          organization_id?: string | null
-          pm_schedule_id?: string | null
-          priority?: string | null
-          scheduled_date?: string | null
-          status?: string | null
-          target_finish_date?: string | null
-          target_start_date?: string | null
-          title?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          actual_finish_date?: string | null
-          actual_start_date?: string | null
-          asset_id?: string | null
-          assigned_technician?: string | null
-          created_at?: string | null
-          description?: string | null
-          estimated_cost?: number | null
-          estimated_duration_hours?: number | null
-          generation_type?: string | null
-          id?: string | null
-          incident_report_id?: string | null
-          maintenance_type?: string | null
-          notes?: string | null
-          organization_id?: string | null
-          pm_schedule_id?: string | null
-          priority?: string | null
-          scheduled_date?: string | null
-          status?: string | null
-          target_finish_date?: string | null
-          target_start_date?: string | null
-          title?: string | null
-          updated_at?: string | null
+          work_order_type: Database["public"]["Enums"]["work_order_type"] | null
         }
         Relationships: []
       }
@@ -3902,6 +3864,7 @@ export type Database = {
       skill_level: "basic" | "intermediate" | "advanced" | "specialist"
       team_role: "leader" | "member" | "supervisor"
       team_shift: "day" | "night" | "swing" | "rotating"
+      work_order_type: "pm" | "cm"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4075,6 +4038,7 @@ export const Constants = {
       skill_level: ["basic", "intermediate", "advanced", "specialist"],
       team_role: ["leader", "member", "supervisor"],
       team_shift: ["day", "night", "swing", "rotating"],
+      work_order_type: ["pm", "cm"],
     },
   },
 } as const

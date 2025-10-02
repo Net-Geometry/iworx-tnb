@@ -412,6 +412,15 @@ const WorkOrderDetailPage: React.FC = () => {
                 </div>
               </div>
 
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Work Order Type</label>
+                <div className="mt-1">
+                  <Badge variant={workOrder.work_order_type === 'pm' ? 'default' : 'secondary'}>
+                    {workOrder.work_order_type === 'pm' ? 'Preventive Maintenance' : 'Corrective Maintenance'}
+                  </Badge>
+                </div>
+              </div>
+
               {workOrder.generation_type && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Generated From</label>
@@ -464,9 +473,14 @@ const WorkOrderDetailPage: React.FC = () => {
               <div>
                 <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
                   <DollarSign className="h-3 w-3" />
-                  Estimated Cost
+                  Planned Cost
                 </label>
-                <p className="text-sm text-foreground mt-1">{formatCurrency(workOrder.estimated_cost)}</p>
+                <p className="text-sm text-foreground mt-1">
+                  {formatCurrency(workOrder.estimated_cost)}
+                  {workOrder.pm_schedule_id && pmSchedule && (
+                    <span className="text-xs text-muted-foreground ml-2">(from PM Schedule)</span>
+                  )}
+                </p>
               </div>
               
               <div>
@@ -854,6 +868,29 @@ const WorkOrderDetailPage: React.FC = () => {
                       <p className="text-sm">{pmSchedule.description}</p>
                     </div>
                   )}
+
+                  {/* Cost Breakdown from PM Schedule */}
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      PM Schedule Cost Breakdown
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Material Costs:</span>
+                        <span className="font-medium">{formatCurrency(pmSchedule.estimated_material_cost || 0)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Labor Costs:</span>
+                        <span className="font-medium">{formatCurrency(pmSchedule.estimated_labor_cost || 0)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm pt-2 border-t">
+                        <span className="font-semibold">Total Planned Cost:</span>
+                        <span className="font-bold text-lg">{formatCurrency((pmSchedule.estimated_material_cost || 0) + (pmSchedule.estimated_labor_cost || 0))}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex gap-2 pt-2">
                     <Button 
                       variant="outline" 
