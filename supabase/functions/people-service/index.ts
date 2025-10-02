@@ -38,13 +38,14 @@ Deno.serve(async (req) => {
     const { data: hasCrossAccess } = await supabase.rpc('has_cross_project_access', { _user_id: user.id });
 
     const url = new URL(req.url);
-    const path = url.pathname.replace('/people-service', '');
+    const pathParts = url.pathname.split('/').filter(p => p && p !== 'people-service');
     const method = req.method;
 
-    console.log(`[People Service] ${method} ${path}`);
+    console.log(`[People Service] ${method} /${pathParts.join('/')}`);
 
     // ========== PEOPLE ENDPOINTS ==========
-    if (path === '/people' && method === 'GET') {
+    // List all people: GET /
+    if (pathParts.length === 0 && method === 'GET') {
       let query = supabase
         .from('people')
         .select(`
@@ -83,8 +84,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/people/') && method === 'GET') {
-      const personId = path.split('/')[2];
+    // Get single person: GET /{id}
+    if (pathParts.length === 1 && method === 'GET') {
+      const firstPart = pathParts[0];
+      
+      // Check if this is actually a sub-resource route
+      if (['teams', 'team-members', 'skills', 'person-skills', 'crafts', 'person-crafts'].includes(firstPart)) {
+        // Will be handled by sub-resource sections below
+      } else {
+        const personId = firstPart;
       
       let query = supabase
         .from('people')
@@ -124,12 +132,14 @@ Deno.serve(async (req) => {
         });
       }
 
-      return new Response(JSON.stringify(null), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+        return new Response(JSON.stringify(null), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
-    if (path === '/people' && method === 'POST') {
+    // Create person: POST /
+    if (pathParts.length === 0 && method === 'POST') {
       const body = await req.json();
       const { data, error } = await supabase
         .from('people')
@@ -144,8 +154,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/people/') && method === 'PUT') {
-      const personId = path.split('/')[2];
+    // Update person: PUT /{id}
+    if (pathParts.length === 1 && method === 'PUT') {
+      const personId = pathParts[0];
       const body = await req.json();
       
       const { data, error } = await supabase
@@ -162,8 +173,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/people/') && method === 'DELETE') {
-      const personId = path.split('/')[2];
+    // Delete person: DELETE /{id}
+    if (pathParts.length === 1 && method === 'DELETE') {
+      const personId = pathParts[0];
       
       const { error } = await supabase
         .from('people')
@@ -178,7 +190,8 @@ Deno.serve(async (req) => {
     }
 
     // ========== TEAMS ENDPOINTS ==========
-    if (path === '/teams' && method === 'GET') {
+    // List teams: GET /teams
+    if (pathParts.length === 1 && pathParts[0] === 'teams' && method === 'GET') {
       let query = supabase
         .from('teams')
         .select('*')
@@ -196,8 +209,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/teams/') && method === 'GET') {
-      const teamId = path.split('/')[2];
+    // Get single team: GET /teams/{id}
+    if (pathParts.length === 2 && pathParts[0] === 'teams' && method === 'GET') {
+      const teamId = pathParts[1];
       
       let query = supabase
         .from('teams')
@@ -233,7 +247,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path === '/teams' && method === 'POST') {
+    // Create team: POST /teams
+    if (pathParts.length === 1 && pathParts[0] === 'teams' && method === 'POST') {
       const body = await req.json();
       const { data, error } = await supabase
         .from('teams')
@@ -248,8 +263,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/teams/') && method === 'PUT') {
-      const teamId = path.split('/')[2];
+    // Update team: PUT /teams/{id}
+    if (pathParts.length === 2 && pathParts[0] === 'teams' && method === 'PUT') {
+      const teamId = pathParts[1];
       const body = await req.json();
       
       const { data, error } = await supabase
@@ -266,8 +282,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/teams/') && method === 'DELETE') {
-      const teamId = path.split('/')[2];
+    // Delete team: DELETE /teams/{id}
+    if (pathParts.length === 2 && pathParts[0] === 'teams' && method === 'DELETE') {
+      const teamId = pathParts[1];
       
       const { error } = await supabase
         .from('teams')
@@ -282,7 +299,8 @@ Deno.serve(async (req) => {
     }
 
     // ========== TEAM MEMBERS ENDPOINTS ==========
-    if (path === '/team-members' && method === 'GET') {
+    // List team members: GET /team-members
+    if (pathParts.length === 1 && pathParts[0] === 'team-members' && method === 'GET') {
       const personId = url.searchParams.get('person_id');
       const teamId = url.searchParams.get('team_id');
 
@@ -318,7 +336,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path === '/team-members' && method === 'POST') {
+    // Create team member: POST /team-members
+    if (pathParts.length === 1 && pathParts[0] === 'team-members' && method === 'POST') {
       const body = await req.json();
       const { data, error } = await supabase
         .from('team_members')
@@ -333,8 +352,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/team-members/') && method === 'PUT') {
-      const memberId = path.split('/')[2];
+    // Update team member: PUT /team-members/{id}
+    if (pathParts.length === 2 && pathParts[0] === 'team-members' && method === 'PUT') {
+      const memberId = pathParts[1];
       const body = await req.json();
       
       const { data, error } = await supabase
@@ -351,8 +371,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/team-members/') && method === 'DELETE') {
-      const memberId = path.split('/')[2];
+    // Delete team member: DELETE /team-members/{id}
+    if (pathParts.length === 2 && pathParts[0] === 'team-members' && method === 'DELETE') {
+      const memberId = pathParts[1];
       
       const { error } = await supabase
         .from('team_members')
@@ -367,7 +388,8 @@ Deno.serve(async (req) => {
     }
 
     // ========== SKILLS ENDPOINTS ==========
-    if (path === '/skills' && method === 'GET') {
+    // List skills: GET /skills
+    if (pathParts.length === 1 && pathParts[0] === 'skills' && method === 'GET') {
       let query = supabase
         .from('skills')
         .select('*')
@@ -385,7 +407,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path === '/skills' && method === 'POST') {
+    // Create skill: POST /skills
+    if (pathParts.length === 1 && pathParts[0] === 'skills' && method === 'POST') {
       const body = await req.json();
       const { data, error } = await supabase
         .from('skills')
@@ -400,8 +423,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/skills/') && method === 'PUT') {
-      const skillId = path.split('/')[2];
+    // Update skill: PUT /skills/{id}
+    if (pathParts.length === 2 && pathParts[0] === 'skills' && method === 'PUT') {
+      const skillId = pathParts[1];
       const body = await req.json();
       
       const { data, error } = await supabase
@@ -418,8 +442,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/skills/') && method === 'DELETE') {
-      const skillId = path.split('/')[2];
+    // Delete skill: DELETE /skills/{id}
+    if (pathParts.length === 2 && pathParts[0] === 'skills' && method === 'DELETE') {
+      const skillId = pathParts[1];
       
       const { error } = await supabase
         .from('skills')
@@ -434,7 +459,8 @@ Deno.serve(async (req) => {
     }
 
     // ========== PERSON SKILLS ENDPOINTS ==========
-    if (path === '/person-skills' && method === 'GET') {
+    // List person skills: GET /person-skills
+    if (pathParts.length === 1 && pathParts[0] === 'person-skills' && method === 'GET') {
       const personId = url.searchParams.get('person_id');
 
       let query = supabase
@@ -457,7 +483,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path === '/person-skills' && method === 'POST') {
+    // Create person skill: POST /person-skills
+    if (pathParts.length === 1 && pathParts[0] === 'person-skills' && method === 'POST') {
       const body = await req.json();
       const { data, error } = await supabase
         .from('person_skills')
@@ -472,8 +499,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/person-skills/') && method === 'PUT') {
-      const skillId = path.split('/')[2];
+    // Update person skill: PUT /person-skills/{id}
+    if (pathParts.length === 2 && pathParts[0] === 'person-skills' && method === 'PUT') {
+      const skillId = pathParts[1];
       const body = await req.json();
       
       const { data, error } = await supabase
@@ -490,8 +518,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/person-skills/') && method === 'DELETE') {
-      const skillId = path.split('/')[2];
+    // Delete person skill: DELETE /person-skills/{id}
+    if (pathParts.length === 2 && pathParts[0] === 'person-skills' && method === 'DELETE') {
+      const skillId = pathParts[1];
       
       const { error } = await supabase
         .from('person_skills')
@@ -506,7 +535,8 @@ Deno.serve(async (req) => {
     }
 
     // ========== CRAFTS ENDPOINTS ==========
-    if (path === '/crafts' && method === 'GET') {
+    // List crafts: GET /crafts
+    if (pathParts.length === 1 && pathParts[0] === 'crafts' && method === 'GET') {
       let query = supabase
         .from('crafts')
         .select('*')
@@ -525,7 +555,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path === '/crafts' && method === 'POST') {
+    // Create craft: POST /crafts
+    if (pathParts.length === 1 && pathParts[0] === 'crafts' && method === 'POST') {
       const body = await req.json();
       const { data, error } = await supabase
         .from('crafts')
@@ -540,8 +571,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/crafts/') && method === 'PUT') {
-      const craftId = path.split('/')[2];
+    // Update craft: PUT /crafts/{id}
+    if (pathParts.length === 2 && pathParts[0] === 'crafts' && method === 'PUT') {
+      const craftId = pathParts[1];
       const body = await req.json();
       
       const { data, error } = await supabase
@@ -558,8 +590,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/crafts/') && method === 'DELETE') {
-      const craftId = path.split('/')[2];
+    // Delete craft: DELETE /crafts/{id}
+    if (pathParts.length === 2 && pathParts[0] === 'crafts' && method === 'DELETE') {
+      const craftId = pathParts[1];
       
       const { error } = await supabase
         .from('crafts')
@@ -574,7 +607,8 @@ Deno.serve(async (req) => {
     }
 
     // ========== PERSON CRAFTS ENDPOINTS ==========
-    if (path === '/person-crafts' && method === 'GET') {
+    // List person crafts: GET /person-crafts
+    if (pathParts.length === 1 && pathParts[0] === 'person-crafts' && method === 'GET') {
       const personId = url.searchParams.get('person_id');
 
       let query = supabase
@@ -597,7 +631,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path === '/person-crafts' && method === 'POST') {
+    // Create person craft: POST /person-crafts
+    if (pathParts.length === 1 && pathParts[0] === 'person-crafts' && method === 'POST') {
       const body = await req.json();
       const { data, error } = await supabase
         .from('person_crafts')
@@ -612,8 +647,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/person-crafts/') && method === 'PUT') {
-      const craftId = path.split('/')[2];
+    // Update person craft: PUT /person-crafts/{id}
+    if (pathParts.length === 2 && pathParts[0] === 'person-crafts' && method === 'PUT') {
+      const craftId = pathParts[1];
       const body = await req.json();
       
       const { data, error } = await supabase
@@ -630,8 +666,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (path.startsWith('/person-crafts/') && method === 'DELETE') {
-      const craftId = path.split('/')[2];
+    // Delete person craft: DELETE /person-crafts/{id}
+    if (pathParts.length === 2 && pathParts[0] === 'person-crafts' && method === 'DELETE') {
+      const craftId = pathParts[1];
       
       const { error } = await supabase
         .from('person_crafts')
