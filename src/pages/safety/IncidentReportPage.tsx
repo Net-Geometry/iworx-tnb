@@ -48,6 +48,8 @@ const IncidentReportPage = () => {
         asset_id: data.asset_id || null,
         reported_by: data.reported_by,
         reported_date: data.reported_date,
+        attachment_urls: data.attachments?.map((file: any) => file.url) || [],
+        attachment_metadata: data.attachments || [],
       };
 
       const newIncident = await createIncident(incidentData);

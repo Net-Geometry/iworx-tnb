@@ -23,6 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAssets } from "@/hooks/useAssets";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHierarchyNodes, useHierarchyLevels } from "@/hooks/useHierarchyData";
+import { MultiFileUpload } from "@/components/incidents/MultiFileUpload";
 
 // Form validation schema
 const incidentSchema = z.object({
@@ -37,6 +38,12 @@ const incidentSchema = z.object({
   immediate_actions: z.string().optional(),
   regulatory_reporting_required: z.boolean().default(false),
   create_work_order: z.boolean().default(false),
+  attachments: z.array(z.object({
+    url: z.string(),
+    name: z.string(),
+    type: z.string(),
+    size: z.number(),
+  })).optional(),
 });
 
 type IncidentFormValues = z.infer<typeof incidentSchema>;
@@ -80,6 +87,7 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
       reporter_email: user?.email || "",
       regulatory_reporting_required: false,
       create_work_order: false,
+      attachments: [],
     },
   });
 
@@ -231,6 +239,28 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Evidence & Attachments */}
+        <FormField
+          control={form.control}
+          name="attachments"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Evidence & Attachments (Optional)</FormLabel>
+              <FormControl>
+                <MultiFileUpload
+                  onFilesChange={(files) => field.onChange(files)}
+                  maxFiles={5}
+                  maxSize={10 * 1024 * 1024}
+                />
+              </FormControl>
+              <p className="text-xs text-muted-foreground mt-1">
+                Upload photos of the incident scene, injuries, equipment damage, or supporting documents
+              </p>
               <FormMessage />
             </FormItem>
           )}
