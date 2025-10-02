@@ -529,6 +529,76 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          metadata: Json | null
+          notification_type: Database["public"]["Enums"]["notification_type"]
+          organization_id: string
+          pm_schedule_id: string | null
+          read_at: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          work_order_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          metadata?: Json | null
+          notification_type: Database["public"]["Enums"]["notification_type"]
+          organization_id: string
+          pm_schedule_id?: string | null
+          read_at?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          work_order_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          metadata?: Json | null
+          notification_type?: Database["public"]["Enums"]["notification_type"]
+          organization_id?: string
+          pm_schedule_id?: string | null
+          read_at?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          work_order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_pm_schedule_id_fkey"
+            columns: ["pm_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "pm_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           code: string
@@ -561,6 +631,77 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      person_locations: {
+        Row: {
+          assigned_by: string | null
+          assigned_date: string | null
+          created_at: string | null
+          hierarchy_node_id: string
+          id: string
+          is_active: boolean | null
+          is_primary: boolean | null
+          notes: string | null
+          organization_id: string
+          person_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_by?: string | null
+          assigned_date?: string | null
+          created_at?: string | null
+          hierarchy_node_id: string
+          id?: string
+          is_active?: boolean | null
+          is_primary?: boolean | null
+          notes?: string | null
+          organization_id: string
+          person_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_by?: string | null
+          assigned_date?: string | null
+          created_at?: string | null
+          hierarchy_node_id?: string
+          id?: string
+          is_active?: boolean | null
+          is_primary?: boolean | null
+          notes?: string | null
+          organization_id?: string
+          person_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_locations_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_locations_hierarchy_node_id_fkey"
+            columns: ["hierarchy_node_id"]
+            isOneToOne: false
+            referencedRelation: "hierarchy_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_locations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_locations_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pm_generated_work_orders: {
         Row: {
@@ -3839,6 +3980,12 @@ export type Database = {
         | "emergency"
         | "shutdown"
       loto_status: "draft" | "approved" | "active" | "expired" | "archived"
+      notification_type:
+        | "work_order_created"
+        | "work_order_assigned"
+        | "work_order_completed"
+        | "work_order_overdue"
+        | "pm_schedule_due"
       pm_frequency_type:
         | "daily"
         | "weekly"
@@ -4011,6 +4158,13 @@ export const Constants = {
         "shutdown",
       ],
       loto_status: ["draft", "approved", "active", "expired", "archived"],
+      notification_type: [
+        "work_order_created",
+        "work_order_assigned",
+        "work_order_completed",
+        "work_order_overdue",
+        "pm_schedule_due",
+      ],
       pm_frequency_type: [
         "daily",
         "weekly",
