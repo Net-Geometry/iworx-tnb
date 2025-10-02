@@ -241,6 +241,8 @@ export const useWorkOrders = () => {
 
       // Fallback to direct Supabase access
       const { error } = await supabase
+        // @ts-expect-error - workorder_service schema not in generated types
+        .schema('workorder_service')
         .from('work_orders')
         .delete()
         .eq('id', id);

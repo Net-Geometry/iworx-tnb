@@ -140,7 +140,11 @@ Deno.serve(async (req) => {
     if (method === 'DELETE' && pathParts.length === 1) {
       const workOrderId = pathParts[0];
 
-      let query = supabase.from('work_orders').delete().eq('id', workOrderId);
+      let query = supabase
+        .schema('workorder_service')
+        .from('work_orders')
+        .delete()
+        .eq('id', workOrderId);
 
       if (!hasCrossProjectAccess && organizationId) {
         query = query.eq('organization_id', organizationId);
