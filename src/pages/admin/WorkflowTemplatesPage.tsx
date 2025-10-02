@@ -16,8 +16,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useWorkflowTemplates, useDeleteWorkflowTemplate, useSetDefaultTemplate } from "@/hooks/useWorkflowTemplates";
+import { useWorkflowStatus, useWorkflowBulkInitializer } from "@/hooks/useWorkflowBulkInitializer";
 import { AdminGuard } from "@/components/auth/AdminGuard";
 import { Layout } from "@/components/Layout";
+import { Separator } from "@/components/ui/separator";
 
 export default function WorkflowTemplatesPage() {
   const navigate = useNavigate();
@@ -26,8 +28,10 @@ export default function WorkflowTemplatesPage() {
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
 
   const { data: templates, isLoading } = useWorkflowTemplates(selectedModule);
+  const { data: workflowStatus, isLoading: statusLoading } = useWorkflowStatus(selectedModule);
   const deleteTemplate = useDeleteWorkflowTemplate();
   const setDefault = useSetDefaultTemplate();
+  const bulkInitializer = useWorkflowBulkInitializer();
 
   const handleCreateNew = () => {
     navigate(`/admin/workflow-designer?module=${selectedModule}`);
@@ -52,6 +56,10 @@ export default function WorkflowTemplatesPage() {
 
   const handleSetDefault = (templateId: string) => {
     setDefault.mutate({ templateId, module: selectedModule });
+  };
+
+  const handleBulkInitialize = () => {
+    bulkInitializer.mutate({ module: selectedModule });
   };
 
   return (
@@ -80,6 +88,65 @@ export default function WorkflowTemplatesPage() {
             </TabsList>
 
             <TabsContent value={selectedModule} className="space-y-4 mt-6">
+              {/* Workflow Management Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Workflow Management</CardTitle>
+                  <CardDescription>
+                    Initialize workflows for {selectedModule === "work_orders" ? "work orders" : "safety incidents"} that don't have one configured
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {statusLoading ? (
+                    <div className="text-sm text-muted-foreground">Loading status...</div>
+                  ) : workflowStatus ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-1">
+                          <div className="text-2xl font-bold">{workflowStatus.totalEntities}</div>
+                          <div className="text-sm text-muted-foreground">Total Entities</div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-2xl font-bold text-green-600">{workflowStatus.withWorkflow}</div>
+                          <div className="text-sm text-muted-foreground">With Workflow</div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-2xl font-bold text-orange-600">{workflowStatus.withoutWorkflow}</div>
+                          <div className="text-sm text-muted-foreground">Missing Workflow</div>
+                        </div>
+                      </div>
+                      
+                      {workflowStatus.hasDefaultTemplate && workflowStatus.withoutWorkflow > 0 && (
+                        <Button 
+                          onClick={handleBulkInitialize}
+                          disabled={bulkInitializer.isPending}
+                          className="w-full"
+                        >
+                          {bulkInitializer.isPending 
+                            ? "Initializing..." 
+                            : `Initialize Workflows for ${workflowStatus.withoutWorkflow} Entities`}
+                        </Button>
+                      )}
+
+                      {!workflowStatus.hasDefaultTemplate && (
+                        <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
+                          No default workflow template configured for this module. Set a template as default to enable bulk initialization.
+                        </div>
+                      )}
+
+                      {workflowStatus.withoutWorkflow === 0 && workflowStatus.totalEntities > 0 && (
+                        <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md">
+                          All entities have workflows configured!
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                </CardContent>
+              </Card>
+
+              <Separator />
+
+              {/* Templates List */}
               {isLoading ? (
                 <div className="text-center py-12">Loading templates...</div>
               ) : templates && templates.length > 0 ? (
