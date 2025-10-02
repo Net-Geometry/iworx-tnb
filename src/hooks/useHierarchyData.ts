@@ -51,8 +51,8 @@ export function useHierarchyLevels() {
 
   const fetchLevels = async () => {
     try {
-      let query = (supabase as any)
-        .schema('assets_service')
+      // Use public view for read operations to support foreign key joins
+      let query = supabase
         .from('hierarchy_levels')
         .select('*')
         .eq('is_active', true);
@@ -153,9 +153,8 @@ export function useHierarchyNodes() {
 
   const fetchNodes = async () => {
     try {
-      // Fetch hierarchy nodes
-      let nodesQuery = (supabase as any)
-        .schema('assets_service')
+      // Use public view for read operations to support foreign key joins
+      let nodesQuery = supabase
         .from('hierarchy_nodes')
         .select(`
           *,
