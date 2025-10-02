@@ -153,8 +153,8 @@ export function PMCalendarView({ schedules, onScheduleClick, onEdit }: PMCalenda
 
         <div className="grid lg:grid-cols-[1fr,420px] gap-6">
           {/* Enhanced Calendar */}
-          <Card className="p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-6">
+          <Card className="p-6 shadow-lg flex flex-col h-full">
+            <div className="flex items-center justify-between mb-6 flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <CalendarIcon className="h-5 w-5 text-primary" />
@@ -199,17 +199,17 @@ export function PMCalendarView({ schedules, onScheduleClick, onEdit }: PMCalenda
               </div>
             </div>
 
-            <div className="relative">
+            <div className="relative flex-1 flex flex-col">
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 month={currentMonth}
                 onMonthChange={setCurrentMonth}
-                className="rounded-lg border-2 w-full shadow-sm"
+                className="rounded-lg border-2 w-full h-full shadow-sm flex flex-col"
               />
               <div className="absolute inset-0 pointer-events-none">
-                <div className="grid grid-cols-7 w-full h-full pt-16">
+                <div className="grid grid-cols-7 w-full h-full pt-[4.5rem]">
                   {Array.from({ length: 42 }).map((_, i) => {
                     const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
                     const startDay = startOfMonth.getDay();
