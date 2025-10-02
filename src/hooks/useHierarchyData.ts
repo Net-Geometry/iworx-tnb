@@ -51,7 +51,8 @@ export function useHierarchyLevels() {
 
   const fetchLevels = async () => {
     try {
-      let query = supabase
+      let query = (supabase as any)
+        .schema('assets_service')
         .from('hierarchy_levels')
         .select('*')
         .eq('is_active', true);
@@ -85,7 +86,8 @@ export function useHierarchyLevels() {
         organization_id: currentOrganization?.id
       };
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
+        .schema('assets_service')
         .from('hierarchy_levels')
         .insert([dataWithOrg])
         .select()
@@ -101,7 +103,8 @@ export function useHierarchyLevels() {
 
   const updateLevel = async (id: string, updates: Partial<HierarchyLevel>) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
+        .schema('assets_service')
         .from('hierarchy_levels')
         .update(updates)
         .eq('id', id)
@@ -118,7 +121,8 @@ export function useHierarchyLevels() {
 
   const deleteLevel = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
+        .schema('assets_service')
         .from('hierarchy_levels')
         .delete()
         .eq('id', id);
@@ -150,7 +154,8 @@ export function useHierarchyNodes() {
   const fetchNodes = async () => {
     try {
       // Fetch hierarchy nodes
-      let nodesQuery = supabase
+      let nodesQuery = (supabase as any)
+        .schema('assets_service')
         .from('hierarchy_nodes')
         .select(`
           *,
@@ -306,7 +311,8 @@ export function useHierarchyNodes() {
         organization_id: currentOrganization?.id
       };
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
+        .schema('assets_service')
         .from('hierarchy_nodes')
         .insert([dataWithOrg])
         .select()
@@ -328,7 +334,8 @@ export function useHierarchyNodes() {
   const updateNode = async (id: string, updates: Partial<HierarchyNode>) => {
     try {
       console.log('Updating node with ID:', id, 'Updates:', updates);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
+        .schema('assets_service')
         .from('hierarchy_nodes')
         .update(updates)
         .eq('id', id)
@@ -350,7 +357,8 @@ export function useHierarchyNodes() {
 
   const deleteNode = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
+        .schema('assets_service')
         .from('hierarchy_nodes')
         .delete()
         .eq('id', id);
