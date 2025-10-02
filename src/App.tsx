@@ -48,6 +48,7 @@ import CAPAManagementPage from "./pages/safety/CAPAManagementPage";
 import SafetyReportsPage from "./pages/safety/SafetyReportsPage";
 import { AdminGuard } from "./components/auth/AdminGuard";
 import SystemSettingsPage from "@/pages/admin/SystemSettingsPage";
+import NotificationsPage from "./pages/NotificationsPage";
 import UserRegistrationPage from "@/pages/admin/UserRegistrationPage";
 import UserManagementPage from "@/pages/admin/UserManagementPage";
 import UserRolesPage from "@/pages/admin/UserRolesPage";

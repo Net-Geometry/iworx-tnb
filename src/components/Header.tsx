@@ -1,4 +1,4 @@
-import { Bell, Settings, User, LogOut, Shield } from "lucide-react";
+import { Settings, User, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { OrganizationSwitcher } from "@/components/OrganizationSwitcher";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
@@ -54,12 +55,7 @@ const Header = () => {
 
         {/* Action Buttons */}
         <div className="flex items-center space-x-3">
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full text-xs flex items-center justify-center">
-              <span className="w-1.5 h-1.5 bg-primary-foreground rounded-full"></span>
-            </span>
-          </Button>
+          <NotificationBell />
           <Button variant="ghost" size="icon">
             <Settings className="w-5 h-5" />
           </Button>

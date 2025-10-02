@@ -22,6 +22,8 @@ import { PersonProfileEditForm } from '@/components/people-labor/PersonProfileEd
 import { AssignSkillDialog } from '@/components/people-labor/AssignSkillDialog';
 import { AssignCraftDialog } from '@/components/people-labor/AssignCraftDialog';
 import { AssignBusinessAreaDialog } from '@/components/people-labor/AssignBusinessAreaDialog';
+import { PersonLocationAssignments } from '@/components/people-labor/PersonLocationAssignments';
+import { usePersonLocations } from '@/hooks/usePersonLocations';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import {
   ArrowLeft,
@@ -80,6 +82,7 @@ const PersonDetailPage: React.FC = () => {
   const { personSkills, isLoading: skillsLoading, removeSkill } = usePersonSkills(id);
   const { personCrafts, isLoading: craftsLoading, removePersonCraft } = usePersonCrafts(id);
   const { data: personBusinessAreas, isLoading: businessAreasLoading } = usePersonBusinessAreas(id);
+  const { data: personLocations = [] } = usePersonLocations(id);
   const { skills } = useSkills();
   const { crafts } = useCrafts();
   const { data: businessAreas } = useBusinessAreas();
@@ -488,6 +491,13 @@ const PersonDetailPage: React.FC = () => {
             <span className="hidden sm:inline">Crafts</span>
             <Badge variant="secondary" className="ml-1 text-xs">{personCrafts.length}</Badge>
           </TabsTrigger>
+          <TabsTrigger value="locations" className="flex items-center gap-2 py-3">
+            <MapPin className="h-4 w-4" />
+            <span className="hidden sm:inline">Locations</span>
+            {personLocations.length > 0 && (
+              <Badge variant="secondary" className="ml-1 text-xs">{personLocations.length}</Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="access" className="flex items-center gap-2 py-3">
             <Shield className="h-4 w-4" />
             <span className="hidden sm:inline">Access</span>
@@ -759,6 +769,11 @@ const PersonDetailPage: React.FC = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Assigned Locations Tab */}
+        <TabsContent value="locations" className="space-y-4">
+          <PersonLocationAssignments personId={id!} />
         </TabsContent>
 
         {/* Enhanced System Access Tab */}

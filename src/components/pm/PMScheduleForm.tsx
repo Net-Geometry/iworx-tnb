@@ -1,6 +1,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -57,6 +59,7 @@ const pmScheduleSchema = z.object({
   estimated_duration_hours: z.coerce.number().optional(),
   auto_generate_wo: z.boolean(),
   notification_enabled: z.boolean(),
+  location_node_id: z.string().optional(),
 });
 
 type PMScheduleFormValues = z.infer<typeof pmScheduleSchema>;
@@ -79,6 +82,30 @@ const PMScheduleForm = ({ open, onOpenChange, schedule }: PMScheduleFormProps) =
   const { data: jobPlans } = useJobPlans();
   const { people } = usePeople();
 
+  // Fetch Level 4 (Location) nodes for notification routing
+  const { data: level4Nodes = [] } = useQuery({
+    queryKey: ['hierarchy-level-4-nodes'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('hierarchy_nodes')
+        .select(`
+          id,
+          name,
+          path,
+          hierarchy_levels!inner (
+            id,
+            name,
+            level_order
+          )
+        `)
+        .eq('hierarchy_levels.level_order', 4)
+        .order('path');
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const form = useForm<PMScheduleFormValues>({
     resolver: zodResolver(pmScheduleSchema),
     defaultValues: {
@@ -97,6 +124,8 @@ const PMScheduleForm = ({ open, onOpenChange, schedule }: PMScheduleFormProps) =
       estimated_duration_hours: schedule?.estimated_duration_hours || undefined,
       auto_generate_wo: schedule?.auto_generate_wo ?? true,
       notification_enabled: schedule?.notification_enabled ?? true,
+      // @ts-expect-error - location_node_id exists in DB but types not regenerated yet
+      location_node_id: schedule?.location_node_id || "",
     },
   });
 
@@ -117,6 +146,8 @@ const PMScheduleForm = ({ open, onOpenChange, schedule }: PMScheduleFormProps) =
       estimated_duration_hours: values.estimated_duration_hours,
       auto_generate_wo: values.auto_generate_wo,
       notification_enabled: values.notification_enabled,
+      // @ts-expect-error - location_node_id exists in DB but types not regenerated yet
+      location_node_id: values.location_node_id,
       organization_id: currentOrganization!.id,
     };
 
@@ -442,6 +473,42 @@ const PMScheduleForm = ({ open, onOpenChange, schedule }: PMScheduleFormProps) =
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Location for Notifications */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Notification Location</h3>
+              
+              <FormField
+                control={form.control}
+                name="location_node_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location (Optional)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select location for notifications" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {level4Nodes?.map((node: any) => (
+                          <SelectItem key={node.id} value={node.id}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{node.name}</span>
+                              <span className="text-xs text-muted-foreground">{node.path}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Engineers assigned to this location will be notified when work orders are generated
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
