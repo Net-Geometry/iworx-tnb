@@ -15,6 +15,7 @@ export interface WorkflowTemplateStep {
   auto_assign_enabled: boolean;
   auto_assign_logic: any;
   form_fields: any;
+  work_order_status: string | null;
   organization_id: string;
   created_at: string;
   updated_at: string;
@@ -23,6 +24,7 @@ export interface WorkflowTemplateStep {
 export interface StepRoleAssignment {
   id: string;
   step_id: string;
+  role_id: string;
   role_name: string;
   can_approve: boolean;
   can_reject: boolean;

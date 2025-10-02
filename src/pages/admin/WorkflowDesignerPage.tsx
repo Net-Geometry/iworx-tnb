@@ -130,6 +130,7 @@ export default function WorkflowDesignerPage() {
         auto_assign_enabled: stepData.auto_assign_enabled || false,
         auto_assign_logic: stepData.auto_assign_logic || null,
         form_fields: stepData.form_fields || null,
+        work_order_status: stepData.work_order_status || null,
         organization_id: template.organization_id,
       });
     }

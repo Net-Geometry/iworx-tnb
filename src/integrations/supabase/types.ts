@@ -1468,6 +1468,7 @@ export type Database = {
           step_type: string | null
           template_id: string
           updated_at: string | null
+          work_order_status: string | null
         }
         Insert: {
           approval_type?: string | null
@@ -1485,6 +1486,7 @@ export type Database = {
           step_type?: string | null
           template_id: string
           updated_at?: string | null
+          work_order_status?: string | null
         }
         Update: {
           approval_type?: string | null
@@ -1502,6 +1504,7 @@ export type Database = {
           step_type?: string | null
           template_id?: string
           updated_at?: string | null
+          work_order_status?: string | null
         }
         Relationships: [
           {

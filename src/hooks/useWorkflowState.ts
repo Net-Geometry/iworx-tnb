@@ -85,6 +85,15 @@ export const useWorkOrderWorkflow = (workOrderId: string | undefined) => {
     }) => {
       if (!workOrderId) throw new Error("Work order ID is required");
 
+      // Get the step's work_order_status to update work order
+      const { data: stepData, error: stepError } = await supabase
+        .from("workflow_template_steps")
+        .select("work_order_status")
+        .eq("id", stepId)
+        .single();
+
+      if (stepError) throw stepError;
+
       // Update or create workflow state
       const { error: stateError } = await supabase
         .from("work_order_workflow_state")
@@ -96,6 +105,16 @@ export const useWorkOrderWorkflow = (workOrderId: string | undefined) => {
         });
 
       if (stateError) throw stateError;
+
+      // Update work order status if step has a work_order_status configured
+      if (stepData?.work_order_status) {
+        const { error: woStatusError } = await supabase
+          .from("work_orders")
+          .update({ status: stepData.work_order_status })
+          .eq("id", workOrderId);
+
+        if (woStatusError) throw woStatusError;
+      }
 
       // Create approval record
       const { error: approvalError } = await supabase

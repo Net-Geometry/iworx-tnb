@@ -13,7 +13,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { WorkflowTemplateStep } from "@/hooks/useWorkflowTemplateSteps";
+import { useRoles } from "@/hooks/useRoles";
+import { useStepRoleAssignments, useUpsertStepRoleAssignment } from "@/hooks/useWorkflowTemplateSteps";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface StepConfigurationModalProps {
   open: boolean;
@@ -35,6 +39,12 @@ export const StepConfigurationModal = ({
   const [slaHours, setSlaHours] = useState("");
   const [isRequired, setIsRequired] = useState(true);
   const [autoAssignEnabled, setAutoAssignEnabled] = useState(false);
+  const [workOrderStatus, setWorkOrderStatus] = useState("");
+  const [selectedRoles, setSelectedRoles] = useState<Array<{ roleId: string; canApprove: boolean; canReject: boolean; canAssign: boolean }>>([]);
+
+  const { roles } = useRoles();
+  const { data: roleAssignments } = useStepRoleAssignments(step?.id);
+  const { mutate: upsertRoleAssignment } = useUpsertStepRoleAssignment();
 
   useEffect(() => {
     if (step) {
@@ -45,6 +55,7 @@ export const StepConfigurationModal = ({
       setSlaHours(step.sla_hours?.toString() || "");
       setIsRequired(step.is_required);
       setAutoAssignEnabled(step.auto_assign_enabled);
+      setWorkOrderStatus(step.work_order_status || "");
     } else {
       setName("");
       setDescription("");
@@ -53,8 +64,24 @@ export const StepConfigurationModal = ({
       setSlaHours("");
       setIsRequired(true);
       setAutoAssignEnabled(false);
+      setWorkOrderStatus("");
     }
   }, [step, open]);
+
+  useEffect(() => {
+    if (roleAssignments && step) {
+      setSelectedRoles(
+        roleAssignments.map(ra => ({
+          roleId: ra.role_id,
+          canApprove: ra.can_approve,
+          canReject: ra.can_reject,
+          canAssign: ra.can_assign,
+        }))
+      );
+    } else {
+      setSelectedRoles([]);
+    }
+  }, [roleAssignments, step]);
 
   const handleSave = () => {
     const stepData: Partial<WorkflowTemplateStep> = {
@@ -65,14 +92,52 @@ export const StepConfigurationModal = ({
       sla_hours: slaHours ? parseInt(slaHours) : null,
       is_required: isRequired,
       auto_assign_enabled: autoAssignEnabled,
+      work_order_status: workOrderStatus || null,
     };
 
     onSave(stepData);
+
+    // Save role assignments after step is saved
+    if (step?.id) {
+      selectedRoles.forEach(role => {
+        upsertRoleAssignment({
+          step_id: step.id,
+          role_id: role.roleId,
+          role_name: '', // Will be populated from roles table
+          can_approve: role.canApprove,
+          can_reject: role.canReject,
+          can_assign: role.canAssign,
+          can_view: true,
+          can_edit: false,
+          is_primary_assignee: false,
+          is_backup_assignee: false,
+          assignment_logic: null,
+          organization_id: step.organization_id,
+        });
+      });
+    }
+  };
+
+  const toggleRole = (roleId: string) => {
+    setSelectedRoles(prev => {
+      const exists = prev.find(r => r.roleId === roleId);
+      if (exists) {
+        return prev.filter(r => r.roleId !== roleId);
+      }
+      return [...prev, { roleId, canApprove: true, canReject: false, canAssign: false }];
+    });
+  };
+
+  const updateRolePermission = (roleId: string, permission: 'canApprove' | 'canReject' | 'canAssign', value: boolean) => {
+    setSelectedRoles(prev =>
+      prev.map(r => r.roleId === roleId ? { ...r, [permission]: value } : r)
+    );
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh]">
+        <ScrollArea className="max-h-[80vh] pr-4">
         <DialogHeader>
           <DialogTitle>{step ? "Edit Workflow Step" : "Create Workflow Step"}</DialogTitle>
           <DialogDescription>
@@ -165,7 +230,94 @@ export const StepConfigurationModal = ({
               onCheckedChange={setAutoAssignEnabled}
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="work-order-status">Work Order Status</Label>
+            <Select value={workOrderStatus} onValueChange={setWorkOrderStatus}>
+              <SelectTrigger id="work-order-status">
+                <SelectValue placeholder="Select status (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="scheduled">Scheduled</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground">
+              Work order will transition to this status when step is reached
+            </p>
+          </div>
+
+          {step?.id && (
+            <div className="space-y-3 border-t pt-4">
+              <Label>Role Assignments</Label>
+              <p className="text-sm text-muted-foreground">
+                Assign roles that can perform actions in this step
+              </p>
+              <div className="space-y-3">
+                {roles.map(role => {
+                  const selected = selectedRoles.find(r => r.roleId === role.id);
+                  return (
+                    <div key={role.id} className="border rounded-lg p-3 space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`role-${role.id}`}
+                          checked={!!selected}
+                          onCheckedChange={() => toggleRole(role.id)}
+                        />
+                        <Label htmlFor={`role-${role.id}`} className="cursor-pointer font-medium">
+                          {role.display_name}
+                        </Label>
+                      </div>
+                      {selected && (
+                        <div className="ml-6 space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`approve-${role.id}`}
+                              checked={selected.canApprove}
+                              onCheckedChange={(checked) => 
+                                updateRolePermission(role.id, 'canApprove', checked as boolean)
+                              }
+                            />
+                            <Label htmlFor={`approve-${role.id}`} className="text-sm cursor-pointer">
+                              Can Approve
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`reject-${role.id}`}
+                              checked={selected.canReject}
+                              onCheckedChange={(checked) => 
+                                updateRolePermission(role.id, 'canReject', checked as boolean)
+                              }
+                            />
+                            <Label htmlFor={`reject-${role.id}`} className="text-sm cursor-pointer">
+                              Can Reject
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`assign-${role.id}`}
+                              checked={selected.canAssign}
+                              onCheckedChange={(checked) => 
+                                updateRolePermission(role.id, 'canAssign', checked as boolean)
+                              }
+                            />
+                            <Label htmlFor={`assign-${role.id}`} className="text-sm cursor-pointer">
+                              Can Assign
+                            </Label>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
+        </ScrollArea>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
