@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Plus, Users, Zap } from 'lucide-react';
-import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -76,8 +75,7 @@ export default function MeterGroupsPage() {
   };
 
   return (
-    <Layout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Breadcrumb Navigation */}
         <Breadcrumb>
           <BreadcrumbList>
@@ -213,10 +211,9 @@ export default function MeterGroupsPage() {
             </Table>
           )}
         </Card>
-      </div>
 
-      {/* Group Form Dialog */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        {/* Group Form Dialog */}
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
@@ -244,6 +241,6 @@ export default function MeterGroupsPage() {
           }}
         />
       )}
-    </Layout>
+    </div>
   );
 }
