@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar, type DayContentProps } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -92,25 +92,59 @@ export function PMCalendarView({ schedules, onScheduleClick, onEdit }: PMCalenda
     return "Upcoming";
   };
 
-  // Custom day content renderer to show schedule indicators
-  const renderDay = (date: Date) => {
-    const daySchedules = getSchedulesForDate(date);
+  // Custom day content renderer using react-day-picker's DayContent
+  const renderDayContent = (dayProps: DayContentProps) => {
+    const daySchedules = getSchedulesForDate(dayProps.date);
     
-    if (daySchedules.length === 0) return null;
-
     return (
-      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
-        {daySchedules.slice(0, 3).map((schedule, idx) => (
-          <div
-            key={idx}
-            className={cn(
-              "w-1.5 h-1.5 rounded-full",
-              getStatusColor(schedule)
-            )}
-          />
-        ))}
-        {daySchedules.length > 3 && (
-          <div className="w-1.5 h-1.5 rounded-full bg-primary/50" />
+      <div className="relative w-full h-full flex items-center justify-center">
+        {/* Default day number */}
+        <span>{dayProps.date.getDate()}</span>
+        
+        {/* Schedule indicators */}
+        {daySchedules.length > 0 && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 cursor-help">
+                {daySchedules.length === 1 ? (
+                  <div
+                    className={cn(
+                      "w-2 h-2 rounded-full shadow-sm animate-pulse",
+                      getStatusColor(daySchedules[0])
+                    )}
+                  />
+                ) : (
+                  <Badge 
+                    variant="secondary" 
+                    className={cn(
+                      "h-4 px-1.5 text-[10px] font-bold shadow-sm leading-none",
+                      "bg-primary text-primary-foreground border-0"
+                    )}
+                  >
+                    {daySchedules.length}
+                  </Badge>
+                )}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs">
+              <div className="space-y-1">
+                <p className="font-semibold text-xs mb-2">
+                  {daySchedules.length} schedule{daySchedules.length > 1 ? 's' : ''}
+                </p>
+                {daySchedules.slice(0, 3).map((schedule, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-xs">
+                    <div className={cn("w-2 h-2 rounded-full", getStatusColor(schedule))} />
+                    <span className="truncate">{schedule.title}</span>
+                  </div>
+                ))}
+                {daySchedules.length > 3 && (
+                  <p className="text-xs text-muted-foreground">
+                    +{daySchedules.length - 3} more
+                  </p>
+                )}
+              </div>
+            </TooltipContent>
+          </Tooltip>
         )}
       </div>
     );
@@ -199,78 +233,15 @@ export function PMCalendarView({ schedules, onScheduleClick, onEdit }: PMCalenda
               </div>
             </div>
 
-            <div className="relative">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                month={currentMonth}
-                onMonthChange={setCurrentMonth}
-                className="rounded-lg border-2 w-full shadow-sm"
-              />
-              <div className="absolute inset-0 pointer-events-none">
-                <div className="grid grid-cols-7 w-full h-full pt-16">
-                  {Array.from({ length: 42 }).map((_, i) => {
-                    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-                    const startDay = startOfMonth.getDay();
-                    const dayNum = i - startDay + 1;
-                    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), dayNum);
-                    
-                    if (dayNum < 1 || dayNum > new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()) {
-                      return <div key={i} />;
-                    }
-                    
-                    const daySchedules = getSchedulesForDate(date);
-                    if (daySchedules.length === 0) return <div key={i} />;
-                    
-                    return (
-                      <Tooltip key={i}>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-end justify-center pb-2 pointer-events-auto cursor-help">
-                            {daySchedules.length === 1 ? (
-                              <div
-                                className={cn(
-                                  "w-2 h-2 rounded-full shadow-md animate-pulse",
-                                  getStatusColor(daySchedules[0])
-                                )}
-                              />
-                            ) : (
-                              <Badge 
-                                variant="secondary" 
-                                className={cn(
-                                  "h-5 px-2 text-xs font-bold shadow-md",
-                                  "bg-primary text-primary-foreground border-0"
-                                )}
-                              >
-                                {daySchedules.length}
-                              </Badge>
-                            )}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs">
-                          <div className="space-y-1">
-                            <p className="font-semibold text-xs mb-2">
-                              {daySchedules.length} schedule{daySchedules.length > 1 ? 's' : ''}
-                            </p>
-                            {daySchedules.slice(0, 3).map((schedule, idx) => (
-                              <div key={idx} className="flex items-center gap-2 text-xs">
-                                <div className={cn("w-2 h-2 rounded-full", getStatusColor(schedule))} />
-                                <span className="truncate">{schedule.title}</span>
-                              </div>
-                            ))}
-                            {daySchedules.length > 3 && (
-                              <p className="text-xs text-muted-foreground">
-                                +{daySchedules.length - 3} more
-                              </p>
-                            )}
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              month={currentMonth}
+              onMonthChange={setCurrentMonth}
+              className="rounded-lg border-2 w-full shadow-sm"
+              renderDayContent={renderDayContent}
+            />
           </Card>
 
           {/* Enhanced Schedule Details Panel */}

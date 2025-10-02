@@ -1,13 +1,20 @@
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DayPicker } from "react-day-picker";
+import { DayPicker, DayContentProps } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>;
+export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
+  renderDayContent?: (props: DayContentProps) => React.ReactNode;
+};
 
-function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
+function Calendar({ className, classNames, showOutsideDays = true, renderDayContent, ...props }: CalendarProps) {
+  // Create custom DayContent component if renderDayContent is provided
+  const CustomDayContent = renderDayContent 
+    ? (dayProps: DayContentProps) => <>{renderDayContent(dayProps)}</>
+    : undefined;
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -44,6 +51,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
+        ...(CustomDayContent && { DayContent: CustomDayContent }),
       }}
       {...props}
     />
@@ -52,3 +60,4 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
 Calendar.displayName = "Calendar";
 
 export { Calendar };
+export type { DayContentProps };
