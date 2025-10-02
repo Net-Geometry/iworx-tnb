@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
     const hasCrossProjectAccess = req.headers.get('x-cross-project-access') === 'true';
 
     const url = new URL(req.url);
-    const pathParts = url.pathname.split('/').filter(Boolean);
+    const pathParts = url.pathname.split('/').filter(p => p && p !== 'work-order-service');
     const method = req.method;
 
     console.log(`[Work Order Service] ${method} ${url.pathname}`, { userId, organizationId, hasCrossProjectAccess });

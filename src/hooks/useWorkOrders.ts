@@ -81,14 +81,7 @@ export const useWorkOrders = () => {
       // Fallback to direct Supabase access
       let query = supabase
         .from('work_orders')
-        .select(`
-          *,
-          hierarchy_nodes:location_node_id (
-            id,
-            name,
-            path
-          )
-        `);
+        .select('*');
 
       if (!hasCrossProjectAccess && currentOrganization) {
         query = query.eq('organization_id', currentOrganization.id);

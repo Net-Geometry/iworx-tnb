@@ -83,7 +83,8 @@ async function routeRequest(req: Request): Promise<Response> {
   }
 
   // Forward request to microservice
-  const serviceUrl = `${service.url}${path.replace(`/api/${serviceName}`, "")}${url.search}`;
+  const remainingPath = path.replace(`/api/${serviceName}`, "") || "/";
+  const serviceUrl = `${service.url}${remainingPath}${url.search}`;
   
   try {
     const serviceResponse = await fetch(serviceUrl, {
