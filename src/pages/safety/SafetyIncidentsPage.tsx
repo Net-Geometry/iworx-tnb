@@ -5,14 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIncidents } from "@/hooks/useIncidents";
 import { IncidentTable } from "@/components/incidents/IncidentTable";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useWorkflowSteps } from "@/hooks/useWorkflowSteps";
-import { WorkflowProgressTracker } from "@/components/workflow/WorkflowProgressTracker";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const SafetyIncidentsPage = () => {
   const navigate = useNavigate();
   const { incidents, stats, loading } = useIncidents();
-  const { data: workflowSteps = [] } = useWorkflowSteps("safety_incidents");
 
   const handleViewDetails = (incident: any) => {
     // TODO: Implement incident details modal/page
@@ -97,40 +93,6 @@ const SafetyIncidentsPage = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Workflow Overview */}
-      {workflowSteps.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Incident Workflow Process</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <WorkflowProgressTracker 
-              steps={workflowSteps} 
-              currentState={null}
-              className="py-4"
-            />
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-              {workflowSteps.map((step) => (
-                <div key={step.id} className="p-4 border rounded-lg bg-card">
-                  <h4 className="font-medium text-sm mb-1">{step.name}</h4>
-                  <p className="text-xs text-muted-foreground mb-2">{step.description}</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs px-2 py-1 rounded bg-primary/10 text-primary">
-                      {step.required_role}
-                    </span>
-                    {step.sla_hours && (
-                      <span className="text-xs text-muted-foreground">
-                        SLA: {step.sla_hours}h
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Incidents Table */}
       <Card>
