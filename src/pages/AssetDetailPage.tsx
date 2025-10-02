@@ -6,6 +6,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAssets } from '@/hooks/useAssets';
 import { useAssetMaintenance } from '@/hooks/useMaintenance';
 import { useAssetLocation } from '@/hooks/useAssetLocation';
+import { resolveIcon } from '@/lib/iconResolver';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -563,21 +564,23 @@ const AssetDetailPage: React.FC = () => {
                       Hierarchy Path
                     </label>
                     <div className="flex items-center gap-2 flex-wrap bg-muted/50 p-3 rounded-lg">
-                      {assetLocation.levels.map((level, index) => (
-                        <div key={level.id} className="flex items-center gap-2">
-                          <div className="flex items-center gap-2 bg-background px-3 py-1.5 rounded-md border border-border">
-                            {level.icon && (
-                              <span className="text-sm" style={{ color: level.color || 'currentColor' }}>
-                                {level.icon}
-                              </span>
+                      {assetLocation.levels.map((level, index) => {
+                        const IconComponent = resolveIcon(level.icon);
+                        return (
+                          <div key={level.id} className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 bg-background px-3 py-1.5 rounded-md border border-border">
+                              <IconComponent 
+                                className="h-4 w-4" 
+                                style={{ color: level.color || 'currentColor' }}
+                              />
+                              <span className="text-sm font-medium">{level.name}</span>
+                            </div>
+                            {index < assetLocation.levels.length - 1 && (
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
                             )}
-                            <span className="text-sm font-medium">{level.name}</span>
                           </div>
-                          {index < assetLocation.levels.length - 1 && (
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -587,31 +590,35 @@ const AssetDetailPage: React.FC = () => {
                       Hierarchy Details
                     </label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {assetLocation.levels.map((level) => (
-                        <div 
-                          key={level.id}
-                          className="p-4 border border-border rounded-lg bg-card hover:bg-accent/5 transition-colors"
-                        >
-                          <div className="flex items-start gap-3">
-                            {level.icon && (
+                      {assetLocation.levels.map((level) => {
+                        const IconComponent = resolveIcon(level.icon);
+                        return (
+                          <div 
+                            key={level.id}
+                            className="p-4 border border-border rounded-lg bg-card hover:bg-accent/5 transition-colors"
+                          >
+                            <div className="flex items-start gap-3">
                               <div 
-                                className="mt-0.5 text-lg"
-                                style={{ color: level.color || 'currentColor' }}
+                                className="p-2 rounded-lg"
+                                style={{ backgroundColor: level.color ? `${level.color}20` : 'var(--muted)' }}
                               >
-                                {level.icon}
+                                <IconComponent 
+                                  className="h-5 w-5" 
+                                  style={{ color: level.color || 'currentColor' }}
+                                />
                               </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                                {level.levelName}
-                              </p>
-                              <p className="text-sm font-medium text-foreground truncate">
-                                {level.name}
-                              </p>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                                  {level.levelName}
+                                </p>
+                                <p className="text-sm font-medium text-foreground truncate">
+                                  {level.name}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
