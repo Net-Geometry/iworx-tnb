@@ -10,13 +10,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { WorkflowStep } from "@/hooks/useWorkflowSteps";
+
+// Generic step interface
+interface GenericWorkflowStep {
+  id: string;
+  name: string;
+  description?: string | null;
+  step_order: number;
+}
 
 interface ApprovalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentStep: WorkflowStep | null;
-  nextStep: WorkflowStep | null;
+  currentStep: GenericWorkflowStep | null;
+  nextStep?: GenericWorkflowStep | null;
   actionType: "approve" | "reject" | "reassign" | "escalate";
   onConfirm: (comments: string) => void;
 }

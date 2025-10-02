@@ -1,10 +1,20 @@
 import { Check, Clock, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { WorkflowStep } from "@/hooks/useWorkflowSteps";
 import { WorkflowState } from "@/hooks/useWorkflowState";
 
+// Generic step interface that works with both WorkflowStep and WorkflowTemplateStep
+interface GenericWorkflowStep {
+  id: string;
+  name: string;
+  description?: string | null;
+  step_order: number;
+  sla_hours?: number | null;
+  required_role?: string;
+  approval_type?: string;
+}
+
 interface WorkflowProgressTrackerProps {
-  steps: WorkflowStep[];
+  steps: GenericWorkflowStep[];
   currentState: WorkflowState | null;
   className?: string;
 }
@@ -67,7 +77,7 @@ export const WorkflowProgressTracker = ({
                     {step.name}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {step.required_role}
+                    {step.required_role || step.approval_type || 'Pending'}
                   </p>
                 </div>
               </div>

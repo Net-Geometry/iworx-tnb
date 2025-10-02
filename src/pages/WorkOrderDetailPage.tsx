@@ -42,6 +42,11 @@ import { WorkOrderForm } from '@/components/work-orders/WorkOrderForm';
 import { TestFormTab } from '@/components/work-orders/TestFormTab';
 import { WorkOrderSkillMatchingPanel } from '@/components/work-orders/WorkOrderSkillMatchingPanel';
 import { useAssetMeterGroups } from '@/hooks/useAssetMeterGroups';
+import { useWorkOrderWorkflowProgress } from '@/hooks/useWorkOrderWorkflowProgress';
+import { WorkflowProgressTracker } from '@/components/workflow/WorkflowProgressTracker';
+import { RoleBasedActionButtons } from '@/components/workflow/RoleBasedActionButtons';
+import { WorkflowHistory } from '@/components/workflow/WorkflowHistory';
+import { ApprovalDialog } from '@/components/workflow/ApprovalDialog';
 
 import type { Database } from '@/integrations/supabase/types';
 
@@ -75,8 +80,20 @@ const WorkOrderDetailPage: React.FC = () => {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+  const [approvalAction, setApprovalAction] = useState<"approve" | "reject" | "reassign" | "escalate">("approve");
 
   const workOrder = workOrders.find(wo => wo.id === id);
+  
+  // Fetch workflow progress
+  const { 
+    workflowState, 
+    templateSteps, 
+    currentStep, 
+    approvals, 
+    isLoading: workflowLoading,
+    hasWorkflow 
+  } = useWorkOrderWorkflowProgress(id);
   
   // Fetch PM Schedule details if work order is linked to one
   const { data: pmSchedule } = usePMSchedule(workOrder?.pm_schedule_id || '');
@@ -195,6 +212,35 @@ const WorkOrderDetailPage: React.FC = () => {
     } finally {
       setUpdatingStatus(false);
     }
+  };
+
+  // Handle workflow actions
+  const handleWorkflowApprove = () => {
+    setApprovalAction("approve");
+    setShowApprovalDialog(true);
+  };
+
+  const handleWorkflowReject = () => {
+    setApprovalAction("reject");
+    setShowApprovalDialog(true);
+  };
+
+  const handleWorkflowAssign = () => {
+    setApprovalAction("reassign");
+    setShowApprovalDialog(true);
+  };
+
+  const handleWorkflowTransition = () => {
+    setApprovalAction("approve");
+    setShowApprovalDialog(true);
+  };
+
+  const handleApprovalConfirm = async (comments: string) => {
+    // TODO: Implement workflow transition logic
+    toast({
+      title: "Action Submitted",
+      description: `Workflow action ${approvalAction} has been submitted.`,
+    });
   };
 
   // Handle edit work order
@@ -470,8 +516,12 @@ const WorkOrderDetailPage: React.FC = () => {
 
       {/* Detailed Information Tabs */}
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className={`grid w-full ${showTestFormTab ? 'grid-cols-7' : 'grid-cols-6'}`}>
+        <TabsList className={`grid w-full ${showTestFormTab ? 'grid-cols-8' : 'grid-cols-7'}`}>
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="workflow">
+            <ClipboardList className="h-4 w-4 mr-2" />
+            Workflow
+          </TabsTrigger>
           <TabsTrigger value="asset">Asset</TabsTrigger>
           <TabsTrigger value="pm-schedule">PM Schedule</TabsTrigger>
           {showTestFormTab && (
@@ -513,6 +563,82 @@ const WorkOrderDetailPage: React.FC = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Workflow Tab */}
+        <TabsContent value="workflow" className="space-y-4">
+          {hasWorkflow ? (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5" />
+                    Workflow Progress
+                  </CardTitle>
+                  <CardDescription>Track approval and completion progress</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {!workflowLoading && templateSteps.length > 0 && (
+                    <>
+                      <WorkflowProgressTracker
+                        steps={templateSteps}
+                        currentState={workflowState}
+                        className="py-4"
+                      />
+                      
+                      {currentStep && (
+                        <div className="border-t pt-6">
+                          <h4 className="font-medium mb-4">Current Step: {currentStep.name}</h4>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            {currentStep.description}
+                          </p>
+                          <RoleBasedActionButtons
+                            currentStep={currentStep}
+                            workflowState={workflowState}
+                            steps={templateSteps}
+                            onApprove={handleWorkflowApprove}
+                            onReject={handleWorkflowReject}
+                            onAssign={handleWorkflowAssign}
+                            onTransition={handleWorkflowTransition}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
+                  {workflowLoading && (
+                    <div className="space-y-4">
+                      <Skeleton className="h-20 w-full" />
+                      <Skeleton className="h-40 w-full" />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileCheck className="h-5 w-5" />
+                    Approval History
+                  </CardTitle>
+                  <CardDescription>View all approval actions and comments</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <WorkflowHistory approvals={approvals} />
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <ClipboardList className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Workflow Configured</h3>
+                <p className="text-sm text-muted-foreground">
+                  This work order does not have a workflow template assigned.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* Asset Tab */}
@@ -1064,6 +1190,18 @@ const WorkOrderDetailPage: React.FC = () => {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Approval Dialog */}
+      {showApprovalDialog && currentStep && (
+        <ApprovalDialog
+          open={showApprovalDialog}
+          onOpenChange={setShowApprovalDialog}
+          currentStep={currentStep}
+          nextStep={templateSteps.find(s => s.step_order === currentStep.step_order + 1)}
+          actionType={approvalAction}
+          onConfirm={handleApprovalConfirm}
+        />
+      )}
     </div>
   );
 };

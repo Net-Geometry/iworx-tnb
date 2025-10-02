@@ -1,13 +1,24 @@
 import { CheckCircle, XCircle, UserPlus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/hooks/usePermissions";
-import { WorkflowStep } from "@/hooks/useWorkflowSteps";
 import { WorkflowState } from "@/hooks/useWorkflowState";
 
+// Generic step interface that works with both WorkflowStep and WorkflowTemplateStep
+interface GenericWorkflowStep {
+  id: string;
+  name: string;
+  description?: string | null;
+  step_order: number;
+  approval_type?: string;
+  can_approve?: boolean;
+  can_assign?: boolean;
+  is_required?: boolean;
+}
+
 interface RoleBasedActionButtonsProps {
-  currentStep: WorkflowStep | null;
+  currentStep: GenericWorkflowStep | null;
   workflowState: WorkflowState | null;
-  steps: WorkflowStep[];
+  steps: GenericWorkflowStep[];
   onApprove: () => void;
   onReject: () => void;
   onAssign: () => void;
@@ -31,8 +42,10 @@ export const RoleBasedActionButtons = ({
 
   if (!currentStep) return null;
 
-  const canApprove = currentStep.can_approve && hasPermission("workflow", "approve");
-  const canAssign = currentStep.can_assign && hasPermission("workflow", "assign");
+  // For template-based workflows, check approval_type; for legacy workflows, use can_approve
+  const requiresApproval = currentStep.approval_type === "required" || currentStep.can_approve;
+  const canApprove = requiresApproval && hasPermission("workflow", "approve");
+  const canAssign = (currentStep.can_assign !== false) && hasPermission("workflow", "assign");
   const canTransition = hasPermission("workflow", "transition");
 
   const nextStep = steps.find((s) => s.step_order === currentStep.step_order + 1);

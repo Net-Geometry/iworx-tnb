@@ -6,6 +6,7 @@ export interface WorkflowState {
   id: string;
   work_order_id?: string;
   incident_id?: string;
+  template_id: string | null;
   current_step_id: string | null;
   assigned_to_user_id: string | null;
   pending_approval_from_role: string | null;

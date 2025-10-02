@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { workOrderApi } from '@/services/api-client';
+import { useWorkflowTemplateInitializer } from '@/hooks/useWorkflowTemplateInitializer';
 
 export interface WorkOrder {
   id: string;
@@ -45,6 +46,7 @@ export const useWorkOrders = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { currentOrganization, hasCrossProjectAccess } = useAuth();
+  const { mutateAsync: initializeWorkflow } = useWorkflowTemplateInitializer();
 
   const fetchWorkOrders = async () => {
     try {
@@ -124,27 +126,38 @@ export const useWorkOrders = () => {
 
   const createWorkOrder = async (workOrder: Omit<WorkOrder, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      let createdWorkOrder: any;
+
       // Try microservice first
       try {
-        const data = await workOrderApi.createWorkOrder(workOrder);
-        toast({
-          title: "Success",
-          description: "Work order created successfully"
-        });
-        fetchWorkOrders();
-        return data;
+        createdWorkOrder = await workOrderApi.createWorkOrder(workOrder);
       } catch (microserviceError) {
         console.warn('[useWorkOrders] Microservice failed, falling back:', microserviceError);
+        
+        // Fallback to direct Supabase access
+        const { data, error } = await supabase
+          .from('work_orders')
+          .insert([workOrder])
+          .select()
+          .single();
+
+        if (error) throw error;
+        createdWorkOrder = data;
       }
 
-      // Fallback to direct Supabase access
-      const { data, error } = await supabase
-        .from('work_orders')
-        .insert([workOrder])
-        .select()
-        .single();
-
-      if (error) throw error;
+      // Initialize workflow for the new work order
+      if (createdWorkOrder?.id && workOrder.organization_id) {
+        try {
+          await initializeWorkflow({
+            entityId: createdWorkOrder.id,
+            entityType: "work_order",
+            organizationId: workOrder.organization_id,
+          });
+        } catch (workflowError) {
+          console.warn('Failed to initialize workflow:', workflowError);
+          // Don't fail the work order creation if workflow initialization fails
+        }
+      }
 
       toast({
         title: "Success",
@@ -152,7 +165,7 @@ export const useWorkOrders = () => {
       });
 
       fetchWorkOrders();
-      return data;
+      return createdWorkOrder;
     } catch (error: any) {
       console.error('Error creating work order:', error);
       toast({
