@@ -50,9 +50,14 @@ const SERVICE_REGISTRY = {
  */
 async function routeRequest(req: Request): Promise<Response> {
   const url = new URL(req.url);
-  const path = url.pathname;
+  let path = url.pathname;
 
   console.log(`[API Gateway] Routing request: ${req.method} ${path}`);
+
+  // Strip the function name prefix if present (e.g., /api-gateway/api/assets -> /api/assets)
+  if (path.startsWith('/api-gateway')) {
+    path = path.replace('/api-gateway', '');
+  }
 
   // Extract service name from path (e.g., /api/assets/* -> assets)
   const pathParts = path.split("/").filter(Boolean);
