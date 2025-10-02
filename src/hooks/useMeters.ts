@@ -25,7 +25,12 @@ export interface Meter {
   meter_constant?: number;
   multiplier?: number;
   status: 'active' | 'inactive' | 'faulty' | 'retired';
-  health_score: number;
+  unit_id?: number;
+  unit?: {
+    id: number;
+    name: string;
+    abbreviation: string;
+  };
   last_reading?: number;
   last_reading_date?: string;
   notes?: string;
@@ -44,7 +49,14 @@ export const useMeters = () => {
     try {
       setLoading(true);
 
-      let query = supabase.from('meters').select('*');
+      let query = supabase.from('meters').select(`
+        *,
+        unit:unit_id (
+          id,
+          name,
+          abbreviation
+        )
+      `);
 
       if (!hasCrossProjectAccess && currentOrganization) {
         query = query.eq('organization_id', currentOrganization.id);

@@ -12,6 +12,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useMeters, Meter } from '@/hooks/useMeters';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Unit {
+  id: number;
+  name: string;
+  abbreviation: string;
+}
 
 interface MeterFormProps {
   meter: Meter | null;
@@ -25,11 +32,29 @@ interface MeterFormProps {
 export function MeterForm({ meter, onClose }: MeterFormProps) {
   const { addMeter, updateMeter } = useMeters();
   const [loading, setLoading] = useState(false);
+  const [units, setUnits] = useState<Unit[]>([]);
   const { register, handleSubmit, setValue, watch } = useForm();
 
   const meterType = watch('meter_type');
   const status = watch('status');
   const phaseType = watch('phase_type');
+  const unitId = watch('unit_id');
+
+  // Fetch units
+  useEffect(() => {
+    const fetchUnits = async () => {
+      const { data, error } = await supabase
+        .from('unit')
+        .select('id, name, abbreviation')
+        .eq('is_active', true)
+        .order('name');
+      
+      if (!error && data) {
+        setUnits(data);
+      }
+    };
+    fetchUnits();
+  }, []);
 
   useEffect(() => {
     if (meter) {
@@ -50,8 +75,8 @@ export function MeterForm({ meter, onClose }: MeterFormProps) {
         'current_rating',
         'meter_constant',
         'multiplier',
-        'health_score',
-        'last_reading'
+        'last_reading',
+        'unit_id'
       ];
       
       const transformedData = { ...data };
@@ -273,15 +298,22 @@ export function MeterForm({ meter, onClose }: MeterFormProps) {
           />
         </div>
         <div>
-          <Label htmlFor="health_score">Health Score (%)</Label>
-          <Input
-            id="health_score"
-            type="number"
-            min="0"
-            max="100"
-            defaultValue={100}
-            {...register('health_score')}
-          />
+          <Label htmlFor="unit_id">Unit of Measure</Label>
+          <Select
+            value={unitId?.toString()}
+            onValueChange={(value) => setValue('unit_id', value ? parseInt(value) : null)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select unit" />
+            </SelectTrigger>
+            <SelectContent>
+              {units.map((unit) => (
+                <SelectItem key={unit.id} value={unit.id.toString()}>
+                  {unit.name} ({unit.abbreviation})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

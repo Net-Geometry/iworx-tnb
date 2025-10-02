@@ -112,7 +112,7 @@ export default function MetersPage() {
                 <TableHead>Manufacturer</TableHead>
                 <TableHead>Model</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Health Score</TableHead>
+                <TableHead>Unit of Measure</TableHead>
                 <TableHead>Next Calibration</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -150,15 +150,11 @@ export default function MetersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-20 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-primary"
-                            style={{ width: `${meter.health_score}%` }}
-                          />
-                        </div>
-                        <span className="text-sm">{meter.health_score}%</span>
-                      </div>
+                      {meter.unit ? (
+                        <span>{meter.unit.name} ({meter.unit.abbreviation})</span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {meter.next_calibration_date || '-'}

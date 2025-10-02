@@ -437,7 +437,6 @@ export type Database = {
           created_by: string | null
           current_rating: number | null
           description: string | null
-          health_score: number | null
           id: string
           installation_date: string | null
           installation_location: string | null
@@ -456,6 +455,7 @@ export type Database = {
           phase_type: string | null
           serial_number: string
           status: string
+          unit_id: number | null
           updated_at: string
           voltage_rating: number | null
         }
@@ -467,7 +467,6 @@ export type Database = {
           created_by?: string | null
           current_rating?: number | null
           description?: string | null
-          health_score?: number | null
           id?: string
           installation_date?: string | null
           installation_location?: string | null
@@ -486,6 +485,7 @@ export type Database = {
           phase_type?: string | null
           serial_number: string
           status?: string
+          unit_id?: number | null
           updated_at?: string
           voltage_rating?: number | null
         }
@@ -497,7 +497,6 @@ export type Database = {
           created_by?: string | null
           current_rating?: number | null
           description?: string | null
-          health_score?: number | null
           id?: string
           installation_date?: string | null
           installation_location?: string | null
@@ -516,10 +515,19 @@ export type Database = {
           phase_type?: string | null
           serial_number?: string
           status?: string
+          unit_id?: number | null
           updated_at?: string
           voltage_rating?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "meters_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "unit"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       organizations: {
         Row: {
@@ -1027,6 +1035,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      unit: {
+        Row: {
+          abbreviation: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: number
+          is_active: boolean | null
+          name: string | null
+          sync_timestamp: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          abbreviation?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: number
+          is_active?: boolean | null
+          name?: string | null
+          sync_timestamp?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          abbreviation?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: number
+          is_active?: boolean | null
+          name?: string | null
+          sync_timestamp?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       user_organizations: {
         Row: {
