@@ -9,6 +9,7 @@ import { WorkOrderKPICards } from "@/components/work-orders/WorkOrderKPICards";
 import { WorkOrderTable } from "@/components/work-orders/WorkOrderTable";
 import { WorkOrderForm } from "@/components/work-orders/WorkOrderForm";
 import { WorkOrderDetailsModal } from "@/components/work-orders/WorkOrderDetailsModal";
+import { WorkOrderCalendarView } from "@/components/work-orders/WorkOrderCalendarView";
 import {
   Select,
   SelectContent,
@@ -163,11 +164,13 @@ const WorkOrdersPage = () => {
         </TabsContent>
 
         <TabsContent value="calendar" className="mt-6">
-          <div className="bg-gradient-card rounded-xl p-6 shadow-card border border-border/50">
-            <p className="text-center text-muted-foreground py-12">
-              Calendar view coming soon
-            </p>
-          </div>
+          <WorkOrderCalendarView
+            workOrders={filteredWorkOrders}
+            onWorkOrderSelect={(workOrder) => {
+              setSelectedWorkOrder(workOrder);
+            }}
+            onEditWorkOrder={handleEditWorkOrder}
+          />
         </TabsContent>
       </Tabs>
 
