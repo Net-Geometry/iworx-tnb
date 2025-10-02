@@ -75,6 +75,7 @@ import MaintenanceRoutesPage from "./pages/MaintenanceRoutesPage";
 import RouteDetailPage from "./pages/RouteDetailPage";
 import MobilePage from "./pages/MobilePage";
 import AssetHierarchyPage from "./pages/AssetHierarchyPage";
+import ProfilePage from "./pages/ProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +92,13 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <Index />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/profile" element={
+              <AuthGuard>
+                <Layout>
+                  <ProfilePage />
                 </Layout>
               </AuthGuard>
             } />

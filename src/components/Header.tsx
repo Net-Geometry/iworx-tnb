@@ -1,13 +1,18 @@
-import { Bell, Settings, User, LogOut } from "lucide-react";
+import { Bell, Settings, User, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentUserRoles } from "@/hooks/useCurrentUserRoles";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { OrganizationSwitcher } from "@/components/OrganizationSwitcher";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
+  const { primaryRole } = useCurrentUserRoles();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
@@ -78,9 +83,19 @@ const Header = () => {
                   <p className="text-xs leading-none text-muted-foreground">
                     {user?.email}
                   </p>
+                  {primaryRole && (
+                    <Badge variant="secondary" className="w-fit mt-1">
+                      <Shield className="mr-1 h-3 w-3" />
+                      {primaryRole.role_display_name}
+                    </Badge>
+                  )}
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate("/profile")}>
+                <User className="mr-2 h-4 w-4" />
+                <span>View Profile</span>
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Sign out</span>
