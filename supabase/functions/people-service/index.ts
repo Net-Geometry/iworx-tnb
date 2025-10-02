@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
         .from('people')
         .select(`
           *,
-          person_business_areas!inner (
+          person_business_areas (
             id,
             business_area_id,
             is_primary,
@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
         .from('people')
         .select(`
           *,
-          person_business_areas!inner (
+          person_business_areas (
             id,
             business_area_id,
             is_primary,
