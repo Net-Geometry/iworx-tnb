@@ -19,6 +19,7 @@ import { useRouteAssets } from "@/hooks/useRouteAssets";
 import { RouteForm } from "@/components/routes/RouteForm";
 import { useMaintenanceRoutes } from "@/hooks/useMaintenanceRoutes";
 import { RouteAssetSelector } from "@/components/routes/RouteAssetSelector";
+import { RouteAssignmentsList } from "@/components/routes/RouteAssignmentsList";
 
 /**
  * Detailed view of a maintenance route
@@ -277,18 +278,8 @@ const RouteDetailPage = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="assignments">
-          <Card>
-            <CardHeader>
-              <CardTitle>Route Assignments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                No assignments yet. Assign this route to PM schedules or work
-                orders.
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="assignments" className="space-y-4">
+          <RouteAssignmentsList routeId={id!} />
         </TabsContent>
       </Tabs>
 
