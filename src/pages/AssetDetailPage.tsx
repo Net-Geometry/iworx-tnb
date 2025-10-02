@@ -42,7 +42,7 @@ const AssetDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { assets, loading, error } = useAssets();
   const asset = assets.find(a => a.id === id);
-  const { maintenanceHistory, upcomingWorkOrders, loading: maintenanceLoading } = useAssetMaintenance(id || '');
+  const { maintenanceHistory, upcomingWorkOrders, recentWorkOrders, loading: maintenanceLoading } = useAssetMaintenance(id || '');
 
   if (loading) {
     return (
@@ -327,11 +327,11 @@ const AssetDetailPage: React.FC = () => {
 
         {/* Maintenance Tab */}
         <TabsContent value="maintenance" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>Maintenance History</CardTitle>
-                <CardDescription>Recent maintenance activities</CardDescription>
+                <CardDescription>Recorded maintenance activities</CardDescription>
               </CardHeader>
               <CardContent>
                 {maintenanceLoading ? (
@@ -392,6 +392,55 @@ const AssetDetailPage: React.FC = () => {
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center py-4">No upcoming work orders</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Work Orders</CardTitle>
+                <CardDescription>Completed and cancelled work orders</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {maintenanceLoading ? (
+                  <div className="space-y-3">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ) : recentWorkOrders.length > 0 ? (
+                  <div className="space-y-4">
+                    {recentWorkOrders.map((order) => (
+                      <div key={order.id} className="border border-border rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-medium text-foreground">{order.title}</h4>
+                          <Badge 
+                            variant={order.status === 'completed' ? 'default' : 'secondary'}
+                          >
+                            {order.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2">{order.description}</p>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Type: {order.maintenance_type}</span>
+                            <span>Priority: {order.priority}</span>
+                          </div>
+                          {order.assigned_technician && (
+                            <div className="text-xs text-muted-foreground">
+                              Technician: {order.assigned_technician}
+                            </div>
+                          )}
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Duration: {order.estimated_duration_hours || 'N/A'} hrs</span>
+                            <span>Cost: {formatCurrency(order.estimated_cost)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-4">No recent work orders</p>
                 )}
               </CardContent>
             </Card>

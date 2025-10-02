@@ -40,6 +40,7 @@ export interface WorkOrder {
 export const useAssetMaintenance = (assetId: string) => {
   const [maintenanceHistory, setMaintenanceHistory] = useState<MaintenanceRecord[]>([]);
   const [upcomingWorkOrders, setUpcomingWorkOrders] = useState<WorkOrder[]>([]);
+  const [recentWorkOrders, setRecentWorkOrders] = useState<WorkOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -109,13 +110,46 @@ export const useAssetMaintenance = (assetId: string) => {
     }
   };
 
+  const fetchRecentWorkOrders = async () => {
+    try {
+      let query = supabase
+        .from('work_orders')
+        .select('*')
+        .eq('asset_id', assetId)
+        .in('status', ['completed', 'cancelled']);
+
+      if (!hasCrossProjectAccess && currentOrganization) {
+        query = query.eq('organization_id', currentOrganization.id);
+      }
+
+      const { data, error: fetchError } = await query
+        .order('updated_at', { ascending: false })
+        .limit(10);
+
+      if (fetchError) throw fetchError;
+      
+      // Cast the data to properly typed interfaces
+      const typedData: WorkOrder[] = (data || []).map(order => ({
+        ...order,
+        maintenance_type: order.maintenance_type as WorkOrder['maintenance_type'],
+        priority: order.priority as WorkOrder['priority'],
+        status: order.status as WorkOrder['status']
+      }));
+      
+      setRecentWorkOrders(typedData);
+    } catch (error: any) {
+      console.error('Error fetching recent work orders:', error);
+      setError(error.message);
+    }
+  };
+
   const fetchAll = async () => {
     if (!assetId) return;
     
     try {
       setLoading(true);
       setError(null);
-      await Promise.all([fetchMaintenanceHistory(), fetchUpcomingWorkOrders()]);
+      await Promise.all([fetchMaintenanceHistory(), fetchUpcomingWorkOrders(), fetchRecentWorkOrders()]);
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -130,6 +164,7 @@ export const useAssetMaintenance = (assetId: string) => {
   return {
     maintenanceHistory,
     upcomingWorkOrders,
+    recentWorkOrders,
     loading,
     error,
     refetch: fetchAll
