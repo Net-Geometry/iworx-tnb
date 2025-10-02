@@ -31,7 +31,8 @@ import {
   HardHat,
   FileCheck,
   ExternalLink,
-  Zap
+  Zap,
+  MapPin
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -100,6 +101,35 @@ const WorkOrderDetailPage: React.FC = () => {
   
   // Fetch job plan if PM schedule has one
   const { data: jobPlan } = useJobPlan(pmSchedule?.job_plan_id || '');
+  
+  // Fetch location details if PM schedule has a location
+  const [locationNode, setLocationNode] = React.useState<{ id: string; name: string; path?: string } | null>(null);
+  
+  React.useEffect(() => {
+    const fetchLocation = async () => {
+      const locationNodeId = (pmSchedule as any)?.location_node_id;
+      if (!locationNodeId) {
+        setLocationNode(null);
+        return;
+      }
+      
+      const { data } = await supabase
+        .from('hierarchy_nodes')
+        .select('id, name, path')
+        .eq('id', locationNodeId)
+        .maybeSingle();
+      
+      if (data) {
+        setLocationNode(data);
+      }
+    };
+    
+    fetchLocation();
+  }, [(pmSchedule as any)?.location_node_id]);
+  
+  const locationBreadcrumb = locationNode 
+    ? `${locationNode.path} / ${locationNode.name}`
+    : null;
   
   // Fetch PM schedule assignments
   const { data: assignments } = usePMScheduleAssignments(workOrder?.pm_schedule_id);
@@ -890,6 +920,31 @@ const WorkOrderDetailPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Location Information */}
+                  {locationBreadcrumb && (
+                    <div className="border-t pt-4 space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        Notification Location
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {locationBreadcrumb}
+                        </Badge>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate(`/assets?location=${(pmSchedule as any).location_node_id}`)}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Engineers assigned to this location were notified when this work order was created
+                      </p>
+                    </div>
+                  )}
 
                   <div className="flex gap-2 pt-2">
                     <Button 

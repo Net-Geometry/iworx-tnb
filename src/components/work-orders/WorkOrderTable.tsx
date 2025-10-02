@@ -2,7 +2,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Eye, Edit, Trash2 } from "lucide-react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { MoreVertical, Eye, Edit, Trash2, MapPin } from "lucide-react";
 import { WorkOrder } from "@/hooks/useWorkOrders";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -68,13 +69,14 @@ export const WorkOrderTable = ({ workOrders, onView, onEdit, onDelete }: WorkOrd
             <TableHead>Assigned To</TableHead>
             <TableHead>Duration</TableHead>
             <TableHead>Cost</TableHead>
+            <TableHead>Location</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {workOrders.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                 No work orders found
               </TableCell>
             </TableRow>
@@ -89,6 +91,28 @@ export const WorkOrderTable = ({ workOrders, onView, onEdit, onDelete }: WorkOrd
                 <TableCell>{workOrder.assigned_technician || '-'}</TableCell>
                 <TableCell>{workOrder.estimated_duration_hours ? `${workOrder.estimated_duration_hours}h` : '-'}</TableCell>
                 <TableCell>{workOrder.estimated_cost ? `$${workOrder.estimated_cost.toFixed(2)}` : '-'}</TableCell>
+                <TableCell>
+                  {(workOrder as any).hierarchy_nodes ? (
+                    <HoverCard>
+                      <HoverCardTrigger>
+                        <Badge variant="outline" className="cursor-pointer text-xs">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          View
+                        </Badge>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80">
+                        <div className="space-y-1">
+                          <p className="text-xs font-medium">Location Path:</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(workOrder as any).hierarchy_nodes.path} / {(workOrder as any).hierarchy_nodes.name}
+                          </p>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">N/A</span>
+                  )}
+                </TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
