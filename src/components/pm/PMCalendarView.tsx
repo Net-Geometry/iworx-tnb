@@ -209,7 +209,7 @@ export function PMCalendarView({ schedules, onScheduleClick, onEdit }: PMCalenda
                 className="rounded-lg border-2 w-full shadow-sm"
               />
               <div className="absolute inset-0 pointer-events-none">
-                <div className="grid grid-cols-7 w-full h-full pt-[4.5rem]">
+                <div className="grid grid-cols-7 w-full pt-[4.5rem]">
                   {Array.from({ length: 42 }).map((_, i) => {
                     const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
                     const startDay = startOfMonth.getDay();
