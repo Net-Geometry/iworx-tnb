@@ -239,15 +239,21 @@ export const useWorkOrders = () => {
         console.warn('[useWorkOrders] Microservice failed, falling back:', microserviceError);
       }
 
-      // Fallback to direct Supabase access
-      const { error } = await supabase
-        // @ts-expect-error - workorder_service schema not in generated types
-        .schema('workorder_service')
-        .from('work_orders')
-        .delete()
-        .eq('id', id);
+      // Fallback to database function call
+      const organizationId = currentOrganization?.id;
+      const { data, error: rpcError } = await supabase.rpc('delete_work_order', {
+        _work_order_id: id,
+        _organization_id: organizationId || null
+      });
 
-      if (error) throw error;
+      if (rpcError) {
+        console.error('Error deleting work order:', rpcError);
+        throw rpcError;
+      }
+
+      if (!data) {
+        throw new Error('Work order not found or already deleted');
+      }
 
       toast({
         title: "Success",

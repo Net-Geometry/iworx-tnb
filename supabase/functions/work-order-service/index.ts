@@ -140,19 +140,22 @@ Deno.serve(async (req) => {
     if (method === 'DELETE' && pathParts.length === 1) {
       const workOrderId = pathParts[0];
 
-      let query = supabase
-        .schema('workorder_service')
-        .from('work_orders')
-        .delete()
-        .eq('id', workOrderId);
+      const { data, error } = await supabase.rpc('delete_work_order', {
+        _work_order_id: workOrderId,
+        _organization_id: hasCrossProjectAccess ? null : organizationId
+      });
 
-      if (!hasCrossProjectAccess && organizationId) {
-        query = query.eq('organization_id', organizationId);
+      if (error) {
+        console.error('[Work Order Service] Delete error:', error);
+        throw error;
       }
 
-      const { error } = await query;
-
-      if (error) throw error;
+      if (!data) {
+        return new Response(JSON.stringify({ error: 'Work order not found' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404,
+        });
+      }
 
       console.log(`[Work Order Service] Deleted work order: ${workOrderId}`);
 

@@ -3923,6 +3923,10 @@ export type Database = {
       }
     }
     Functions: {
+      delete_work_order: {
+        Args: { _organization_id?: string; _work_order_id: string }
+        Returns: boolean
+      }
       get_recommended_technicians: {
         Args: { _organization_id: string; _work_order_id: string }
         Returns: {
