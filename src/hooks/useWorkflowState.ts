@@ -110,6 +110,7 @@ export const useWorkOrderWorkflow = (workOrderId: string | undefined) => {
       if (stepData?.work_order_status) {
         const { error: woStatusError } = await supabase
           .from("work_orders")
+          // @ts-expect-error - Types will regenerate after schema migration
           .update({ status: stepData.work_order_status })
           .eq("id", workOrderId);
 

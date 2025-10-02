@@ -124,6 +124,7 @@ export const WorkOrderDetailsModal = ({
     try {
       const { error } = await supabase
         .from('work_orders')
+        // @ts-expect-error - Types will regenerate after schema migration
         .update({ status: newStatus })
         .eq('id', workOrder.id);
 
