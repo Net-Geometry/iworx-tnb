@@ -5,6 +5,7 @@ import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAssets } from '@/hooks/useAssets';
 import { useAssetMaintenance } from '@/hooks/useMaintenance';
+import { useAssetLocation } from '@/hooks/useAssetLocation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +33,8 @@ import {
   AlertTriangle,
   Clock,
   Camera,
-  Upload
+  Upload,
+  ChevronRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -43,6 +45,7 @@ const AssetDetailPage: React.FC = () => {
   const { assets, loading, error } = useAssets();
   const asset = assets.find(a => a.id === id);
   const { maintenanceHistory, upcomingWorkOrders, recentWorkOrders, loading: maintenanceLoading } = useAssetMaintenance(id || '');
+  const { location: assetLocation, loading: locationLoading } = useAssetLocation(id || '');
 
   if (loading) {
     return (
@@ -531,27 +534,102 @@ const AssetDetailPage: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Current Location</label>
-                  <p className="text-lg text-foreground mt-1">{asset.location || 'Unassigned'}</p>
+              {locationLoading ? (
+                <div className="space-y-4">
+                  <div className="h-8 bg-muted animate-pulse rounded" />
+                  <div className="h-20 bg-muted animate-pulse rounded" />
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Hierarchy Path</label>
-                  <p className="text-sm text-muted-foreground mt-1">{asset.hierarchy_path || 'No hierarchy assigned'}</p>
+              ) : !assetLocation?.currentLocation ? (
+                <div className="text-center py-8">
+                  <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-muted-foreground">No hierarchy assigned</p>
                 </div>
-                <Separator />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button variant="outline">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    Change Location
-                  </Button>
-                  <Button variant="outline">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Update Hierarchy
-                  </Button>
+              ) : (
+                <div className="space-y-6">
+                  {/* Current Location */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Current Location</label>
+                    <p className="text-lg font-semibold text-foreground mt-1">
+                      {assetLocation.currentLocation.name}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {assetLocation.currentLocation.levelName}
+                    </p>
+                  </div>
+
+                  {/* Full Hierarchy Path */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                      Hierarchy Path
+                    </label>
+                    <div className="flex items-center gap-2 flex-wrap bg-muted/50 p-3 rounded-lg">
+                      {assetLocation.levels.map((level, index) => (
+                        <div key={level.id} className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 bg-background px-3 py-1.5 rounded-md border border-border">
+                            {level.icon && (
+                              <span className="text-sm" style={{ color: level.color || 'currentColor' }}>
+                                {level.icon}
+                              </span>
+                            )}
+                            <span className="text-sm font-medium">{level.name}</span>
+                          </div>
+                          {index < assetLocation.levels.length - 1 && (
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Hierarchy Details */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground mb-3 block">
+                      Hierarchy Details
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {assetLocation.levels.map((level) => (
+                        <div 
+                          key={level.id}
+                          className="p-4 border border-border rounded-lg bg-card hover:bg-accent/5 transition-colors"
+                        >
+                          <div className="flex items-start gap-3">
+                            {level.icon && (
+                              <div 
+                                className="mt-0.5 text-lg"
+                                style={{ color: level.color || 'currentColor' }}
+                              >
+                                {level.icon}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                                {level.levelName}
+                              </p>
+                              <p className="text-sm font-medium text-foreground truncate">
+                                {level.name}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+                  
+                  {/* Actions */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Button variant="outline">
+                      <MapPin className="w-4 h-4 mr-2" />
+                      Change Location
+                    </Button>
+                    <Button variant="outline">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Update Hierarchy
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
