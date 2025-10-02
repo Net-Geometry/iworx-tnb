@@ -34,8 +34,16 @@ export const PersonLocationAssignments: React.FC<PersonLocationAssignmentsProps>
   const [notes, setNotes] = useState('');
   const [viewLocationId, setViewLocationId] = useState<string>('');
 
-  const { data: personLocations = [], isLoading } = usePersonLocations(personId);
+  const { data: personLocations = [], isLoading, error } = usePersonLocations(personId);
   const { data: locationEngineers = [] } = useLocationEngineers(viewLocationId);
+
+  console.log('📍 Person Locations Component:', {
+    personId,
+    locationsCount: personLocations.length,
+    isLoading,
+    error,
+    locations: personLocations
+  });
   const assignLocation = useAssignPersonLocation();
   const unassignLocation = useUnassignPersonLocation();
   const updateLocation = useUpdatePersonLocation();
@@ -169,7 +177,7 @@ export const PersonLocationAssignments: React.FC<PersonLocationAssignmentsProps>
                       </TableCell>
                       <TableCell>
                         <span className="text-xs text-muted-foreground">
-                          {location.hierarchy_nodes?.path}
+                          {location.hierarchy_nodes?.path || 'Path not available'}
                         </span>
                       </TableCell>
                       <TableCell>

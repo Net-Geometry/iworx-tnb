@@ -15,6 +15,8 @@ export const usePersonLocations = (personId?: string) => {
     queryFn: async () => {
       if (!personId) return [];
       
+      console.log('🔍 Fetching person locations for:', personId);
+      
       const { data, error } = await supabase
         .from('person_locations')
         .select(`
@@ -36,10 +38,17 @@ export const usePersonLocations = (personId?: string) => {
         .order('is_primary', { ascending: false })
         .order('assigned_date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching person locations:', error);
+        throw error;
+      }
+      
+      console.log('✅ Person locations data:', data);
       return data || [];
     },
     enabled: !!personId,
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 };
 
