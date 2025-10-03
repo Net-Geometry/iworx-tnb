@@ -260,12 +260,15 @@ serve(async (req) => {
     // Check cross-project access
     const hasCrossProjectAccess = await checkCrossProjectAccess(supabase, userId);
 
-    // Route to appropriate handler
-    const pathParts = path.split("/").filter(Boolean);
-    const assetId = pathParts[0]; // First part might be asset ID
+    /**
+     * Path parsing: API Gateway forwards /api/assets to /asset-service/
+     * Filter out 'asset-service' from pathParts to get the actual route segments
+     */
+    const pathParts = path.split("/").filter(p => p && p !== 'asset-service');
+    const assetId = pathParts.length > 0 ? pathParts[0] : null;
 
     // GET /assets - List all assets
-    if (req.method === "GET" && (!assetId || assetId === "assets")) {
+    if (req.method === "GET" && !assetId) {
       const assets = await getAssets(supabase, organizationId || "", hasCrossProjectAccess, searchParams);
       return new Response(JSON.stringify(assets), {
         status: 200,
@@ -292,7 +295,7 @@ serve(async (req) => {
     }
 
     // POST /assets - Create new asset
-    if (req.method === "POST" && (!assetId || assetId === "assets")) {
+    if (req.method === "POST" && !assetId) {
       const body = await req.json();
       const asset = await createAsset(supabase, body, organizationId || "");
       return new Response(JSON.stringify(asset), {

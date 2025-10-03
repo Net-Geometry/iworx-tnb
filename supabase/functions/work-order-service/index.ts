@@ -65,6 +65,43 @@ Deno.serve(async (req) => {
       });
     }
 
+    /**
+     * CRITICAL ROUTE ORDERING:
+     * Specific routes (/stats) MUST come before parameterized routes (/:id)
+     * to prevent path segments from being misinterpreted as UUIDs
+     */
+    
+    // GET /work-orders/stats - Get work order statistics
+    if (method === 'GET' && pathParts.length === 1 && pathParts[0] === 'stats') {
+      let query = supabase.from('work_orders').select('*');
+
+      if (!hasCrossProjectAccess && organizationId) {
+        query = query.eq('organization_id', organizationId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      const today = new Date().toISOString().split('T')[0];
+      const stats = {
+        total: data.length,
+        scheduled: data.filter(wo => wo.status === 'scheduled').length,
+        in_progress: data.filter(wo => wo.status === 'in_progress').length,
+        completed: data.filter(wo => wo.status === 'completed').length,
+        overdue: data.filter(wo => 
+          wo.status !== 'completed' && 
+          wo.status !== 'cancelled' && 
+          wo.scheduled_date < today
+        ).length
+      };
+
+      return new Response(JSON.stringify(stats), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
+
     // GET /work-orders/:id - Get single work order
     if (method === 'GET' && pathParts.length === 1) {
       const workOrderId = pathParts[0];
@@ -165,36 +202,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // GET /work-orders/stats - Get work order statistics
-    if (method === 'GET' && pathParts.length === 1 && pathParts[0] === 'stats') {
-      let query = supabase.from('work_orders').select('*');
-
-      if (!hasCrossProjectAccess && organizationId) {
-        query = query.eq('organization_id', organizationId);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      const today = new Date().toISOString().split('T')[0];
-      const stats = {
-        total: data.length,
-        scheduled: data.filter(wo => wo.status === 'scheduled').length,
-        in_progress: data.filter(wo => wo.status === 'in_progress').length,
-        completed: data.filter(wo => wo.status === 'completed').length,
-        overdue: data.filter(wo => 
-          wo.status !== 'completed' && 
-          wo.status !== 'cancelled' && 
-          wo.scheduled_date < today
-        ).length
-      };
-
-      return new Response(JSON.stringify(stats), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      });
-    }
 
     return new Response(JSON.stringify({ error: 'Not found' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
