@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { ArrowLeft, AlertTriangle, FileText, Calendar, User, MapPin, Mail, Package, Wrench, ExternalLink, Save, X } from "lucide-react";
+import { ArrowLeft, AlertTriangle, FileText, Calendar, User, MapPin, Mail, Package, ExternalLink, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,6 @@ import { useIncidents } from "@/hooks/useIncidents";
 import { useIncidentWorkflow } from "@/hooks/useWorkflowState";
 import { useAssets } from "@/hooks/useAssets";
 import { useCanEditIncident } from "@/hooks/useCanEditIncident";
-import { useTechnicians } from "@/hooks/useTechnicians";
 import { IncidentWorkflowProgress } from "@/components/incidents/IncidentWorkflowProgress";
 import { IncidentWorkflowActions } from "@/components/incidents/IncidentWorkflowActions";
 import { WorkflowHistory } from "@/components/workflow/WorkflowHistory";
@@ -43,7 +42,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 
 // Form validation schema
@@ -58,15 +56,6 @@ const incidentSchema = z.object({
   root_cause: z.string().optional(),
   corrective_actions: z.string().optional(),
   regulatory_reporting_required: z.boolean().default(false),
-  requires_work_order: z.boolean().default(false),
-  wo_maintenance_type: z.enum(["preventive", "corrective", "predictive", "emergency"]).optional(),
-  wo_priority: z.enum(["low", "medium", "high", "critical"]).optional(),
-  wo_estimated_duration_hours: z.coerce.number().optional(),
-  wo_assigned_technician: z.string().optional(),
-  wo_estimated_cost: z.coerce.number().optional(),
-  wo_target_start_date: z.string().optional(),
-  wo_target_finish_date: z.string().optional(),
-  wo_notes: z.string().optional(),
 });
 
 type IncidentFormValues = z.infer<typeof incidentSchema>;
@@ -89,7 +78,6 @@ const IncidentDetailPage = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const incident = incidents?.find((inc) => inc.id === id);
-  const { technicians, isLoading: loadingTechnicians } = useTechnicians(incident?.location);
 
   // Initialize form with incident data
   const form = useForm<IncidentFormValues>({
@@ -105,15 +93,6 @@ const IncidentDetailPage = () => {
       root_cause: incident?.root_cause || "",
       corrective_actions: incident?.corrective_actions || "",
       regulatory_reporting_required: incident?.regulatory_reporting_required || false,
-      requires_work_order: !!incident?.wo_maintenance_type,
-      wo_maintenance_type: incident?.wo_maintenance_type || undefined,
-      wo_priority: incident?.wo_priority || undefined,
-      wo_estimated_duration_hours: incident?.wo_estimated_duration_hours || undefined,
-      wo_assigned_technician: incident?.wo_assigned_technician || "",
-      wo_estimated_cost: incident?.wo_estimated_cost || undefined,
-      wo_target_start_date: incident?.wo_target_start_date ? incident.wo_target_start_date.slice(0, 16) : "",
-      wo_target_finish_date: incident?.wo_target_finish_date ? incident.wo_target_finish_date.slice(0, 16) : "",
-      wo_notes: incident?.wo_notes || "",
     },
   });
 
@@ -131,15 +110,6 @@ const IncidentDetailPage = () => {
         root_cause: incident.root_cause || "",
         corrective_actions: incident.corrective_actions || "",
         regulatory_reporting_required: incident.regulatory_reporting_required || false,
-        requires_work_order: !!incident.wo_maintenance_type,
-        wo_maintenance_type: incident.wo_maintenance_type || undefined,
-        wo_priority: incident.wo_priority || undefined,
-        wo_estimated_duration_hours: incident.wo_estimated_duration_hours || undefined,
-        wo_assigned_technician: incident.wo_assigned_technician || "",
-        wo_estimated_cost: incident.wo_estimated_cost || undefined,
-        wo_target_start_date: incident.wo_target_start_date ? incident.wo_target_start_date.slice(0, 16) : "",
-        wo_target_finish_date: incident.wo_target_finish_date ? incident.wo_target_finish_date.slice(0, 16) : "",
-        wo_notes: incident.wo_notes || "",
       });
     }
   }, [incident, form]);
@@ -150,10 +120,7 @@ const IncidentDetailPage = () => {
     
     setIsSaving(true);
     try {
-      // Remove UI-only fields before sending to API
-      const { requires_work_order, ...incidentData } = data;
-      
-      await updateIncident(id, incidentData);
+      await updateIncident(id, data);
       await refetch();
       setIsEditing(false);
       toast.success("Incident updated successfully");
@@ -619,269 +586,6 @@ const IncidentDetailPage = () => {
                         </FormItem>
                       )}
                     />
-                  </div>
-                </Form>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Work Order Planning Details */}
-          <Card className={isEditing ? "bg-accent/10" : ""}>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Wrench className="w-5 h-5" />
-                <span>Work Order Planning</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!isEditing ? (
-                // View Mode - Only show if WO exists
-                incident.wo_maintenance_type ? (
-                  <>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Maintenance Type</label>
-                        <p className="text-sm capitalize">{incident.wo_maintenance_type}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Priority</label>
-                        <Badge variant={incident.wo_priority === "critical" ? "destructive" : "default"} className="capitalize">
-                          {incident.wo_priority}
-                        </Badge>
-                      </div>
-                      {incident.wo_estimated_duration_hours && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Est. Duration</label>
-                          <p className="text-sm">{incident.wo_estimated_duration_hours} hours</p>
-                        </div>
-                      )}
-                      {incident.wo_assigned_technician && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
-                          <p className="text-sm">{incident.wo_assigned_technician}</p>
-                        </div>
-                      )}
-                      {incident.wo_estimated_cost && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Est. Cost</label>
-                          <p className="text-sm">${incident.wo_estimated_cost.toFixed(2)}</p>
-                        </div>
-                      )}
-                      {incident.wo_target_start_date && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Target Start</label>
-                          <p className="text-sm">{format(new Date(incident.wo_target_start_date), "PPp")}</p>
-                        </div>
-                      )}
-                      {incident.wo_target_finish_date && (
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Target Finish</label>
-                          <p className="text-sm">{format(new Date(incident.wo_target_finish_date), "PPp")}</p>
-                        </div>
-                      )}
-                    </div>
-                    {incident.wo_notes && (
-                      <div className="mt-4 p-3 bg-muted rounded-lg">
-                        <label className="text-sm font-medium text-muted-foreground">Work Instructions</label>
-                        <p className="text-sm mt-1">{incident.wo_notes}</p>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No work order planning required</p>
-                )
-              ) : (
-                // Edit Mode
-                <Form {...form}>
-                  <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="requires_work_order"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel className="text-base font-semibold">
-                              This incident requires maintenance work
-                            </FormLabel>
-                            <p className="text-sm text-muted-foreground">
-                              Check this to provide work order details
-                            </p>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-
-                    <Collapsible open={form.watch("requires_work_order")}>
-                      <CollapsibleContent className="space-y-4 pt-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="wo_maintenance_type"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Maintenance Type</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select type" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="corrective">Corrective</SelectItem>
-                                    <SelectItem value="preventive">Preventive</SelectItem>
-                                    <SelectItem value="predictive">Predictive</SelectItem>
-                                    <SelectItem value="emergency">Emergency</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="wo_priority"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Work Priority</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select priority" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="low">Low</SelectItem>
-                                    <SelectItem value="medium">Medium</SelectItem>
-                                    <SelectItem value="high">High</SelectItem>
-                                    <SelectItem value="critical">Critical</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="wo_estimated_duration_hours"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Estimated Duration (hours)</FormLabel>
-                                <FormControl>
-                                  <Input type="number" placeholder="0" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="wo_assigned_technician"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Assigned Technician</FormLabel>
-                                <Select 
-                                  onValueChange={field.onChange} 
-                                  value={field.value}
-                                  disabled={loadingTechnicians}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select technician..." />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {technicians.length === 0 && !loadingTechnicians && (
-                                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                                        No technicians available
-                                      </div>
-                                    )}
-                                    {technicians.map((tech) => (
-                                      <SelectItem 
-                                        key={tech.id} 
-                                        value={`${tech.first_name} ${tech.last_name}`}
-                                      >
-                                        {tech.first_name} {tech.last_name}
-                                        {tech.business_areas?.length > 0 && tech.business_areas[0].business_area.station && (
-                                          <span className="text-muted-foreground text-xs ml-2">
-                                            ({tech.business_areas[0].business_area.station})
-                                          </span>
-                                        )}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="wo_estimated_cost"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Estimated Cost</FormLabel>
-                                <FormControl>
-                                  <Input type="number" placeholder="0.00" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="wo_target_start_date"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Target Start Date & Time</FormLabel>
-                                <FormControl>
-                                  <Input type="datetime-local" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="wo_target_finish_date"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Target Finish Date & Time</FormLabel>
-                                <FormControl>
-                                  <Input type="datetime-local" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <FormField
-                          control={form.control}
-                          name="wo_notes"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Work Instructions</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Additional work order notes..." {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </CollapsibleContent>
-                    </Collapsible>
                   </div>
                 </Form>
               )}
