@@ -61,9 +61,12 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
   const currentStepIndex = steps.findIndex((s) => s.id === currentStep.id);
   const nextStep = steps[currentStepIndex + 1];
 
+  // Check if this step requires approval or auto-transitions
+  const isAutoTransitionStep = currentStep.approval_type === 'none';
+
   // Check if user has required role for this step
   const userRoleNames = roles?.map((r) => r.role_name) || [];
-  const canApprove = userRoleNames.some((role) => 
+  const canApprove = isAutoTransitionStep || userRoleNames.some((role) => 
     currentStep.name.toLowerCase().includes(role.toLowerCase()) ||
     role.toLowerCase() === "admin" ||
     role.toLowerCase() === "manager"
@@ -141,6 +144,29 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
     }
   };
 
+  // Handle auto-transition steps (no approval required)
+  const handleAutoTransition = async () => {
+    if (!nextStep) {
+      toast.error("No next step available");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await transitionStep.mutateAsync({
+        stepId: nextStep.id,
+        approvalAction: "approved",
+        comments: "Auto-transitioned from " + currentStep.name,
+      });
+
+      toast.success(`Moved to ${nextStep.name}`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to transition");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (!canApprove) {
     return (
       <Card>
@@ -152,6 +178,27 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
             You don't have permission to perform actions on this step.
             Current step requires: {currentStep.name}
           </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // For auto-transition steps, show a simple "Continue" button
+  if (isAutoTransitionStep && nextStep) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Next Steps</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            onClick={handleAutoTransition} 
+            className="w-full"
+            disabled={isSubmitting}
+          >
+            <CheckCircle className="w-4 h-4 mr-2" />
+            {isSubmitting ? "Processing..." : `Continue to ${nextStep.name}`}
+          </Button>
         </CardContent>
       </Card>
     );
