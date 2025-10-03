@@ -55,7 +55,6 @@ const incidentSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   reporter_name: z.string().min(1, "Reporter name is required"),
   reporter_email: z.string().email("Invalid email").optional().or(z.literal("")),
-  immediate_actions: z.string().optional(),
   root_cause: z.string().optional(),
   corrective_actions: z.string().optional(),
   cost_estimate: z.coerce.number().optional(),
@@ -97,14 +96,13 @@ const IncidentDetailPage = () => {
   const form = useForm<IncidentFormValues>({
     resolver: zodResolver(incidentSchema),
     defaultValues: {
-      incident_date: incident?.incident_date || "",
+      incident_date: incident?.incident_date ? incident.incident_date.slice(0, 16) : "",
       location: incident?.location || "",
       severity: incident?.severity || "medium",
       title: incident?.title || "",
       description: incident?.description || "",
       reporter_name: incident?.reporter_name || "",
       reporter_email: incident?.reporter_email || "",
-      immediate_actions: incident?.immediate_actions || "",
       root_cause: incident?.root_cause || "",
       corrective_actions: incident?.corrective_actions || "",
       cost_estimate: incident?.cost_estimate || undefined,
@@ -115,8 +113,8 @@ const IncidentDetailPage = () => {
       wo_estimated_duration_hours: incident?.wo_estimated_duration_hours || undefined,
       wo_assigned_technician: incident?.wo_assigned_technician || "",
       wo_estimated_cost: incident?.wo_estimated_cost || undefined,
-      wo_target_start_date: incident?.wo_target_start_date || "",
-      wo_target_finish_date: incident?.wo_target_finish_date || "",
+      wo_target_start_date: incident?.wo_target_start_date ? incident.wo_target_start_date.slice(0, 16) : "",
+      wo_target_finish_date: incident?.wo_target_finish_date ? incident.wo_target_finish_date.slice(0, 16) : "",
       wo_notes: incident?.wo_notes || "",
     },
   });
@@ -125,14 +123,13 @@ const IncidentDetailPage = () => {
   useEffect(() => {
     if (incident) {
       form.reset({
-        incident_date: incident.incident_date || "",
+        incident_date: incident.incident_date ? incident.incident_date.slice(0, 16) : "",
         location: incident.location || "",
         severity: incident.severity || "medium",
         title: incident.title || "",
         description: incident.description || "",
         reporter_name: incident.reporter_name || "",
         reporter_email: incident.reporter_email || "",
-        immediate_actions: incident.immediate_actions || "",
         root_cause: incident.root_cause || "",
         corrective_actions: incident.corrective_actions || "",
         cost_estimate: incident.cost_estimate || undefined,
@@ -143,8 +140,8 @@ const IncidentDetailPage = () => {
         wo_estimated_duration_hours: incident.wo_estimated_duration_hours || undefined,
         wo_assigned_technician: incident.wo_assigned_technician || "",
         wo_estimated_cost: incident.wo_estimated_cost || undefined,
-        wo_target_start_date: incident.wo_target_start_date || "",
-        wo_target_finish_date: incident.wo_target_finish_date || "",
+        wo_target_start_date: incident.wo_target_start_date ? incident.wo_target_start_date.slice(0, 16) : "",
+        wo_target_finish_date: incident.wo_target_finish_date ? incident.wo_target_finish_date.slice(0, 16) : "",
         wo_notes: incident.wo_notes || "",
       });
     }
@@ -439,17 +436,6 @@ const IncidentDetailPage = () => {
                       <p className="text-sm">${incident.cost_estimate.toLocaleString()}</p>
                     </div>
                   )}
-
-                  {incident.immediate_actions && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Immediate Actions Taken
-                      </label>
-                      <p className="text-sm mt-1 whitespace-pre-wrap">
-                        {incident.immediate_actions}
-                      </p>
-                    </div>
-                  )}
                 </>
               ) : (
                 // Edit Mode
@@ -591,20 +577,6 @@ const IncidentDetailPage = () => {
                         )}
                       />
                     </div>
-
-                    <FormField
-                      control={form.control}
-                      name="immediate_actions"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Immediate Actions Taken</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Describe immediate actions..." {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
                     <FormField
                       control={form.control}
