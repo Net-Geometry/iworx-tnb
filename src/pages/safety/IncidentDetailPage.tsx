@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, AlertTriangle, FileText, Calendar, User, MapPin, Mail, Package, Wrench, ExternalLink, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,6 @@ import { useIncidents } from "@/hooks/useIncidents";
 import { useIncidentWorkflow } from "@/hooks/useWorkflowState";
 import { useAssets } from "@/hooks/useAssets";
 import { useCanEditIncident } from "@/hooks/useCanEditIncident";
-import { EditIncidentDialog } from "@/components/incidents/EditIncidentDialog";
 import { IncidentWorkflowProgress } from "@/components/incidents/IncidentWorkflowProgress";
 import { IncidentWorkflowActions } from "@/components/incidents/IncidentWorkflowActions";
 import { WorkflowHistory } from "@/components/workflow/WorkflowHistory";
@@ -37,7 +35,6 @@ const IncidentDetailPage = () => {
   const { approvals } = useIncidentWorkflow(id);
   const { assets } = useAssets();
   const canEdit = useCanEditIncident(id);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const incident = incidents?.find((inc) => inc.id === id);
 
@@ -122,7 +119,7 @@ const IncidentDetailPage = () => {
         <div className="flex items-center gap-3">
           {canEdit && (
             <Button 
-              onClick={() => setEditDialogOpen(true)}
+              onClick={() => navigate(`/safety/incidents/${id}/edit`)}
               variant="outline"
               className="gap-2"
             >
@@ -390,13 +387,6 @@ const IncidentDetailPage = () => {
           </Card>
         </div>
       </div>
-
-      {/* Edit Dialog */}
-      <EditIncidentDialog 
-        incident={incident}
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-      />
     </div>
   );
 };
