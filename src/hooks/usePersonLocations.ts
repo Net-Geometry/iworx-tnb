@@ -26,7 +26,7 @@ export const usePersonLocations = (personId?: string) => {
             name,
             path
           ),
-          people (
+          people!person_locations_person_id_fkey (
             id,
             first_name,
             last_name,
@@ -63,7 +63,7 @@ export const useLocationEngineers = (locationNodeId?: string) => {
         .from('person_locations')
         .select(`
           *,
-          people!inner (
+          people!person_locations_person_id_fkey!inner (
             id,
             first_name,
             last_name,
