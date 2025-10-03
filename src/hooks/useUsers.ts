@@ -25,19 +25,12 @@ export const useUsers = () => {
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      // Fetch profiles
+      // Fetch profiles with email
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, display_name, created_at");
+        .select("id, email, display_name, created_at");
 
       if (profilesError) throw profilesError;
-
-      // Fetch auth users email
-      const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) throw authError;
-      
-      const authUsers = authData?.users || [];
 
       // Fetch user roles with explicit typing
       const { data: userRoles, error: rolesError } = await supabase
@@ -55,7 +48,6 @@ export const useUsers = () => {
 
       // Combine data
       const usersWithRoles: UserWithRoles[] = (profiles || []).map((profile) => {
-        const authUser = authUsers.find((u) => u.id === profile.id);
         const roles = (userRoles || [])
           .filter((ur) => ur.user_id === profile.id)
           .map((ur) => {
@@ -80,7 +72,7 @@ export const useUsers = () => {
 
         return {
           id: profile.id,
-          email: authUser?.email || "",
+          email: profile.email || "",
           display_name: profile.display_name || "",
           created_at: profile.created_at || "",
           roles,
