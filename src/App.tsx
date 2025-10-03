@@ -71,6 +71,7 @@ import TeamDetailPage from "./pages/people-labor/TeamDetailPage";
 import SkillsLibraryPage from "./pages/people-labor/SkillsLibraryPage";
 import MyVerticals from "./pages/MyVerticals";
 import CrossProjectAnalytics from "./pages/CrossProjectAnalytics";
+import SuperadminAIAssistantPage from "./pages/admin/SuperadminAIAssistantPage";
 import MetersPage from "./pages/meters/MetersPage";
 import MeterGroupsPage from "./pages/meters/MeterGroupsPage";
 import MaintenanceRoutesPage from "./pages/MaintenanceRoutesPage";
@@ -566,6 +567,13 @@ const App = () => (
                   <MyVerticals />
                 </Layout>
               </AuthGuard>
+            } />
+            <Route path="/admin/ai-assistant" element={
+              <AdminGuard>
+                <Layout>
+                  <SuperadminAIAssistantPage />
+                </Layout>
+              </AdminGuard>
             } />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

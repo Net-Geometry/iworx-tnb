@@ -202,7 +202,8 @@ Average completion rate: ${(efficiencyResults.reduce((sum, r) => sum + parseFloa
 
   } catch (error) {
     console.error('[Cost Insights] Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

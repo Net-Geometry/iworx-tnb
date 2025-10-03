@@ -4263,6 +4263,22 @@ export type Database = {
         Args: { "": string } | { "": unknown } | { "": unknown }
         Returns: string
       }
+      match_organization_embeddings: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          content: string
+          entity_id: string
+          entity_type: string
+          id: string
+          metadata: Json
+          organization_id: string
+          similarity: number
+        }[]
+      }
       refresh_cost_analysis_view: {
         Args: Record<PropertyKey, never>
         Returns: undefined
