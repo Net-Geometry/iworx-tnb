@@ -1,5 +1,14 @@
 project_id = "jsqzkaarpfowgmijcwaw"
 
+[functions.superadmin-ai-chat]
+verify_jwt = true
+
+[functions.embed-organization-data]
+verify_jwt = false
+
+[functions.refresh-cost-insights]
+verify_jwt = false
+
 [functions.create-user]
 verify_jwt = true
 

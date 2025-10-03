@@ -59,6 +59,42 @@ export type Database = {
         }
         Relationships: []
       }
+      cross_vertical_cost_insights: {
+        Row: {
+          content: string
+          created_at: string | null
+          data: Json
+          embedding: string | null
+          id: string
+          insight_type: string
+          period_end: string
+          period_start: string
+          time_period: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          data: Json
+          embedding?: string | null
+          id?: string
+          insight_type: string
+          period_end: string
+          period_start: string
+          time_period: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          data?: Json
+          embedding?: string | null
+          id?: string
+          insight_type?: string
+          period_end?: string
+          period_start?: string
+          time_period?: string
+        }
+        Relationships: []
+      }
       domain_events: {
         Row: {
           correlation_id: string | null
@@ -265,6 +301,13 @@ export type Database = {
             foreignKeyName: "loto_procedures_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "loto_procedures_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -317,6 +360,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "maintenance_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
           {
             foreignKeyName: "maintenance_records_organization_id_fkey"
             columns: ["organization_id"]
@@ -580,6 +630,13 @@ export type Database = {
             foreignKeyName: "notifications_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -595,6 +652,57 @@ export type Database = {
             columns: ["work_order_id"]
             isOneToOne: false
             referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_data_embeddings: {
+        Row: {
+          content: string
+          created_at: string | null
+          embedding: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          metadata: Json | null
+          organization_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          embedding?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          organization_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          embedding?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          organization_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_data_embeddings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "organization_data_embeddings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -691,6 +799,13 @@ export type Database = {
             foreignKeyName: "person_locations_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "person_locations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -732,6 +847,13 @@ export type Database = {
           work_order_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pm_generated_work_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
           {
             foreignKeyName: "pm_generated_work_orders_organization_id_fkey"
             columns: ["organization_id"]
@@ -783,6 +905,13 @@ export type Database = {
           work_order_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pm_schedule_history_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
           {
             foreignKeyName: "pm_schedule_history_organization_id_fkey"
             columns: ["organization_id"]
@@ -884,6 +1013,13 @@ export type Database = {
             foreignKeyName: "purchase_order_items_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -967,6 +1103,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "purchase_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
           {
             foreignKeyName: "purchase_orders_organization_id_fkey"
             columns: ["organization_id"]
@@ -1172,10 +1315,44 @@ export type Database = {
             foreignKeyName: "safety_hazards_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "safety_hazards_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
+      }
+      superadmin_ai_conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          query: string
+          response: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          query: string
+          response: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          query?: string
+          response?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       unit: {
         Row: {
@@ -1239,6 +1416,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_organizations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
           {
             foreignKeyName: "user_organizations_organization_id_fkey"
             columns: ["organization_id"]
@@ -1456,6 +1640,13 @@ export type Database = {
             foreignKeyName: "workflow_step_conditions_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "workflow_step_conditions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -1522,6 +1713,13 @@ export type Database = {
           step_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "workflow_step_role_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
           {
             foreignKeyName: "workflow_step_role_assignments_organization_id_fkey"
             columns: ["organization_id"]
@@ -1655,6 +1853,13 @@ export type Database = {
             foreignKeyName: "workflow_template_steps_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "workflow_template_steps_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -1708,6 +1913,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "workflow_template_steps"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_template_transitions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "workflow_template_transitions_organization_id_fkey"
@@ -1773,6 +1985,13 @@ export type Database = {
           version?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "workflow_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "mv_vertical_cost_analysis"
+            referencedColumns: ["organization_id"]
+          },
           {
             foreignKeyName: "workflow_templates_organization_id_fkey"
             columns: ["organization_id"]
@@ -3062,6 +3281,27 @@ export type Database = {
         }
         Relationships: []
       }
+      mv_vertical_cost_analysis: {
+        Row: {
+          avg_work_order_cost: number | null
+          completed_work_orders: number | null
+          critical_assets: number | null
+          critical_incidents: number | null
+          critical_work_orders: number | null
+          inventory_items_count: number | null
+          month: string | null
+          organization_code: string | null
+          organization_id: string | null
+          organization_name: string | null
+          total_assets: number | null
+          total_estimated_cost: number | null
+          total_incident_cost: number | null
+          total_incidents: number | null
+          total_inventory_value: number | null
+          total_work_orders: number | null
+        }
+        Relationships: []
+      }
       people: {
         Row: {
           certifications: string[] | null
@@ -3926,6 +4166,10 @@ export type Database = {
       }
     }
     Functions: {
+      binary_quantize: {
+        Args: { "": string } | { "": unknown }
+        Returns: unknown
+      }
       delete_work_order: {
         Args: { _organization_id?: string; _work_order_id: string }
         Returns: boolean
@@ -3949,6 +4193,22 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Json
       }
+      halfvec_avg: {
+        Args: { "": number[] }
+        Returns: unknown
+      }
+      halfvec_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      halfvec_send: {
+        Args: { "": unknown }
+        Returns: string
+      }
+      halfvec_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
       has_cross_project_access: {
         Args: { _user_id: string }
         Returns: boolean
@@ -3956,6 +4216,22 @@ export type Database = {
       has_role: {
         Args: { _role_name: string; _user_id: string }
         Returns: boolean
+      }
+      hnsw_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_sparsevec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnswhandler: {
+        Args: { "": unknown }
+        Returns: unknown
       }
       import_user_as_person: {
         Args:
@@ -3966,6 +4242,66 @@ export type Database = {
             }
           | { _employee_number: string; _user_id: string }
         Returns: string
+      }
+      ivfflat_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflat_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflathandler: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      l2_norm: {
+        Args: { "": unknown } | { "": unknown }
+        Returns: number
+      }
+      l2_normalize: {
+        Args: { "": string } | { "": unknown } | { "": unknown }
+        Returns: string
+      }
+      refresh_cost_analysis_view: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      sparsevec_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      sparsevec_send: {
+        Args: { "": unknown }
+        Returns: string
+      }
+      sparsevec_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
+      vector_avg: {
+        Args: { "": number[] }
+        Returns: string
+      }
+      vector_dims: {
+        Args: { "": string } | { "": unknown }
+        Returns: number
+      }
+      vector_norm: {
+        Args: { "": string }
+        Returns: number
+      }
+      vector_out: {
+        Args: { "": string }
+        Returns: unknown
+      }
+      vector_send: {
+        Args: { "": string }
+        Returns: string
+      }
+      vector_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
       }
     }
     Enums: {
