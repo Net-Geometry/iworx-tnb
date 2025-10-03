@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -78,6 +79,14 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
     node.hierarchy_level_id === locationLevel?.id
   );
 
+  // State to track selected location node ID for asset filtering
+  const [selectedLocationNodeId, setSelectedLocationNodeId] = useState<string | undefined>();
+
+  // Filter assets based on selected location
+  const filteredAssets = selectedLocationNodeId
+    ? assets.filter(asset => asset.hierarchy_node_id === selectedLocationNodeId)
+    : assets;
+
   const form = useForm<IncidentFormValues>({
     resolver: zodResolver(incidentSchema),
     defaultValues: {
@@ -143,7 +152,15 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
           render={({ field }) => (
             <FormItem>
               <FormLabel>Location *</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select 
+                onValueChange={(value) => {
+                  const selectedNode = locationNodes.find(node => node.name === value);
+                  field.onChange(value); // Store name for form
+                  setSelectedLocationNodeId(selectedNode?.id); // Store ID for filtering
+                  form.setValue('asset_id', undefined); // Clear asset selection when location changes
+                }} 
+                value={field.value}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select location from asset hierarchy" />
@@ -180,7 +197,7 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="none">No asset involved</SelectItem>
-                  {assets.map((asset) => (
+                  {filteredAssets.map((asset) => (
                     <SelectItem key={asset.id} value={asset.id}>
                       {asset.name} - {asset.asset_number}
                     </SelectItem>
