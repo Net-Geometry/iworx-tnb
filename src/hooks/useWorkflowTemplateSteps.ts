@@ -16,6 +16,7 @@ export interface WorkflowTemplateStep {
   auto_assign_logic: any;
   form_fields: any;
   work_order_status: string | null;
+  incident_status: string | null;
   organization_id: string;
   created_at: string;
   updated_at: string;

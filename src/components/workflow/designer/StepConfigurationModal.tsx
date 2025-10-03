@@ -40,6 +40,7 @@ export const StepConfigurationModal = ({
   const [isRequired, setIsRequired] = useState(true);
   const [autoAssignEnabled, setAutoAssignEnabled] = useState(false);
   const [workOrderStatus, setWorkOrderStatus] = useState("");
+  const [incidentStatus, setIncidentStatus] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<Array<{ roleId: string; canApprove: boolean; canReject: boolean; canAssign: boolean }>>([]);
 
   const { roles } = useRoles();
@@ -56,6 +57,7 @@ export const StepConfigurationModal = ({
       setIsRequired(step.is_required);
       setAutoAssignEnabled(step.auto_assign_enabled);
       setWorkOrderStatus(step.work_order_status || "");
+      setIncidentStatus(step.incident_status || "");
     } else {
       setName("");
       setDescription("");
@@ -65,6 +67,7 @@ export const StepConfigurationModal = ({
       setIsRequired(true);
       setAutoAssignEnabled(false);
       setWorkOrderStatus("");
+      setIncidentStatus("");
     }
   }, [step, open]);
 
@@ -93,6 +96,7 @@ export const StepConfigurationModal = ({
       is_required: isRequired,
       auto_assign_enabled: autoAssignEnabled,
       work_order_status: workOrderStatus || null,
+      incident_status: incidentStatus || null,
     };
 
     onSave(stepData);
@@ -253,6 +257,35 @@ export const StepConfigurationModal = ({
             <p className="text-sm text-muted-foreground">
               Work order will transition to this status when step is reached
             </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="incident-status">Incident Status</Label>
+            <Select value={incidentStatus} onValueChange={setIncidentStatus}>
+              <SelectTrigger id="incident-status">
+                <SelectValue placeholder="Select status (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="reported">Reported</SelectItem>
+                <SelectItem value="investigating">Investigating</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground">
+              Safety incident will transition to this status when step is reached
+            </p>
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mt-2">
+              <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                💡 Status Mapping Guide:
+              </p>
+              <ul className="text-xs text-muted-foreground mt-1 space-y-1">
+                <li>• <span className="font-medium">Reported:</span> Initial incident report</li>
+                <li>• <span className="font-medium">Investigating:</span> Review, investigation, analysis steps</li>
+                <li>• <span className="font-medium">Resolved:</span> Manager approval, resolution steps</li>
+                <li>• <span className="font-medium">Closed:</span> Final closure step</li>
+              </ul>
+            </div>
           </div>
 
           {step?.id && (
