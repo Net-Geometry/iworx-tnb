@@ -64,19 +64,13 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
   // Fetch role assignments for this step from database (must call hook before any returns)
   const { data: stepRoleAssignments } = useStepRoleAssignments(currentStep?.id);
 
-  if (!workflowState || !steps || steps.length === 0) {
-    return null;
-  }
-
-  if (!currentStep) return null;
-
-  // Get role assignments for current step
-  const currentStepIndex = steps.findIndex((s) => s.id === currentStep.id);
-  const nextStep = steps[currentStepIndex + 1];
+  // Calculate step indices and rejection target BEFORE any early returns (hooks must always be called)
+  const currentStepIndex = steps?.findIndex((s) => s.id === currentStep?.id) ?? -1;
+  const nextStep = steps && currentStepIndex >= 0 ? steps[currentStepIndex + 1] : undefined;
 
   // Calculate rejection target based on configuration
   const rejectionTargetStep = useMemo(() => {
-    if (!currentStep || !steps) return null;
+    if (!currentStep || !steps || currentStepIndex < 0) return null;
     
     // If custom rejection target is configured, use it
     if (currentStep.reject_target_step_id) {
@@ -86,6 +80,13 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
     // Default: go to previous step
     return currentStepIndex > 0 ? steps[currentStepIndex - 1] : null;
   }, [currentStep, steps, currentStepIndex]);
+
+  // Early returns AFTER all hooks have been called
+  if (!workflowState || !steps || steps.length === 0) {
+    return null;
+  }
+
+  if (!currentStep) return null;
 
   // Check if this step requires approval or auto-transitions
   const isAutoTransitionStep = currentStep.approval_type === 'none';
