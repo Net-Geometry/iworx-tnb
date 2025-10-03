@@ -235,6 +235,8 @@ export const useIncidentWorkflow = (incidentId: string | undefined) => {
           current_step_id: stepId,
           assigned_to_user_id: assignedToUserId || null,
           step_started_at: new Date().toISOString(),
+        }, {
+          onConflict: 'incident_id'
         });
 
       if (stateError) throw stateError;
