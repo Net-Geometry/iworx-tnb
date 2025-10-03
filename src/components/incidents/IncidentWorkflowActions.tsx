@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { CheckCircle, XCircle, UserPlus, MessageSquare, Wrench } from "lucide-react";
+import { CheckCircle, XCircle, UserPlus, MessageSquare, Wrench, CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,11 +41,12 @@ interface IncidentWorkflowActionsProps {
  * Shows conditional actions based on user roles and workflow step permissions.
  */
 export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsProps) => {
+  const navigate = useNavigate();
   const { workflowState, transitionStep, approvals } = useIncidentWorkflow(incidentId);
   const { data: steps } = useWorkflowTemplateSteps(workflowState?.template_id);
   const { roles } = useCurrentUserRoles();
   const { people } = usePeople();
-  const { currentOrganization } = useAuth();
+  const { currentOrganization, user } = useAuth();
 
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -55,8 +57,22 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [woTitle, setWoTitle] = useState("");
   const [woDescription, setWoDescription] = useState("");
+  const [incident, setIncident] = useState<any>(null);
   
   const { createWorkOrder } = useWorkOrders();
+
+  // Fetch incident data for work order creation
+  useMemo(() => {
+    const fetchIncident = async () => {
+      const { data } = await supabase
+        .from("safety_incidents")
+        .select("*")
+        .eq("id", incidentId)
+        .single();
+      if (data) setIncident(data);
+    };
+    fetchIncident();
+  }, [incidentId]);
 
   // Get current step before early returns affect hook order
   const currentStep = steps?.find((s) => s.id === workflowState?.current_step_id);
@@ -80,6 +96,13 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
     // Default: go to previous step
     return currentStepIndex > 0 ? steps[currentStepIndex - 1] : null;
   }, [currentStep, steps, currentStepIndex]);
+
+  // Detect if this is the final step in the workflow
+  const isFinalStep = useMemo(() => {
+    if (!steps || !currentStep) return false;
+    const maxStepOrder = Math.max(...steps.map(s => s.step_order));
+    return currentStep.step_order === maxStepOrder;
+  }, [steps, currentStep]);
 
   // Early returns AFTER all hooks have been called
   if (!workflowState || !steps || steps.length === 0) {
@@ -181,6 +204,98 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
     }
   };
 
+  // Handle completion of final workflow step
+  const handleCompleteWorkflow = async () => {
+    if (!isFinalStep || !woTitle || !woDescription) {
+      toast.error("Title and description are required");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      if (!incident?.asset_id) {
+        toast.error("Cannot create work order: Incident has no associated asset");
+        return;
+      }
+
+      const priorityMap: Record<string, "critical" | "high" | "medium" | "low"> = {
+        critical: "high",
+        high: "high",
+        medium: "medium",
+        low: "low",
+      };
+
+      // Create the work order directly via supabase
+      const workOrderData = {
+        asset_id: incident.asset_id,
+        title: woTitle,
+        description: woDescription,
+        status: "open" as const,
+        priority: (priorityMap[incident.severity] || "medium") as "critical" | "high" | "medium" | "low",
+        maintenance_type: "corrective" as const,
+        scheduled_date: new Date().toISOString(),
+        organization_id: currentOrganization?.id || "",
+        incident_report_id: incidentId,
+      };
+
+      const { data: workOrder, error: woError } = await supabase
+        .from("work_orders")
+        // @ts-expect-error - Types will regenerate after work order updates
+        .insert([workOrderData])
+        .select()
+        .single();
+
+      if (woError) throw woError;
+
+      // Record the approval/completion
+      const { error: approvalError } = await supabase
+        .from("incident_approvals")
+        .insert([{
+          incident_id: incidentId,
+          step_id: currentStep.id,
+          approved_by_user_id: user?.id,
+          approval_action: "approved",
+          comments: `Workflow completed. Work Order created: ${woTitle}`,
+          organization_id: currentOrganization?.id,
+        }]);
+
+      if (approvalError) throw approvalError;
+
+      // Update incident status to resolved
+      const { error: incidentError } = await supabase
+        .from("safety_incidents")
+        .update({ 
+          status: "resolved",
+          resolved_at: new Date().toISOString(),
+        })
+        .eq("id", incidentId);
+
+      if (incidentError) throw incidentError;
+
+      // Mark workflow as completed (delete workflow state)
+      const { error: workflowError } = await supabase
+        .from("incident_workflow_state")
+        .delete()
+        .eq("incident_id", incidentId);
+
+      if (workflowError) throw workflowError;
+
+      toast.success(`Incident workflow completed! Work Order created successfully.`);
+      setWoDialogOpen(false);
+      
+      // Redirect to work order
+      setTimeout(() => {
+        navigate(`/work-orders/${workOrder.id}`);
+      }, 1500);
+
+    } catch (error: any) {
+      console.error("Error completing workflow:", error);
+      toast.error(error.message || "Failed to complete workflow");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Handle auto-transition steps (no approval required)
   const handleAutoTransition = async () => {
     if (!nextStep) {
@@ -254,7 +369,30 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
           <CardTitle>Workflow Actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {nextStep && (
+          {/* Final Step Indicator */}
+          {isFinalStep && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg dark:bg-green-950 dark:border-green-800">
+              <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="font-semibold">Final Step</span>
+              </div>
+              <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                Completing this step will resolve the incident and create a work order.
+              </p>
+            </div>
+          )}
+
+          {/* Approve/Complete Button - different for final step */}
+          {isFinalStep ? (
+            <Button
+              onClick={() => setWoDialogOpen(true)}
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              Complete & Create Work Order
+            </Button>
+          ) : nextStep ? (
             <Button
               onClick={() => setApproveDialogOpen(true)}
               className="w-full"
@@ -263,7 +401,7 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
               <CheckCircle className="w-4 h-4 mr-2" />
               Approve & Move to {nextStep.name}
             </Button>
-          )}
+          ) : null}
 
           <Button
             onClick={() => setRejectDialogOpen(true)}
@@ -444,9 +582,12 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
       <Dialog open={woDialogOpen} onOpenChange={setWoDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Work Order</DialogTitle>
+            <DialogTitle>{isFinalStep ? "Complete Workflow & Create Work Order" : "Create Work Order"}</DialogTitle>
             <DialogDescription>
-              Create a work order linked to this incident
+              {isFinalStep 
+                ? "This will complete the incident workflow, mark it as resolved, and create a work order."
+                : "Create a work order linked to this incident"
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -475,7 +616,7 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
               Cancel
             </Button>
             <Button
-              onClick={async () => {
+              onClick={isFinalStep ? handleCompleteWorkflow : async () => {
                 if (!woTitle || !woDescription) {
                   toast.error("Title and description are required");
                   return;
@@ -483,20 +624,6 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
                 
                 setIsSubmitting(true);
                 try {
-                  // Fetch incident to get asset_id
-                  const { data: incident, error: fetchError } = await supabase
-                    .from("safety_incidents")
-                    .select("asset_id, severity")
-                    .eq("id", incidentId)
-                    .single();
-
-                  if (fetchError) throw fetchError;
-
-                  if (!incident?.asset_id) {
-                    toast.error("Cannot create work order: Incident has no associated asset");
-                    return;
-                  }
-
                   const priorityMap: Record<string, "critical" | "high" | "medium" | "low"> = {
                     critical: "high",
                     high: "high",
@@ -541,7 +668,7 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
               }}
               disabled={isSubmitting || !woTitle || !woDescription}
             >
-              {isSubmitting ? "Creating..." : "Create Work Order"}
+              {isSubmitting ? (isFinalStep ? "Completing..." : "Creating...") : (isFinalStep ? "Complete Workflow" : "Create Work Order")}
             </Button>
           </DialogFooter>
         </DialogContent>
