@@ -719,7 +719,13 @@ const IncidentDetailPage = () => {
                       {incident.wo_target_start_date && (
                         <div>
                           <label className="text-sm font-medium text-muted-foreground">Target Start</label>
-                          <p className="text-sm">{format(new Date(incident.wo_target_start_date), "PPP")}</p>
+                          <p className="text-sm">{format(new Date(incident.wo_target_start_date), "PPp")}</p>
+                        </div>
+                      )}
+                      {incident.wo_target_finish_date && (
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">Target Finish</label>
+                          <p className="text-sm">{format(new Date(incident.wo_target_finish_date), "PPp")}</p>
                         </div>
                       )}
                     </div>
@@ -858,9 +864,9 @@ const IncidentDetailPage = () => {
                             name="wo_target_start_date"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Target Start Date</FormLabel>
+                                <FormLabel>Target Start Date & Time</FormLabel>
                                 <FormControl>
-                                  <Input type="date" {...field} />
+                                  <Input type="datetime-local" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -872,9 +878,9 @@ const IncidentDetailPage = () => {
                             name="wo_target_finish_date"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Target Finish Date</FormLabel>
+                                <FormLabel>Target Finish Date & Time</FormLabel>
                                 <FormControl>
-                                  <Input type="date" {...field} />
+                                  <Input type="datetime-local" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
