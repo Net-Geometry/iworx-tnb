@@ -172,10 +172,17 @@ export const useIncidentWorkflow = (incidentId: string | undefined) => {
         .from("incident_workflow_state")
         .select("*")
         .eq("incident_id", incidentId)
-        .maybeSingle();
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as WorkflowState | null;
+      
+      // If multiple states exist, prefer the one with a valid template_id and organization_id
+      if (data && data.length > 0) {
+        const validState = data.find(s => s.template_id && s.organization_id) || data[0];
+        return validState as WorkflowState;
+      }
+      
+      return null;
     },
     enabled: !!incidentId,
   });
