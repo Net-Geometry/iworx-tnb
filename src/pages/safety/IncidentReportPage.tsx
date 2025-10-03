@@ -43,15 +43,18 @@ const IncidentReportPage = () => {
     try {
       // Create the incident report
       const incidentData = {
-        incident_type: data.incident_type,
-        severity: data.severity,
-        description: data.description,
+        incident_date: new Date(data.incident_date).toISOString(),
         location: data.location,
-        asset_id: data.asset_id || null,
-        reported_by: data.reported_by,
-        reported_date: data.reported_date,
-        attachment_urls: data.attachments?.map((file: any) => file.url) || [],
-        attachment_metadata: data.attachments || [],
+        severity: data.severity,
+        title: data.title,
+        description: data.description,
+        reporter_name: data.reporter_name,
+        reporter_email: data.reporter_email || null,
+        asset_id: data.asset_id === 'none' ? null : (data.asset_id || null),
+        regulatory_reporting_required: data.regulatory_reporting_required || false,
+        corrective_actions: data.immediate_actions || null,
+        incident_number: `INC-${Date.now()}`,
+        organization_id: currentOrganization?.id || "",
       };
 
       const newIncident = await createIncident(incidentData);
@@ -80,7 +83,7 @@ const IncidentReportPage = () => {
 
         const workOrderData = {
           asset_id: data.asset_id,
-          title: `Incident Response: ${data.incident_type}`,
+          title: `Incident Response: ${data.title}`,
           description: `Work order created from incident report:\n\n${data.description}`,
           status: "scheduled" as const,
           priority: (priorityMap[data.severity] || "medium") as "critical" | "high" | "medium" | "low",
