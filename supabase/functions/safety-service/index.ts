@@ -33,7 +33,15 @@ serve(async (req) => {
     });
 
     const url = new URL(req.url);
-    const pathParts = url.pathname.split('/').filter(Boolean);
+    
+    // Strip the function name prefix if present 
+    // (e.g., /safety-service/incidents -> /incidents)
+    let path = url.pathname;
+    if (path.startsWith('/safety-service')) {
+      path = path.replace('/safety-service', '');
+    }
+    
+    const pathParts = path.split('/').filter(Boolean);
     
     // Route: /safety/health
     if (pathParts[0] === 'health') {
