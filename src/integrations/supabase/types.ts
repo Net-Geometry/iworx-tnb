@@ -4627,6 +4627,20 @@ export type Database = {
         Args: { "": unknown } | { "": unknown }
         Returns: string
       }
+      calculate_travel_distance: {
+        Args: { _end_time: string; _person_id: string; _start_time: string }
+        Returns: number
+      }
+      check_geofence_status: {
+        Args: { _person_id: string }
+        Returns: {
+          distance_to_center_meters: number
+          is_inside: boolean
+          zone_id: string
+          zone_name: string
+          zone_type: string
+        }[]
+      }
       delete_work_order: {
         Args: { _organization_id?: string; _work_order_id: string }
         Returns: boolean
@@ -4661,6 +4675,39 @@ export type Database = {
       equals: {
         Args: { geom1: unknown; geom2: unknown }
         Returns: boolean
+      }
+      find_nearby_people: {
+        Args: {
+          _organization_id?: string
+          radius_km?: number
+          target_lat: number
+          target_lng: number
+        }
+        Returns: {
+          current_lat: number
+          current_lng: number
+          distance_km: number
+          last_update: string
+          person_id: string
+          person_name: string
+        }[]
+      }
+      find_nearest_technician: {
+        Args: {
+          _organization_id?: string
+          max_distance_km?: number
+          required_skill_ids?: string[]
+          target_lat: number
+          target_lng: number
+        }
+        Returns: {
+          current_lat: number
+          current_lng: number
+          distance_km: number
+          matched_skills: number
+          person_id: string
+          person_name: string
+        }[]
       }
       geography: {
         Args: { "": string } | { "": unknown }

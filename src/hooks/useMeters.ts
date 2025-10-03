@@ -19,6 +19,7 @@ export interface Meter {
   installation_date?: string;
   installation_location?: string;
   coordinates?: { lat: number; lng: number };
+  location?: any; // PostGIS GEOMETRY(POINT)
   last_calibration_date?: string;
   next_calibration_date?: string;
   calibration_certificate_number?: string;
@@ -78,7 +79,7 @@ export const useMeters = () => {
     }
   };
 
-  const addMeter = async (meterData: Omit<Meter, 'id' | 'created_at' | 'updated_at' | 'organization_id'>) => {
+  const addMeter = async (meterData: Omit<Meter, 'id' | 'created_at' | 'updated_at' | 'organization_id' | 'location'>) => {
     try {
       const { data, error } = await supabase
         .from('meters')
@@ -112,7 +113,7 @@ export const useMeters = () => {
   const updateMeter = async (id: string, meterData: Partial<Meter>) => {
     try {
       // Clean the data to remove joined/computed fields
-      const { unit, ...cleanData } = meterData;
+      const { unit, location, ...cleanData } = meterData;
       
       const { data, error } = await supabase
         .from('meters')
