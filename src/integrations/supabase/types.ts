@@ -1601,6 +1601,7 @@ export type Database = {
           description: string | null
           form_fields: Json | null
           id: string
+          incident_status: string | null
           is_required: boolean | null
           name: string
           organization_id: string
@@ -1619,6 +1620,7 @@ export type Database = {
           description?: string | null
           form_fields?: Json | null
           id?: string
+          incident_status?: string | null
           is_required?: boolean | null
           name: string
           organization_id: string
@@ -1637,6 +1639,7 @@ export type Database = {
           description?: string | null
           form_fields?: Json | null
           id?: string
+          incident_status?: string | null
           is_required?: boolean | null
           name?: string
           organization_id?: string

@@ -15,6 +15,7 @@ import { IncidentReportForm } from "@/components/incidents/IncidentReportForm";
 import { useIncidents } from "@/hooks/useIncidents";
 import { useWorkOrders } from "@/hooks/useWorkOrders";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWorkflowTemplateInitializer } from "@/hooks/useWorkflowTemplateInitializer";
 import { toast } from "sonner";
 
 /**
@@ -30,6 +31,7 @@ const IncidentReportPage = () => {
   const { currentOrganization } = useAuth();
   const { createIncident } = useIncidents();
   const { createWorkOrder } = useWorkOrders();
+  const { mutateAsync: initializeWorkflow } = useWorkflowTemplateInitializer();
 
   /**
    * Handle incident report form submission
@@ -53,6 +55,19 @@ const IncidentReportPage = () => {
       };
 
       const newIncident = await createIncident(incidentData);
+
+      // Initialize workflow for the incident
+      try {
+        await initializeWorkflow({
+          entityId: newIncident.id,
+          entityType: "incident",
+          organizationId: currentOrganization?.id || "",
+        });
+        console.log("✅ Workflow initialized successfully");
+      } catch (workflowError) {
+        console.error("⚠️ Workflow initialization failed:", workflowError);
+        // Don't block incident creation if workflow fails
+      }
 
       // Create work order if requested and asset is involved
       if (data.create_work_order && data.asset_id) {
@@ -81,8 +96,8 @@ const IncidentReportPage = () => {
         toast.success("Incident reported successfully");
       }
 
-      // Navigate back to incidents list
-      navigate("/safety/incidents");
+      // Navigate to incident detail page
+      navigate(`/safety/incidents/${newIncident.id}`);
     } catch (error: any) {
       console.error("Error submitting incident report:", error);
       toast.error(error.message || "Failed to submit incident report");

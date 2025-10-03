@@ -11,8 +11,7 @@ const SafetyIncidentsPage = () => {
   const { incidents, stats, loading } = useIncidents();
 
   const handleViewDetails = (incident: any) => {
-    // TODO: Implement incident details modal/page
-    console.log("View incident details:", incident);
+    navigate(`/safety/incidents/${incident.id}`);
   };
 
   if (loading) {

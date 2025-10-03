@@ -211,6 +211,15 @@ export const useIncidentWorkflow = (incidentId: string | undefined) => {
     }) => {
       if (!incidentId) throw new Error("Incident ID is required");
 
+      // Get the step's incident_status to update incident
+      const { data: stepData, error: stepError } = await supabase
+        .from("workflow_template_steps")
+        .select("incident_status")
+        .eq("id", stepId)
+        .single();
+
+      if (stepError) throw stepError;
+
       // Update or create workflow state
       const { error: stateError } = await supabase
         .from("incident_workflow_state")
@@ -222,6 +231,16 @@ export const useIncidentWorkflow = (incidentId: string | undefined) => {
         });
 
       if (stateError) throw stateError;
+
+      // Update incident status if step has an incident_status configured
+      if (stepData?.incident_status) {
+        const { error: incidentStatusError } = await supabase
+          .from("safety_incidents")
+          .update({ status: stepData.incident_status as 'reported' | 'investigating' | 'resolved' | 'closed' })
+          .eq("id", incidentId);
+
+        if (incidentStatusError) throw incidentStatusError;
+      }
 
       // Create approval record
       const { error: approvalError } = await supabase
