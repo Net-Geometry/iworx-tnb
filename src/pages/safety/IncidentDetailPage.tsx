@@ -57,7 +57,6 @@ const incidentSchema = z.object({
   reporter_email: z.string().email("Invalid email").optional().or(z.literal("")),
   root_cause: z.string().optional(),
   corrective_actions: z.string().optional(),
-  cost_estimate: z.coerce.number().optional(),
   regulatory_reporting_required: z.boolean().default(false),
   requires_work_order: z.boolean().default(false),
   wo_maintenance_type: z.enum(["preventive", "corrective", "predictive", "emergency"]).optional(),
@@ -105,7 +104,6 @@ const IncidentDetailPage = () => {
       reporter_email: incident?.reporter_email || "",
       root_cause: incident?.root_cause || "",
       corrective_actions: incident?.corrective_actions || "",
-      cost_estimate: incident?.cost_estimate || undefined,
       regulatory_reporting_required: incident?.regulatory_reporting_required || false,
       requires_work_order: !!incident?.wo_maintenance_type,
       wo_maintenance_type: incident?.wo_maintenance_type || undefined,
@@ -132,7 +130,6 @@ const IncidentDetailPage = () => {
         reporter_email: incident.reporter_email || "",
         root_cause: incident.root_cause || "",
         corrective_actions: incident.corrective_actions || "",
-        cost_estimate: incident.cost_estimate || undefined,
         regulatory_reporting_required: incident.regulatory_reporting_required || false,
         requires_work_order: !!incident.wo_maintenance_type,
         wo_maintenance_type: incident.wo_maintenance_type || undefined,
@@ -427,15 +424,6 @@ const IncidentDetailPage = () => {
                       </p>
                     </div>
                   )}
-
-                  {incident.cost_estimate && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Estimated Cost
-                      </label>
-                      <p className="text-sm">${incident.cost_estimate.toLocaleString()}</p>
-                    </div>
-                  )}
                 </>
               ) : (
                 // Edit Mode
@@ -600,20 +588,6 @@ const IncidentDetailPage = () => {
                           <FormLabel>Corrective Actions</FormLabel>
                           <FormControl>
                             <Textarea placeholder="Describe corrective actions..." {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="cost_estimate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Estimated Cost</FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="0.00" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
