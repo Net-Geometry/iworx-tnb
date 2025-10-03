@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Save, Plus } from "lucide-react";
+import { ArrowLeft, Save, Plus, List, Workflow } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import {
 } from "@/hooks/useWorkflowTemplateSteps";
 import { WorkflowStepCard } from "@/components/workflow/designer/WorkflowStepCard";
 import { StepConfigurationModal } from "@/components/workflow/designer/StepConfigurationModal";
+import { WorkflowVisualizer } from "@/components/workflow/WorkflowVisualizer";
 import type { WorkflowTemplateStep } from "@/hooks/useWorkflowTemplateSteps";
 
 export default function WorkflowDesignerPage() {
@@ -40,6 +41,7 @@ export default function WorkflowDesignerPage() {
   const [isActive, setIsActive] = useState(true);
   const [selectedStep, setSelectedStep] = useState<WorkflowTemplateStep | null>(null);
   const [isStepModalOpen, setIsStepModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "visual">("list");
 
   const { data: template } = useWorkflowTemplate(templateId);
   const { data: steps = [] } = useWorkflowTemplateSteps(templateId);
@@ -235,24 +237,52 @@ export default function WorkflowDesignerPage() {
                     Define the steps and their order in this workflow
                   </p>
                 </div>
-                <Button onClick={handleAddStep} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Add Step
-                </Button>
+                <div className="flex items-center gap-2">
+                  {steps.length > 0 && (
+                    <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                      <Button
+                        variant={viewMode === "list" ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => setViewMode("list")}
+                        className="gap-2"
+                      >
+                        <List className="w-4 h-4" />
+                        List
+                      </Button>
+                      <Button
+                        variant={viewMode === "visual" ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => setViewMode("visual")}
+                        className="gap-2"
+                      >
+                        <Workflow className="w-4 h-4" />
+                        Visual
+                      </Button>
+                    </div>
+                  )}
+                  <Button onClick={handleAddStep} className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    Add Step
+                  </Button>
+                </div>
               </div>
 
               {steps.length > 0 ? (
-                <div className="space-y-3">
-                  {steps.map((step, index) => (
-                    <WorkflowStepCard
-                      key={step.id}
-                      step={step}
-                      stepNumber={index + 1}
-                      onEdit={handleEditStep}
-                      onDelete={handleDeleteStep}
-                    />
-                  ))}
-                </div>
+                viewMode === "list" ? (
+                  <div className="space-y-3">
+                    {steps.map((step, index) => (
+                      <WorkflowStepCard
+                        key={step.id}
+                        step={step}
+                        stepNumber={index + 1}
+                        onEdit={handleEditStep}
+                        onDelete={handleDeleteStep}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <WorkflowVisualizer steps={steps} />
+                )
               ) : (
                 <Card>
                   <CardContent className="py-12 text-center">
