@@ -347,14 +347,23 @@ const IncidentDetailPage = () => {
                         </div>
                       </div>
                     )}
-                    {incident.regulatory_reporting_required && (
-                      <div className="col-span-2">
-                        <Badge variant="destructive" className="flex items-center gap-1 w-fit">
-                          <AlertTriangle className="w-3 h-3" />
-                          Regulatory Reporting Required
-                        </Badge>
-                      </div>
+                <div className="col-span-2">
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Regulatory Reporting
+                  </label>
+                  <div className="mt-1">
+                    {incident.regulatory_reporting_required ? (
+                      <Badge variant="destructive" className="flex items-center gap-1 w-fit">
+                        <AlertTriangle className="w-3 h-3" />
+                        Required
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                        Not Required
+                      </Badge>
                     )}
+                  </div>
+                </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
@@ -373,27 +382,23 @@ const IncidentDetailPage = () => {
                     </p>
                   </div>
 
-                  {incident.root_cause && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Root Cause Analysis
-                      </label>
-                      <p className="text-sm mt-1 whitespace-pre-wrap">
-                        {incident.root_cause}
-                      </p>
-                    </div>
-                  )}
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Root Cause Analysis
+                  </label>
+                  <p className="text-sm mt-1 whitespace-pre-wrap">
+                    {incident.root_cause || <span className="text-muted-foreground italic">Not provided</span>}
+                  </p>
+                </div>
 
-                  {incident.corrective_actions && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Corrective Actions
-                      </label>
-                      <p className="text-sm mt-1 whitespace-pre-wrap">
-                        {incident.corrective_actions}
-                      </p>
-                    </div>
-                  )}
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Corrective Actions
+                  </label>
+                  <p className="text-sm mt-1 whitespace-pre-wrap">
+                    {incident.corrective_actions || <span className="text-muted-foreground italic">Not provided</span>}
+                  </p>
+                </div>
                 </>
               ) : (
                 // Edit Mode
