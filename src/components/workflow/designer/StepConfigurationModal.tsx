@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,9 +14,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, RotateCcw, Target } from "lucide-react";
 import type { WorkflowTemplateStep } from "@/hooks/useWorkflowTemplateSteps";
 import { useRoles } from "@/hooks/useRoles";
-import { useStepRoleAssignments, useUpsertStepRoleAssignment } from "@/hooks/useWorkflowTemplateSteps";
+import { useStepRoleAssignments, useUpsertStepRoleAssignment, useWorkflowTemplateSteps } from "@/hooks/useWorkflowTemplateSteps";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface StepConfigurationModalProps {
@@ -43,13 +45,29 @@ export const StepConfigurationModal = ({
   const [workOrderStatus, setWorkOrderStatus] = useState("");
   const [incidentStatus, setIncidentStatus] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<Array<{ roleId: string; canApprove: boolean; canReject: boolean; canAssign: boolean }>>([]);
+  const [rejectionBehavior, setRejectionBehavior] = useState<'previous' | 'first' | 'specific'>('previous');
+  const [rejectTargetStepId, setRejectTargetStepId] = useState<string | null>(null);
 
   const { roles } = useRoles();
   const { data: roleAssignments } = useStepRoleAssignments(step?.id);
   const { mutate: upsertRoleAssignment } = useUpsertStepRoleAssignment();
+  const { data: allSteps } = useWorkflowTemplateSteps(step?.template_id);
+
+  // Calculate available previous steps for rejection routing
+  const availablePreviousSteps = useMemo(() => {
+    if (!allSteps || !step) return [];
+    return allSteps
+      .filter(s => s.step_order < step.step_order)
+      .sort((a, b) => a.step_order - b.step_order);
+  }, [allSteps, step]);
+
+  // Get first step for "First Step" option
+  const firstStep = useMemo(() => {
+    return allSteps?.find(s => s.step_order === 1);
+  }, [allSteps]);
 
   useEffect(() => {
-    if (step) {
+    if (step && open) {
       setName(step.name);
       setDescription(step.description || "");
       setStepType(step.step_type);
@@ -60,6 +78,18 @@ export const StepConfigurationModal = ({
       setAllowsWorkOrderCreation(step.allows_work_order_creation || false);
       setWorkOrderStatus(step.work_order_status || "");
       setIncidentStatus(step.incident_status || "");
+
+      // Load rejection behavior
+      if (!step.reject_target_step_id) {
+        setRejectionBehavior('previous');
+        setRejectTargetStepId(null);
+      } else if (step.reject_target_step_id === firstStep?.id) {
+        setRejectionBehavior('first');
+        setRejectTargetStepId(firstStep.id);
+      } else {
+        setRejectionBehavior('specific');
+        setRejectTargetStepId(step.reject_target_step_id);
+      }
     } else {
       setName("");
       setDescription("");
@@ -71,8 +101,10 @@ export const StepConfigurationModal = ({
       setAllowsWorkOrderCreation(false);
       setWorkOrderStatus("");
       setIncidentStatus("");
+      setRejectionBehavior('previous');
+      setRejectTargetStepId(null);
     }
-  }, [step, open]);
+  }, [step, open, firstStep]);
 
   useEffect(() => {
     if (roleAssignments && step && roles) {
@@ -100,6 +132,16 @@ export const StepConfigurationModal = ({
   }, [roleAssignments, step, roles]);
 
   const handleSave = () => {
+    // Calculate reject_target_step_id based on selected behavior
+    let finalRejectTargetStepId: string | null = null;
+    
+    if (rejectionBehavior === 'first' && firstStep) {
+      finalRejectTargetStepId = firstStep.id;
+    } else if (rejectionBehavior === 'specific') {
+      finalRejectTargetStepId = rejectTargetStepId;
+    }
+    // 'previous' behavior = null (default)
+    
     const stepData: Partial<WorkflowTemplateStep> = {
       name,
       description,
@@ -111,6 +153,7 @@ export const StepConfigurationModal = ({
       allows_work_order_creation: allowsWorkOrderCreation,
       work_order_status: workOrderStatus || null,
       incident_status: incidentStatus || null,
+      reject_target_step_id: finalRejectTargetStepId,
     };
 
     onSave(stepData);
@@ -238,6 +281,90 @@ export const StepConfigurationModal = ({
               placeholder="Leave empty for no SLA"
             />
           </div>
+
+          <Separator />
+
+          {/* Rejection Behavior Configuration */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">Rejection Behavior</Label>
+            <p className="text-sm text-muted-foreground">
+              Define where this step should route to when rejected
+            </p>
+            
+            <Select value={rejectionBehavior} onValueChange={(value: any) => setRejectionBehavior(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="previous">
+                  <div className="flex items-center gap-2">
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Go to Previous Step (Default)</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="first">
+                  <div className="flex items-center gap-2">
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Go to First Step (Reset)</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="specific">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4" />
+                    <span>Go to Specific Step</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {/* Show target step selector for "Specific Step" option */}
+            {rejectionBehavior === 'specific' && (
+              <div className="space-y-2 pl-4 border-l-2">
+                <Label>Target Step</Label>
+                <Select 
+                  value={rejectTargetStepId || ''} 
+                  onValueChange={setRejectTargetStepId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select target step for rejection" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availablePreviousSteps.map(s => (
+                      <SelectItem key={s.id} value={s.id}>
+                        Step {s.step_order}: {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {availablePreviousSteps.length === 0 && (
+                  <p className="text-sm text-amber-600">
+                    No previous steps available for this step
+                  </p>
+                )}
+              </div>
+            )}
+            
+            {/* Preview rejection target */}
+            <div className="bg-muted p-3 rounded-md text-sm">
+              <span className="font-medium">When rejected, will go to: </span>
+              {rejectionBehavior === 'previous' && (
+                <span className="text-muted-foreground">Previous step in sequence</span>
+              )}
+              {rejectionBehavior === 'first' && firstStep && (
+                <span className="text-blue-600">Step 1: {firstStep.name}</span>
+              )}
+              {rejectionBehavior === 'specific' && rejectTargetStepId && (
+                <span className="text-blue-600">
+                  Step {availablePreviousSteps.find(s => s.id === rejectTargetStepId)?.step_order}: {availablePreviousSteps.find(s => s.id === rejectTargetStepId)?.name}
+                </span>
+              )}
+              {rejectionBehavior === 'specific' && !rejectTargetStepId && (
+                <span className="text-amber-600">Please select a target step</span>
+              )}
+            </div>
+          </div>
+
+          <Separator />
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">

@@ -135,6 +135,7 @@ export default function WorkflowDesignerPage() {
         form_fields: stepData.form_fields || null,
         work_order_status: stepData.work_order_status || null,
         incident_status: stepData.incident_status || null,
+        reject_target_step_id: stepData.reject_target_step_id || null,
         organization_id: template.organization_id,
       });
     }

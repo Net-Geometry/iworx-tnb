@@ -2029,6 +2029,7 @@ export type Database = {
           is_required: boolean | null
           name: string
           organization_id: string
+          reject_target_step_id: string | null
           sla_hours: number | null
           step_order: number
           step_type: string | null
@@ -2049,6 +2050,7 @@ export type Database = {
           is_required?: boolean | null
           name: string
           organization_id: string
+          reject_target_step_id?: string | null
           sla_hours?: number | null
           step_order: number
           step_type?: string | null
@@ -2069,6 +2071,7 @@ export type Database = {
           is_required?: boolean | null
           name?: string
           organization_id?: string
+          reject_target_step_id?: string | null
           sla_hours?: number | null
           step_order?: number
           step_type?: string | null
@@ -2089,6 +2092,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_template_steps_reject_target_step_id_fkey"
+            columns: ["reject_target_step_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_template_steps"
             referencedColumns: ["id"]
           },
           {

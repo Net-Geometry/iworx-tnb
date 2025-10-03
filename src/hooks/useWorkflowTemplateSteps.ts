@@ -18,6 +18,7 @@ export interface WorkflowTemplateStep {
   work_order_status: string | null;
   incident_status: string | null;
   allows_work_order_creation: boolean | null;
+  reject_target_step_id: string | null;
   organization_id: string;
   created_at: string;
   updated_at: string;

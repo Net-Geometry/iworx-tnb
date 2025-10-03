@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { CheckCircle, XCircle, UserPlus, MessageSquare, Wrench } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -74,6 +74,19 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
   const currentStepIndex = steps.findIndex((s) => s.id === currentStep.id);
   const nextStep = steps[currentStepIndex + 1];
 
+  // Calculate rejection target based on configuration
+  const rejectionTargetStep = useMemo(() => {
+    if (!currentStep || !steps) return null;
+    
+    // If custom rejection target is configured, use it
+    if (currentStep.reject_target_step_id) {
+      return steps.find(s => s.id === currentStep.reject_target_step_id) || null;
+    }
+    
+    // Default: go to previous step
+    return currentStepIndex > 0 ? steps[currentStepIndex - 1] : null;
+  }, [currentStep, steps, currentStepIndex]);
+
   // Check if this step requires approval or auto-transitions
   const isAutoTransitionStep = currentStep.approval_type === 'none';
 
@@ -118,16 +131,20 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
   };
 
   const handleReject = async () => {
+    if (!rejectionTargetStep) {
+      toast.error("Cannot reject: No valid previous step configured");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Stay on current step but log rejection
       await transitionStep.mutateAsync({
-        stepId: currentStep.id,
+        stepId: rejectionTargetStep.id,
         comments,
         approvalAction: "rejected",
       });
 
-      toast.success("Step rejected successfully");
+      toast.success(`Rejected. Moved to: ${rejectionTargetStep.name}`);
       setRejectDialogOpen(false);
       setComments("");
     } catch (error: any) {
@@ -251,10 +268,17 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
             onClick={() => setRejectDialogOpen(true)}
             className="w-full"
             variant="destructive"
+            disabled={!rejectionTargetStep}
           >
             <XCircle className="w-4 h-4 mr-2" />
             Reject & Request Changes
           </Button>
+
+          {!rejectionTargetStep && (
+            <p className="text-sm text-muted-foreground text-center">
+              Rejection not available for this step
+            </p>
+          )}
 
           <Button
             onClick={() => setReassignDialogOpen(true)}
@@ -326,7 +350,10 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
           <DialogHeader>
             <DialogTitle>Reject & Request Changes</DialogTitle>
             <DialogDescription>
-              This will request additional information or changes.
+              This will move the incident back to:{" "}
+              <span className="font-semibold text-foreground">
+                {rejectionTargetStep?.name || "Previous Step"}
+              </span>
             </DialogDescription>
           </DialogHeader>
           <div>
