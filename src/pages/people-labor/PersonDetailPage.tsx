@@ -34,7 +34,6 @@ import {
   Briefcase,
   Award,
   Users,
-  Shield,
   User,
   DollarSign,
   AlertTriangle,
@@ -45,7 +44,8 @@ import {
   Pencil,
   Trash2,
   MapPin,
-  Star
+  Star,
+  BadgeCheck
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -498,10 +498,6 @@ const PersonDetailPage: React.FC = () => {
               <Badge variant="secondary" className="ml-1 text-xs">{personLocations.length}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="access" className="flex items-center gap-2 py-3">
-            <Shield className="h-4 w-4" />
-            <span className="hidden sm:inline">Access</span>
-          </TabsTrigger>
         </TabsList>
 
         {/* Notes Tab */}
@@ -617,7 +613,7 @@ const PersonDetailPage: React.FC = () => {
                             <p className="text-foreground font-medium">
                               {personSkill.certified ? (
                                 <Badge variant="outline" className="border-success text-success">
-                                  <Shield className="w-3 h-3 mr-1" />
+                                  <BadgeCheck className="w-3 h-3 mr-1" />
                                   Yes
                                 </Badge>
                               ) : (
@@ -744,7 +740,7 @@ const PersonDetailPage: React.FC = () => {
                           <span className="text-xs text-muted-foreground uppercase tracking-wider">Status</span>
                           <p className="text-foreground font-medium">
                             <Badge variant={assignment.certification_status === 'certified' ? 'default' : 'secondary'} className="text-xs">
-                              {assignment.certification_status === 'certified' && <Shield className="w-3 h-3 mr-1" />}
+                              {assignment.certification_status === 'certified' && <BadgeCheck className="w-3 h-3 mr-1" />}
                               {assignment.certification_status}
                             </Badge>
                           </p>
@@ -774,71 +770,6 @@ const PersonDetailPage: React.FC = () => {
         {/* Assigned Locations Tab */}
         <TabsContent value="locations" className="space-y-4">
           <PersonLocationAssignments personId={id!} />
-        </TabsContent>
-
-        {/* Enhanced System Access Tab */}
-        <TabsContent value="access" className="space-y-4">
-          <Card>
-            <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                System Access & Permissions
-              </CardTitle>
-              <CardDescription>User account information and access level</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {person.user_id ? (
-                <div className="space-y-6">
-                  {/* Access Status Banner */}
-                  <div className="relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-success/10 via-success/5 to-transparent border border-success/30">
-                    <div className="absolute inset-0 bg-grid-white/10" />
-                    <div className="relative flex items-start gap-4">
-                      <div className="flex-shrink-0 p-3 bg-success/20 rounded-lg">
-                        <UserCheck className="h-6 w-6 text-success" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-foreground text-lg mb-1">System Access Active</h3>
-                        <p className="text-muted-foreground">This person has an active user account with system access</p>
-                      </div>
-                      <Badge className="bg-success text-success-foreground">Active</Badge>
-                    </div>
-                  </div>
-
-                  {/* User Details */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">User ID</label>
-                      <p className="text-sm text-foreground font-mono bg-muted px-3 py-2 rounded-lg border border-border">
-                        {person.user_id}
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Account Status</label>
-                      <Badge className="bg-success text-success-foreground">
-                        <UserCheck className="w-3 h-3 mr-1" />
-                        Active Access
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="relative overflow-hidden rounded-xl p-8 bg-gradient-to-br from-muted via-muted/50 to-transparent border border-border">
-                    <div className="absolute inset-0 bg-grid-white/5" />
-                    <div className="relative">
-                      <div className="mx-auto w-16 h-16 bg-muted-foreground/10 rounded-full flex items-center justify-center mb-4">
-                        <Shield className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                      <h3 className="font-semibold text-foreground text-lg mb-2">No System Access</h3>
-                      <p className="text-muted-foreground max-w-md mx-auto">
-                        This person does not currently have system access. Contact an administrator to grant access if needed.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
 
