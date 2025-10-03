@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useIncidentWorkflow } from "@/hooks/useWorkflowState";
-import { useWorkflowTemplateSteps } from "@/hooks/useWorkflowTemplateSteps";
+import { useWorkflowTemplateSteps, useStepRoleAssignments } from "@/hooks/useWorkflowTemplateSteps";
 import { useCurrentUserRoles } from "@/hooks/useCurrentUserRoles";
 import { usePeople } from "@/hooks/usePeople";
 import { useAuth } from "@/contexts/AuthContext";
@@ -61,16 +61,25 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
   const currentStepIndex = steps.findIndex((s) => s.id === currentStep.id);
   const nextStep = steps[currentStepIndex + 1];
 
+  // Fetch role assignments for this step from database
+  const { data: stepRoleAssignments } = useStepRoleAssignments(currentStep.id);
+
   // Check if this step requires approval or auto-transitions
   const isAutoTransitionStep = currentStep.approval_type === 'none';
 
-  // Check if user has required role for this step
+  // Check if user has required role for this step (database-driven)
   const userRoleNames = roles?.map((r) => r.role_name) || [];
-  const canApprove = isAutoTransitionStep || userRoleNames.some((role) => 
-    currentStep.name.toLowerCase().includes(role.toLowerCase()) ||
-    role.toLowerCase() === "admin" ||
-    role.toLowerCase() === "manager"
+  const canApprove = isAutoTransitionStep || (stepRoleAssignments || []).some((assignment) =>
+    userRoleNames.some(userRole => 
+      userRole.toLowerCase() === assignment.role_name.toLowerCase()
+    ) && assignment.can_approve === true
   );
+
+  // Get list of required roles for error message
+  const requiredRoles = (stepRoleAssignments || [])
+    .filter(a => a.can_approve)
+    .map(a => a.role_name)
+    .join(", ");
 
   const handleApprove = async () => {
     if (!nextStep) {
@@ -173,10 +182,16 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
         <CardHeader>
           <CardTitle>Workflow Actions</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-2">
           <p className="text-sm text-muted-foreground">
             You don't have permission to perform actions on this step.
-            Current step requires: {currentStep.name}
+          </p>
+          <p className="text-sm font-medium">
+            This step requires one of the following roles: 
+            <span className="text-primary"> {requiredRoles || "Not configured"}</span>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Your roles: {userRoleNames.join(", ") || "None"}
           </p>
         </CardContent>
       </Card>

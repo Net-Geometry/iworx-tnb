@@ -190,11 +190,17 @@ export const StepConfigurationModal = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none">None (Auto-transition)</SelectItem>
                   <SelectItem value="single">Single Approver</SelectItem>
                   <SelectItem value="multiple">Multiple Approvers</SelectItem>
                   <SelectItem value="unanimous">Unanimous Approval</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                {approvalType === 'none' 
+                  ? "Step will automatically continue to next step without approval"
+                  : "Step requires explicit approval from assigned roles"}
+              </p>
             </div>
           </div>
 
@@ -255,6 +261,16 @@ export const StepConfigurationModal = ({
               <p className="text-sm text-muted-foreground">
                 Assign roles that can perform actions in this step
               </p>
+              {approvalType !== 'none' && selectedRoles.filter(r => r.canApprove).length === 0 && (
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+                  <p className="text-sm text-yellow-600 dark:text-yellow-500 font-medium">
+                    ⚠️ Warning: This step requires approval but no roles have "Can Approve" permission.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Assign at least one role with "Can Approve" permission or change approval type to "None".
+                  </p>
+                </div>
+              )}
               <div className="space-y-3">
                 {roles.map(role => {
                   const selected = selectedRoles.find(r => r.roleId === role.id);
@@ -323,7 +339,13 @@ export const StepConfigurationModal = ({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!name}>
+          <Button 
+            onClick={handleSave} 
+            disabled={
+              !name || 
+              (step?.id && approvalType !== 'none' && selectedRoles.filter(r => r.canApprove).length === 0)
+            }
+          >
             {step ? "Update Step" : "Create Step"}
           </Button>
         </DialogFooter>
