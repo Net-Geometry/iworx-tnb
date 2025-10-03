@@ -38,7 +38,6 @@ const incidentSchema = z.object({
   reporter_email: z.string().email("Invalid email").optional().or(z.literal("")),
   immediate_actions: z.string().optional(),
   regulatory_reporting_required: z.boolean().default(false),
-  create_work_order: z.boolean().default(false),
   attachments: z.array(z.object({
     url: z.string(),
     name: z.string(),
@@ -95,7 +94,6 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
       reporter_name: user?.user_metadata?.display_name || "",
       reporter_email: user?.email || "",
       regulatory_reporting_required: false,
-      create_work_order: false,
       attachments: [],
     },
   });
@@ -340,28 +338,6 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="create_work_order"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    Create Work Order
-                  </FormLabel>
-                  <p className="text-sm text-muted-foreground">
-                    Automatically create a corrective maintenance work order for this incident
-                  </p>
-                </div>
-              </FormItem>
-            )}
-          />
         </div>
 
         {/* Form Actions */}

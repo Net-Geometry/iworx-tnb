@@ -130,9 +130,11 @@ export default function WorkflowDesignerPage() {
         is_required: stepData.is_required ?? true,
         approval_type: stepData.approval_type || 'single',
         auto_assign_enabled: stepData.auto_assign_enabled || false,
+        allows_work_order_creation: stepData.allows_work_order_creation || false,
         auto_assign_logic: stepData.auto_assign_logic || null,
         form_fields: stepData.form_fields || null,
         work_order_status: stepData.work_order_status || null,
+        incident_status: stepData.incident_status || null,
         organization_id: template.organization_id,
       });
     }

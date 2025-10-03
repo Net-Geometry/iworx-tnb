@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { CheckCircle, XCircle, UserPlus, MessageSquare } from "lucide-react";
+import { CheckCircle, XCircle, UserPlus, MessageSquare, Wrench } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -24,6 +25,8 @@ import { useWorkflowTemplateSteps, useStepRoleAssignments } from "@/hooks/useWor
 import { useCurrentUserRoles } from "@/hooks/useCurrentUserRoles";
 import { usePeople } from "@/hooks/usePeople";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWorkOrders } from "@/hooks/useWorkOrders";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface IncidentWorkflowActionsProps {
@@ -46,9 +49,14 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
+  const [woDialogOpen, setWoDialogOpen] = useState(false);
   const [comments, setComments] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [woTitle, setWoTitle] = useState("");
+  const [woDescription, setWoDescription] = useState("");
+  
+  const { createWorkOrder } = useWorkOrders();
 
   // Get current step before early returns affect hook order
   const currentStep = steps?.find((s) => s.id === workflowState?.current_step_id);
@@ -399,6 +407,113 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
             </Button>
             <Button onClick={handleReassign} disabled={isSubmitting || !selectedUserId}>
               {isSubmitting ? "Reassigning..." : "Reassign"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Work Order Creation Dialog */}
+      <Dialog open={woDialogOpen} onOpenChange={setWoDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Work Order</DialogTitle>
+            <DialogDescription>
+              Create a work order linked to this incident
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="wo-title">Work Order Title *</Label>
+              <Input
+                id="wo-title"
+                value={woTitle}
+                onChange={(e) => setWoTitle(e.target.value)}
+                placeholder="Enter work order title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="wo-description">Description *</Label>
+              <Textarea
+                id="wo-description"
+                value={woDescription}
+                onChange={(e) => setWoDescription(e.target.value)}
+                placeholder="Describe the corrective actions needed..."
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWoDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!woTitle || !woDescription) {
+                  toast.error("Title and description are required");
+                  return;
+                }
+                
+                setIsSubmitting(true);
+                try {
+                  // Fetch incident to get asset_id
+                  const { data: incident, error: fetchError } = await supabase
+                    .from("safety_incidents")
+                    .select("asset_id, severity")
+                    .eq("id", incidentId)
+                    .single();
+
+                  if (fetchError) throw fetchError;
+
+                  if (!incident?.asset_id) {
+                    toast.error("Cannot create work order: Incident has no associated asset");
+                    return;
+                  }
+
+                  const priorityMap: Record<string, "critical" | "high" | "medium" | "low"> = {
+                    critical: "high",
+                    high: "high",
+                    medium: "medium",
+                    low: "low",
+                  };
+
+                  const workOrderData = {
+                    asset_id: incident.asset_id,
+                    title: woTitle,
+                    description: woDescription,
+                    status: "scheduled" as const,
+                    priority: (priorityMap[incident.severity] || "medium") as "critical" | "high" | "medium" | "low",
+                    maintenance_type: "corrective" as const,
+                    scheduled_date: new Date().toISOString(),
+                    organization_id: currentOrganization?.id || "",
+                    incident_report_id: incidentId,
+                  };
+
+                  await createWorkOrder(workOrderData);
+                  
+                  // Record work order creation in incident approvals
+                  await supabase.from("incident_approvals").insert({
+                    incident_id: incidentId,
+                    step_id: currentStep.id,
+                    approved_by_user_id: workflowState.assigned_to_user_id,
+                    approval_action: "work_order_created",
+                    comments: `Work order created: ${woTitle}`,
+                    organization_id: currentOrganization?.id,
+                  });
+
+                  toast.success("Work order created and linked to incident");
+                  setWoDialogOpen(false);
+                  setWoTitle("");
+                  setWoDescription("");
+                } catch (error: any) {
+                  console.error("Error creating work order:", error);
+                  toast.error(error.message || "Failed to create work order");
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
+              disabled={isSubmitting || !woTitle || !woDescription}
+            >
+              {isSubmitting ? "Creating..." : "Create Work Order"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -2014,6 +2014,7 @@ export type Database = {
       }
       workflow_template_steps: {
         Row: {
+          allows_work_order_creation: boolean | null
           approval_type: string | null
           auto_assign_enabled: boolean | null
           auto_assign_logic: Json | null
@@ -2033,6 +2034,7 @@ export type Database = {
           work_order_status: string | null
         }
         Insert: {
+          allows_work_order_creation?: boolean | null
           approval_type?: string | null
           auto_assign_enabled?: boolean | null
           auto_assign_logic?: Json | null
@@ -2052,6 +2054,7 @@ export type Database = {
           work_order_status?: string | null
         }
         Update: {
+          allows_work_order_creation?: boolean | null
           approval_type?: string | null
           auto_assign_enabled?: boolean | null
           auto_assign_logic?: Json | null

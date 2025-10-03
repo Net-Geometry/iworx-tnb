@@ -39,6 +39,7 @@ export const StepConfigurationModal = ({
   const [slaHours, setSlaHours] = useState("");
   const [isRequired, setIsRequired] = useState(true);
   const [autoAssignEnabled, setAutoAssignEnabled] = useState(false);
+  const [allowsWorkOrderCreation, setAllowsWorkOrderCreation] = useState(false);
   const [workOrderStatus, setWorkOrderStatus] = useState("");
   const [incidentStatus, setIncidentStatus] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<Array<{ roleId: string; canApprove: boolean; canReject: boolean; canAssign: boolean }>>([]);
@@ -56,6 +57,7 @@ export const StepConfigurationModal = ({
       setSlaHours(step.sla_hours?.toString() || "");
       setIsRequired(step.is_required);
       setAutoAssignEnabled(step.auto_assign_enabled);
+      setAllowsWorkOrderCreation(step.allows_work_order_creation || false);
       setWorkOrderStatus(step.work_order_status || "");
       setIncidentStatus(step.incident_status || "");
     } else {
@@ -66,6 +68,7 @@ export const StepConfigurationModal = ({
       setSlaHours("");
       setIsRequired(true);
       setAutoAssignEnabled(false);
+      setAllowsWorkOrderCreation(false);
       setWorkOrderStatus("");
       setIncidentStatus("");
     }
@@ -95,6 +98,7 @@ export const StepConfigurationModal = ({
       sla_hours: slaHours ? parseInt(slaHours) : null,
       is_required: isRequired,
       auto_assign_enabled: autoAssignEnabled,
+      allows_work_order_creation: allowsWorkOrderCreation,
       work_order_status: workOrderStatus || null,
       incident_status: incidentStatus || null,
     };
@@ -238,6 +242,20 @@ export const StepConfigurationModal = ({
               id="auto-assign"
               checked={autoAssignEnabled}
               onCheckedChange={setAutoAssignEnabled}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="allow-wo-creation">Allow Work Order Creation</Label>
+              <p className="text-sm text-muted-foreground">
+                Enable work order creation button at this step
+              </p>
+            </div>
+            <Switch
+              id="allow-wo-creation"
+              checked={allowsWorkOrderCreation}
+              onCheckedChange={setAllowsWorkOrderCreation}
             />
           </div>
 

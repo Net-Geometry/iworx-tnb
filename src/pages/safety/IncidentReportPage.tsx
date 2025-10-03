@@ -72,32 +72,7 @@ const IncidentReportPage = () => {
         // Don't block incident creation if workflow fails
       }
 
-      // Create work order if requested and asset is involved
-      if (data.create_work_order && data.asset_id) {
-        const priorityMap: Record<string, "critical" | "high" | "medium" | "low"> = {
-          critical: "high",
-          high: "high",
-          medium: "medium",
-          low: "low",
-        };
-
-        const workOrderData = {
-          asset_id: data.asset_id,
-          title: `Incident Response: ${data.title}`,
-          description: `Work order created from incident report:\n\n${data.description}`,
-          status: "scheduled" as const,
-          priority: (priorityMap[data.severity] || "medium") as "critical" | "high" | "medium" | "low",
-          maintenance_type: "corrective" as const,
-          scheduled_date: new Date().toISOString(),
-          organization_id: currentOrganization?.id || "",
-          incident_report_id: newIncident?.id,
-        };
-
-        await createWorkOrder(workOrderData);
-        toast.success("Incident reported and work order created successfully");
-      } else {
-        toast.success("Incident reported successfully");
-      }
+      toast.success("Incident reported successfully");
 
       // Navigate to incident detail page
       navigate(`/safety/incidents/${newIncident.id}`);

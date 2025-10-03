@@ -1,4 +1,4 @@
-import { Edit, Trash2, Clock, CheckCircle2, Users } from "lucide-react";
+import { Edit, Trash2, Clock, CheckCircle2, Users, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -77,6 +77,12 @@ export const WorkflowStepCard = ({ step, stepNumber, onEdit, onDelete }: Workflo
             )}
             {step.auto_assign_enabled && (
               <Badge variant="default">Auto-Assign</Badge>
+            )}
+            {step.allows_work_order_creation && (
+              <Badge variant="default" className="gap-1 bg-green-600 hover:bg-green-700">
+                <Wrench className="w-3 h-3" />
+                WO Creation
+              </Badge>
             )}
             {step.work_order_status && (
               <Badge variant="outline" className="capitalize">
