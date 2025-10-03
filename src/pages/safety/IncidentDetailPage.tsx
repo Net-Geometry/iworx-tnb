@@ -150,7 +150,10 @@ const IncidentDetailPage = () => {
     
     setIsSaving(true);
     try {
-      await updateIncident(id, data);
+      // Remove UI-only fields before sending to API
+      const { requires_work_order, ...incidentData } = data;
+      
+      await updateIncident(id, incidentData);
       await refetch();
       setIsEditing(false);
       toast.success("Incident updated successfully");
