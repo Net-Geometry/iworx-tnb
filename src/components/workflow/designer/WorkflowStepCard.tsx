@@ -18,7 +18,7 @@ export const WorkflowStepCard = ({ step, stepNumber, onEdit, onDelete }: Workflo
   const { roles } = useRoles();
 
   const assignedRoles = roleAssignments?.map(ra => {
-    const role = roles.find(r => r.id === ra.role_id);
+    const role = roles.find(r => r.name === ra.role_name);
     return role?.display_name;
   }).filter(Boolean);
 

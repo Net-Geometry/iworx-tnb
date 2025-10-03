@@ -75,19 +75,29 @@ export const StepConfigurationModal = ({
   }, [step, open]);
 
   useEffect(() => {
-    if (roleAssignments && step) {
+    if (roleAssignments && step && roles) {
       setSelectedRoles(
-        roleAssignments.map(ra => ({
-          roleId: ra.role_id,
-          canApprove: ra.can_approve,
-          canReject: ra.can_reject,
-          canAssign: ra.can_assign,
-        }))
+        roleAssignments
+          .map(ra => {
+            // Map role_name back to roleId by finding the role with that name
+            const role = roles.find(r => r.name === ra.role_name);
+            if (!role) {
+              console.warn(`Role not found for name: ${ra.role_name}`);
+              return null;
+            }
+            return {
+              roleId: role.id,
+              canApprove: ra.can_approve,
+              canReject: ra.can_reject,
+              canAssign: ra.can_assign,
+            };
+          })
+          .filter((r): r is NonNullable<typeof r> => r !== null)
       );
     } else {
       setSelectedRoles([]);
     }
-  }, [roleAssignments, step]);
+  }, [roleAssignments, step, roles]);
 
   const handleSave = () => {
     const stepData: Partial<WorkflowTemplateStep> = {
@@ -108,10 +118,16 @@ export const StepConfigurationModal = ({
     // Save role assignments after step is saved
     if (step?.id) {
       selectedRoles.forEach(role => {
+        // Find the role object to get the actual role name
+        const roleData = roles?.find(r => r.id === role.roleId);
+        if (!roleData) {
+          console.warn(`Role not found for ID: ${role.roleId}`);
+          return;
+        }
+        
         upsertRoleAssignment({
           step_id: step.id,
-          role_id: role.roleId,
-          role_name: '', // Will be populated from roles table
+          role_name: roleData.name,
           can_approve: role.canApprove,
           can_reject: role.canReject,
           can_assign: role.canAssign,

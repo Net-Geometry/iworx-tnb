@@ -26,7 +26,6 @@ export interface WorkflowTemplateStep {
 export interface StepRoleAssignment {
   id: string;
   step_id: string;
-  role_id: string;
   role_name: string;
   can_approve: boolean;
   can_reject: boolean;
