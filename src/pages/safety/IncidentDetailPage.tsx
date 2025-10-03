@@ -75,7 +75,7 @@ type IncidentFormValues = z.infer<typeof incidentSchema>;
 /**
  * IncidentDetailPage Component
  * 
- * Full-page view for incident details with workflow management.
+ * Full-page view for incident details with inline editing support.
  * Displays incident information, workflow progress, role-based action buttons,
  * and complete approval history.
  */
