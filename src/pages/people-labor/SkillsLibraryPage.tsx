@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Pencil, Trash2 } from "lucide-react";
 import { useSkills } from "@/hooks/useSkills";
 import {
   Table,
@@ -29,12 +29,24 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const SkillsLibraryPage = () => {
-  const { skills, isLoading, createSkill } = useSkills();
+  const { skills, isLoading, createSkill, updateSkill, deleteSkill } = useSkills();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
+  const [editingSkill, setEditingSkill] = useState<any | null>(null);
+  const [deleteSkillId, setDeleteSkillId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     skill_name: "",
@@ -53,8 +65,13 @@ const SkillsLibraryPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createSkill.mutateAsync(formData);
+    if (editingSkill) {
+      await updateSkill.mutateAsync({ id: editingSkill.id, ...formData });
+    } else {
+      await createSkill.mutateAsync(formData);
+    }
     setOpen(false);
+    setEditingSkill(null);
     setFormData({
       skill_name: "",
       skill_code: "",
@@ -62,6 +79,39 @@ const SkillsLibraryPage = () => {
       description: "",
       certification_required: false,
     });
+  };
+
+  const handleEdit = (skill: any) => {
+    setEditingSkill(skill);
+    setFormData({
+      skill_name: skill.skill_name || "",
+      skill_code: skill.skill_code || "",
+      category: skill.category || "other",
+      description: skill.description || "",
+      certification_required: skill.certification_required || false,
+    });
+    setOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (deleteSkillId) {
+      await deleteSkill.mutateAsync(deleteSkillId);
+      setDeleteSkillId(null);
+    }
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setOpen(open);
+    if (!open) {
+      setEditingSkill(null);
+      setFormData({
+        skill_name: "",
+        skill_code: "",
+        category: "other",
+        description: "",
+        certification_required: false,
+      });
+    }
   };
 
   const getCategoryColor = (category: string) => {
@@ -82,7 +132,7 @@ const SkillsLibraryPage = () => {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Skills Library</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -91,7 +141,7 @@ const SkillsLibraryPage = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Skill</DialogTitle>
+              <DialogTitle>{editingSkill ? "Edit Skill" : "Add New Skill"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -151,7 +201,9 @@ const SkillsLibraryPage = () => {
                 />
                 <Label htmlFor="certification_required">Certification Required</Label>
               </div>
-              <Button type="submit" className="w-full">Create Skill</Button>
+              <Button type="submit" className="w-full">
+                {editingSkill ? "Update Skill" : "Create Skill"}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -189,23 +241,24 @@ const SkillsLibraryPage = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Code</TableHead>
-              <TableHead>Skill Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Certification</TableHead>
-            </TableRow>
-          </TableHeader>
+                    <TableHead>Code</TableHead>
+                    <TableHead>Skill Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Certification</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center">
+                <TableCell colSpan={6} className="text-center">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : filteredSkills.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center">
+                <TableCell colSpan={6} className="text-center">
                   No skills found
                 </TableCell>
               </TableRow>
@@ -227,12 +280,45 @@ const SkillsLibraryPage = () => {
                       <Badge variant="outline">Optional</Badge>
                     )}
                   </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(skill)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteSkillId(skill.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!deleteSkillId} onOpenChange={(open) => !open && setDeleteSkillId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this skill from your library. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
