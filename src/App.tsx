@@ -42,7 +42,6 @@ import BOMDetailPage from "./pages/BOMDetailPage";
 import SafetyIncidentsPage from "./pages/safety/SafetyIncidentsPage";
 import IncidentReportPage from "./pages/safety/IncidentReportPage";
 import IncidentDetailPage from "./pages/safety/IncidentDetailPage";
-import EditIncidentPage from "./pages/safety/EditIncidentPage";
 import SafetyHazardsPage from "./pages/safety/SafetyHazardsPage";
 import LOTOProceduresPage from "./pages/safety/LOTOProceduresPage";
 import PrecautionLibraryPage from "./pages/safety/PrecautionLibraryPage";
@@ -357,13 +356,6 @@ const App = () => (
                   <AuthGuard>
                     <Layout>
                       <IncidentDetailPage />
-                    </Layout>
-                  </AuthGuard>
-                } />
-                <Route path="/safety/incidents/:id/edit" element={
-                  <AuthGuard>
-                    <Layout>
-                      <EditIncidentPage />
                     </Layout>
                   </AuthGuard>
                 } />
