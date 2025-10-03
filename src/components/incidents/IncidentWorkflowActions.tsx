@@ -231,9 +231,15 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
         title: woTitle,
         description: woDescription,
         status: "open" as const,
-        priority: (priorityMap[incident.severity] || "medium") as "critical" | "high" | "medium" | "low",
-        maintenance_type: "corrective" as const,
-        scheduled_date: new Date().toISOString(),
+        // Use incident's work order planning fields
+        priority: (incident?.wo_priority || priorityMap[incident.severity] || "medium") as "critical" | "high" | "medium" | "low",
+        maintenance_type: (incident?.wo_maintenance_type || "corrective") as "preventive" | "corrective" | "predictive" | "emergency",
+        estimated_duration_hours: incident?.wo_estimated_duration_hours || null,
+        estimated_cost: incident?.wo_estimated_cost || null,
+        assigned_technician: incident?.wo_assigned_technician || null,
+        notes: incident?.wo_notes || incident?.immediate_actions || "",
+        scheduled_date: incident?.wo_target_start_date || new Date().toISOString(),
+        target_finish_date: incident?.wo_target_finish_date || null,
         organization_id: currentOrganization?.id || "",
         incident_report_id: incidentId,
       };

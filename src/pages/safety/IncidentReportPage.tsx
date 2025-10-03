@@ -52,9 +52,19 @@ const IncidentReportPage = () => {
         reporter_email: data.reporter_email || null,
         asset_id: data.asset_id === 'none' ? null : (data.asset_id || null),
         regulatory_reporting_required: data.regulatory_reporting_required || false,
-        corrective_actions: data.immediate_actions || null,
+        immediate_actions: data.immediate_actions || null,
         incident_number: `INC-${Date.now()}`,
         organization_id: currentOrganization?.id || "",
+        // Work order planning fields
+        wo_maintenance_type: data.requires_work_order ? data.wo_maintenance_type : null,
+        wo_priority: data.requires_work_order ? data.wo_priority : null,
+        wo_estimated_duration_hours: data.requires_work_order ? data.wo_estimated_duration_hours : null,
+        wo_assigned_technician: data.requires_work_order ? data.wo_assigned_technician : null,
+        wo_estimated_cost: data.requires_work_order ? data.wo_estimated_cost : null,
+        wo_target_start_date: data.requires_work_order && data.wo_target_start_date ? new Date(data.wo_target_start_date).toISOString() : null,
+        wo_target_finish_date: data.requires_work_order && data.wo_target_finish_date ? new Date(data.wo_target_finish_date).toISOString() : null,
+        wo_notes: data.requires_work_order ? data.wo_notes : null,
+        attachments: data.attachments || [],
       };
 
       const newIncident = await createIncident(incidentData);

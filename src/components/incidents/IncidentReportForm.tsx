@@ -21,10 +21,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { Wrench } from "lucide-react";
 import { useAssets } from "@/hooks/useAssets";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHierarchyNodes, useHierarchyLevels } from "@/hooks/useHierarchyData";
 import { MultiFileUpload } from "@/components/incidents/MultiFileUpload";
+import { useEffect } from "react";
 
 // Form validation schema
 const incidentSchema = z.object({
@@ -44,6 +47,16 @@ const incidentSchema = z.object({
     type: z.string(),
     size: z.number(),
   })).optional(),
+  // Work Order Planning Fields
+  requires_work_order: z.boolean().default(false),
+  wo_maintenance_type: z.enum(["preventive", "corrective", "predictive", "emergency"]).optional(),
+  wo_priority: z.enum(["low", "medium", "high", "critical"]).optional(),
+  wo_estimated_duration_hours: z.coerce.number().optional(),
+  wo_assigned_technician: z.string().optional(),
+  wo_estimated_cost: z.coerce.number().optional(),
+  wo_target_start_date: z.string().optional(),
+  wo_target_finish_date: z.string().optional(),
+  wo_notes: z.string().optional(),
 });
 
 type IncidentFormValues = z.infer<typeof incidentSchema>;
@@ -94,9 +107,31 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
       reporter_name: user?.user_metadata?.display_name || "",
       reporter_email: user?.email || "",
       regulatory_reporting_required: false,
+      requires_work_order: false,
       attachments: [],
     },
   });
+
+  // Auto-populate work order fields based on severity
+  useEffect(() => {
+    const severity = form.watch("severity");
+    const requiresWorkOrder = form.watch("requires_work_order");
+    
+    if (requiresWorkOrder && severity) {
+      // Auto-set priority to match severity
+      if (!form.watch("wo_priority")) {
+        form.setValue("wo_priority", severity);
+      }
+      
+      // Auto-suggest maintenance type based on severity
+      if (!form.watch("wo_maintenance_type")) {
+        const maintenanceType = severity === "critical" || severity === "high" 
+          ? "emergency" 
+          : "corrective";
+        form.setValue("wo_maintenance_type", maintenanceType);
+      }
+    }
+  }, [form.watch("severity"), form.watch("requires_work_order")]);
 
   return (
     <Form {...form}>
@@ -313,11 +348,35 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
           />
         </div>
 
-        {/* Checkboxes */}
-        <div className="space-y-4">
+        {/* Regulatory Reporting */}
+        <FormField
+          control={form.control}
+          name="regulatory_reporting_required"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  Regulatory Reporting Required
+                </FormLabel>
+                <p className="text-sm text-muted-foreground">
+                  Check if this incident requires reporting to regulatory authorities
+                </p>
+              </div>
+            </FormItem>
+          )}
+        />
+
+        {/* Work Order Planning Section - Collapsible */}
+        <div className="border rounded-lg p-4 bg-muted/30 mt-6">
           <FormField
             control={form.control}
-            name="regulatory_reporting_required"
+            name="requires_work_order"
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
@@ -327,17 +386,156 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    Regulatory Reporting Required
+                  <FormLabel className="text-base font-semibold flex items-center gap-2">
+                    <Wrench className="w-4 h-4" />
+                    This incident requires maintenance work
                   </FormLabel>
                   <p className="text-sm text-muted-foreground">
-                    Check if this incident requires reporting to regulatory authorities
+                    Check this to provide work order details for faster resolution
                   </p>
                 </div>
               </FormItem>
             )}
           />
 
+          <Collapsible open={form.watch("requires_work_order")} className="mt-4">
+            <CollapsibleContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Maintenance Type */}
+                <FormField
+                  control={form.control}
+                  name="wo_maintenance_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maintenance Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="corrective">Corrective - Fix the issue</SelectItem>
+                          <SelectItem value="preventive">Preventive - Prevent recurrence</SelectItem>
+                          <SelectItem value="predictive">Predictive - Based on monitoring</SelectItem>
+                          <SelectItem value="emergency">Emergency - Urgent action needed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Work Order Priority */}
+                <FormField
+                  control={form.control}
+                  name="wo_priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Work Priority</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select priority" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="critical">Critical</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Target Start Date */}
+                <FormField
+                  control={form.control}
+                  name="wo_target_start_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Target Start Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Estimated Duration */}
+                <FormField
+                  control={form.control}
+                  name="wo_estimated_duration_hours"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Estimated Duration (hours)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.5" placeholder="e.g., 2.5" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Assigned Technician */}
+                <FormField
+                  control={form.control}
+                  name="wo_assigned_technician"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Suggested Technician</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Technician name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Estimated Cost */}
+                <FormField
+                  control={form.control}
+                  name="wo_estimated_cost"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Estimated Cost ($)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Work Order Notes */}
+              <FormField
+                control={form.control}
+                name="wo_notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Work Instructions / Special Notes</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Provide specific instructions for the maintenance team..."
+                        className="min-h-[80px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         {/* Form Actions */}

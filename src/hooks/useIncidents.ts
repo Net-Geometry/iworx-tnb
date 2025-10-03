@@ -30,6 +30,17 @@ export interface Incident {
   updated_by: string | null;
   organization_id: string;
   closure_date?: string | null;
+  // Work Order Planning Fields
+  immediate_actions: string | null;
+  wo_maintenance_type: 'preventive' | 'corrective' | 'predictive' | 'emergency' | null;
+  wo_priority: 'low' | 'medium' | 'high' | 'critical' | null;
+  wo_estimated_duration_hours: number | null;
+  wo_assigned_technician: string | null;
+  wo_estimated_cost: number | null;
+  wo_target_start_date: string | null;
+  wo_target_finish_date: string | null;
+  wo_notes: string | null;
+  attachments?: Array<{ url: string; name: string; type: string; size: number; }>;
 }
 
 export interface IncidentStats {
@@ -95,7 +106,7 @@ export const useIncidents = () => {
 
       if (error) throw error;
 
-      setIncidents(data || []);
+      setIncidents((data || []) as Incident[]);
 
       // Calculate statistics
       const now = new Date();

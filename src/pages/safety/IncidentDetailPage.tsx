@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, AlertTriangle, FileText, Calendar, User, MapPin } from "lucide-react";
+import { ArrowLeft, AlertTriangle, FileText, Calendar, User, MapPin, Mail, Package, Wrench, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { useIncidents } from "@/hooks/useIncidents";
 import { useIncidentWorkflow } from "@/hooks/useWorkflowState";
+import { useAssets } from "@/hooks/useAssets";
 import { IncidentWorkflowProgress } from "@/components/incidents/IncidentWorkflowProgress";
 import { IncidentWorkflowActions } from "@/components/incidents/IncidentWorkflowActions";
 import { WorkflowHistory } from "@/components/workflow/WorkflowHistory";
@@ -31,6 +32,7 @@ const IncidentDetailPage = () => {
   const navigate = useNavigate();
   const { incidents, loading } = useIncidents();
   const { approvals } = useIncidentWorkflow(id);
+  const { assets } = useAssets();
 
   const incident = incidents?.find((inc) => inc.id === id);
 
@@ -168,10 +170,16 @@ const IncidentDetailPage = () => {
                       Reported By
                     </label>
                     <p className="text-sm">{incident.reporter_name}</p>
+                    {incident.reporter_email && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                        <Mail className="w-3 h-3" />
+                        {incident.reporter_email}
+                      </p>
+                    )}
                   </div>
                 </div>
                 {incident.location && (
-                  <div className="flex items-center space-x-2 col-span-2">
+                  <div className="flex items-center space-x-2">
                     <MapPin className="w-4 h-4 text-muted-foreground" />
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
@@ -179,6 +187,27 @@ const IncidentDetailPage = () => {
                       </label>
                       <p className="text-sm">{incident.location}</p>
                     </div>
+                  </div>
+                )}
+                {incident.asset_id && (
+                  <div className="flex items-center space-x-2 col-span-2">
+                    <Package className="w-4 h-4 text-muted-foreground" />
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Asset Involved
+                      </label>
+                      <p className="text-sm">
+                        {assets.find(a => a.id === incident.asset_id)?.name || "Loading..."}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {incident.regulatory_reporting_required && (
+                  <div className="col-span-2">
+                    <Badge variant="destructive" className="flex items-center gap-1 w-fit">
+                      <AlertTriangle className="w-3 h-3" />
+                      Regulatory Reporting Required
+                    </Badge>
                   </div>
                 )}
               </div>
@@ -221,10 +250,111 @@ const IncidentDetailPage = () => {
                   <p className="text-sm">${incident.cost_estimate.toLocaleString()}</p>
                 </div>
               )}
+
+              {incident.immediate_actions && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Immediate Actions Taken
+                  </label>
+                  <p className="text-sm mt-1 whitespace-pre-wrap">
+                    {incident.immediate_actions}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Attachments - Placeholder for future implementation */}
+          {/* Work Order Planning Details */}
+          {incident.wo_maintenance_type && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Wrench className="w-5 h-5" />
+                  <span>Work Order Planning</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Maintenance Type</label>
+                    <p className="text-sm capitalize">{incident.wo_maintenance_type}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Priority</label>
+                    <Badge variant={incident.wo_priority === "critical" ? "destructive" : "default"} className="capitalize">
+                      {incident.wo_priority}
+                    </Badge>
+                  </div>
+                  {incident.wo_estimated_duration_hours && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Est. Duration</label>
+                      <p className="text-sm">{incident.wo_estimated_duration_hours} hours</p>
+                    </div>
+                  )}
+                  {incident.wo_assigned_technician && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Assigned To</label>
+                      <p className="text-sm">{incident.wo_assigned_technician}</p>
+                    </div>
+                  )}
+                  {incident.wo_estimated_cost && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Est. Cost</label>
+                      <p className="text-sm">${incident.wo_estimated_cost.toFixed(2)}</p>
+                    </div>
+                  )}
+                  {incident.wo_target_start_date && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Target Start</label>
+                      <p className="text-sm">{format(new Date(incident.wo_target_start_date), "PPP")}</p>
+                    </div>
+                  )}
+                </div>
+                {incident.wo_notes && (
+                  <div className="mt-4 p-3 bg-muted rounded-lg">
+                    <label className="text-sm font-medium text-muted-foreground">Work Instructions</label>
+                    <p className="text-sm mt-1">{incident.wo_notes}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Evidence & Attachments */}
+          {incident.attachments && incident.attachments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="w-5 h-5" />
+                  <span>Evidence & Attachments ({incident.attachments.length})</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {incident.attachments.map((file: any, index: number) => (
+                    <div key={index} className="border rounded-lg p-3 hover:bg-muted/50 transition">
+                      <FileText className="w-10 h-10 mb-2 text-muted-foreground" />
+                      <p className="text-sm font-medium truncate" title={file.name}>
+                        {file.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        {(file.size / 1024).toFixed(1)} KB
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => window.open(file.url, '_blank')}
+                      >
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        View
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Right Column - Workflow Actions and History */}
