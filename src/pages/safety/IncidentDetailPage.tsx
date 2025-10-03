@@ -16,6 +16,7 @@ import { useIncidents } from "@/hooks/useIncidents";
 import { useIncidentWorkflow } from "@/hooks/useWorkflowState";
 import { useAssets } from "@/hooks/useAssets";
 import { useCanEditIncident } from "@/hooks/useCanEditIncident";
+import { useTechnicians } from "@/hooks/useTechnicians";
 import { IncidentWorkflowProgress } from "@/components/incidents/IncidentWorkflowProgress";
 import { IncidentWorkflowActions } from "@/components/incidents/IncidentWorkflowActions";
 import { WorkflowHistory } from "@/components/workflow/WorkflowHistory";
@@ -90,6 +91,7 @@ const IncidentDetailPage = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const incident = incidents?.find((inc) => inc.id === id);
+  const { technicians, isLoading: loadingTechnicians } = useTechnicians(incident?.location);
 
   // Initialize form with incident data
   const form = useForm<IncidentFormValues>({
@@ -837,9 +839,37 @@ const IncidentDetailPage = () => {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Assigned Technician</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Technician name" {...field} />
-                                </FormControl>
+                                <Select 
+                                  onValueChange={field.onChange} 
+                                  value={field.value}
+                                  disabled={loadingTechnicians}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select technician..." />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {technicians.length === 0 && !loadingTechnicians && (
+                                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                                        No technicians available
+                                      </div>
+                                    )}
+                                    {technicians.map((tech) => (
+                                      <SelectItem 
+                                        key={tech.id} 
+                                        value={`${tech.first_name} ${tech.last_name}`}
+                                      >
+                                        {tech.first_name} {tech.last_name}
+                                        {tech.business_areas?.length > 0 && tech.business_areas[0].business_area.station && (
+                                          <span className="text-muted-foreground text-xs ml-2">
+                                            ({tech.business_areas[0].business_area.station})
+                                          </span>
+                                        )}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                                 <FormMessage />
                               </FormItem>
                             )}
