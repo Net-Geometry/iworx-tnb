@@ -29,6 +29,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useWorkOrders } from "@/hooks/useWorkOrders";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { derivePriority, buildWorkOrderNotes } from "@/lib/incidentUtils";
 
 interface IncidentWorkflowActionsProps {
   incidentId: string;
@@ -225,23 +226,31 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
         low: "low",
       };
 
-      // Create the work order directly via supabase
+      // Create the work order with engineering assessment data
       const workOrderData = {
         asset_id: incident.asset_id,
         title: woTitle,
         description: woDescription,
         status: "open" as const,
-        // Use incident's work order planning fields
-        priority: (incident?.wo_priority || priorityMap[incident.severity] || "medium") as "critical" | "high" | "medium" | "low",
-        maintenance_type: (incident?.wo_maintenance_type || "corrective") as "preventive" | "corrective" | "predictive" | "emergency",
-        estimated_duration_hours: incident?.wo_estimated_duration_hours || null,
-        estimated_cost: incident?.wo_estimated_cost || null,
-        assigned_technician: incident?.wo_assigned_technician || null,
-        notes: incident?.wo_notes || incident?.immediate_actions || "",
-        scheduled_date: incident?.wo_target_start_date || new Date().toISOString(),
-        target_finish_date: incident?.wo_target_finish_date || null,
         organization_id: currentOrganization?.id || "",
         incident_report_id: incidentId,
+        
+        // Use engineering assessment fields (new approach)
+        job_plan_id: incident.suggested_job_plan_id || null,
+        priority: derivePriority(incident.severity, incident.priority_assessment) as "critical" | "high" | "medium" | "low",
+        maintenance_type: "corrective" as const,
+        estimated_duration_hours: incident.estimated_repair_hours || null,
+        estimated_cost: (
+          (incident.estimated_material_cost || 0) + 
+          (incident.estimated_labor_cost || 0)
+        ) || null,
+        
+        // Dates
+        scheduled_date: new Date().toISOString(),
+        target_finish_date: null,
+        
+        // Comprehensive notes from incident context
+        notes: buildWorkOrderNotes(incident),
       };
 
       const { data: workOrder, error: woError } = await supabase

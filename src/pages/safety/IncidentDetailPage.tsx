@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { ArrowLeft, AlertTriangle, FileText, Calendar, User, MapPin, Mail, Package, ExternalLink, Save, X } from "lucide-react";
+import { ArrowLeft, AlertTriangle, FileText, Calendar, User, MapPin, Mail, Package, ExternalLink, Save, X, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +43,8 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { useJobPlans } from "@/hooks/useJobPlans";
+import { formatPriorityAssessment, getPriorityVariant, calculateTotalEstimate } from "@/lib/incidentUtils";
 
 // Form validation schema
 const incidentSchema = z.object({
@@ -56,6 +58,13 @@ const incidentSchema = z.object({
   root_cause: z.string().optional(),
   corrective_actions: z.string().optional(),
   regulatory_reporting_required: z.boolean().default(false),
+  // Engineering Assessment Fields
+  immediate_actions: z.string().optional(),
+  suggested_job_plan_id: z.string().uuid().optional(),
+  estimated_repair_hours: z.coerce.number().min(0).optional(),
+  priority_assessment: z.enum(['can_wait', 'should_schedule', 'urgent', 'critical']).optional(),
+  estimated_material_cost: z.coerce.number().min(0).optional(),
+  estimated_labor_cost: z.coerce.number().min(0).optional(),
 });
 
 type IncidentFormValues = z.infer<typeof incidentSchema>;
@@ -73,11 +82,13 @@ const IncidentDetailPage = () => {
   const { incidents, loading, updateIncident, refetch } = useIncidents();
   const { approvals } = useIncidentWorkflow(id);
   const { assets } = useAssets();
+  const { data: jobPlans = [] } = useJobPlans();
   const canEdit = useCanEditIncident(id);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const incident = incidents?.find((inc) => inc.id === id);
+  const jobPlan = jobPlans.find(plan => plan.id === incident?.suggested_job_plan_id);
 
   // Initialize form with incident data
   const form = useForm<IncidentFormValues>({
@@ -93,6 +104,12 @@ const IncidentDetailPage = () => {
       root_cause: incident?.root_cause || "",
       corrective_actions: incident?.corrective_actions || "",
       regulatory_reporting_required: incident?.regulatory_reporting_required || false,
+      immediate_actions: incident?.immediate_actions || "",
+      suggested_job_plan_id: incident?.suggested_job_plan_id || "",
+      estimated_repair_hours: incident?.estimated_repair_hours || undefined,
+      priority_assessment: incident?.priority_assessment || undefined,
+      estimated_material_cost: incident?.estimated_material_cost || undefined,
+      estimated_labor_cost: incident?.estimated_labor_cost || undefined,
     },
   });
 
@@ -110,6 +127,12 @@ const IncidentDetailPage = () => {
         root_cause: incident.root_cause || "",
         corrective_actions: incident.corrective_actions || "",
         regulatory_reporting_required: incident.regulatory_reporting_required || false,
+        immediate_actions: incident.immediate_actions || "",
+        suggested_job_plan_id: incident.suggested_job_plan_id || "",
+        estimated_repair_hours: incident.estimated_repair_hours || undefined,
+        priority_assessment: incident.priority_assessment || undefined,
+        estimated_material_cost: incident.estimated_material_cost || undefined,
+        estimated_labor_cost: incident.estimated_labor_cost || undefined,
       });
     }
   }, [incident, form]);
@@ -591,6 +614,253 @@ const IncidentDetailPage = () => {
                         </FormItem>
                       )}
                     />
+                  </div>
+                </Form>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Engineering Assessment Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wrench className="w-5 h-5" />
+                Engineering Assessment
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!isEditing ? (
+                <>
+                  {/* Immediate Actions */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Immediate Actions Taken
+                    </label>
+                    <p className="text-sm mt-1 whitespace-pre-wrap">
+                      {incident.immediate_actions || 
+                        <span className="text-muted-foreground italic">Not documented</span>
+                      }
+                    </p>
+                  </div>
+
+                  {/* Suggested Job Plan */}
+                  {incident.suggested_job_plan_id && jobPlan && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Suggested Job Plan
+                      </label>
+                      <div className="mt-1">
+                        <Badge variant="secondary" className="flex items-center gap-1 w-fit">
+                          <FileText className="w-3 h-3" />
+                          {jobPlan.job_plan_number} - {jobPlan.title}
+                        </Badge>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Priority Assessment */}
+                  {incident.priority_assessment && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Business Impact Assessment
+                      </label>
+                      <div className="mt-1">
+                        <Badge variant={getPriorityVariant(incident.priority_assessment)}>
+                          {formatPriorityAssessment(incident.priority_assessment)}
+                        </Badge>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Estimates Grid */}
+                  <div className="grid grid-cols-3 gap-4 pt-2 border-t">
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Est. Repair Hours
+                      </label>
+                      <p className="text-sm mt-1">
+                        {incident.estimated_repair_hours ? 
+                          `${incident.estimated_repair_hours}h` : 
+                          <span className="text-muted-foreground italic">Not estimated</span>
+                        }
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Est. Material Cost
+                      </label>
+                      <p className="text-sm mt-1">
+                        {incident.estimated_material_cost ? 
+                          `RM ${incident.estimated_material_cost.toFixed(2)}` :
+                          <span className="text-muted-foreground italic">Not estimated</span>
+                        }
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Est. Labor Cost
+                      </label>
+                      <p className="text-sm mt-1">
+                        {incident.estimated_labor_cost ? 
+                          `RM ${incident.estimated_labor_cost.toFixed(2)}` :
+                          <span className="text-muted-foreground italic">Not estimated</span>
+                        }
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Total Estimate */}
+                  {(incident.estimated_material_cost || incident.estimated_labor_cost) && (
+                    <div className="pt-2 border-t">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Total Estimated Cost
+                      </label>
+                      <p className="text-lg font-semibold mt-1">
+                        RM {calculateTotalEstimate(
+                          incident.estimated_material_cost, 
+                          incident.estimated_labor_cost
+                        ).toFixed(2)}
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <Form {...form}>
+                  <div className="space-y-4">
+                    {/* Immediate Actions - Edit */}
+                    <FormField
+                      control={form.control}
+                      name="immediate_actions"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Immediate Actions Taken</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Document any emergency actions taken..."
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Suggested Job Plan - Edit */}
+                    <FormField
+                      control={form.control}
+                      name="suggested_job_plan_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Suggested Job Plan</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a standard job plan" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="bg-background">
+                              {jobPlans.filter(p => p.status === 'active').map(plan => (
+                                <SelectItem key={plan.id} value={plan.id}>
+                                  {plan.job_plan_number} - {plan.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Priority Assessment - Edit */}
+                    <FormField
+                      control={form.control}
+                      name="priority_assessment"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Business Impact Assessment</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Assess business impact" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="bg-background">
+                              <SelectItem value="can_wait">Can Wait - Schedule during maintenance</SelectItem>
+                              <SelectItem value="should_schedule">Should Schedule - Plan within week</SelectItem>
+                              <SelectItem value="urgent">Urgent - Address within 24-48h</SelectItem>
+                              <SelectItem value="critical">Critical - Immediate action required</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Repair Hours - Edit */}
+                    <FormField
+                      control={form.control}
+                      name="estimated_repair_hours"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Estimated Repair Duration (Hours)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.5"
+                              min="0"
+                              placeholder="e.g., 4.5"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Cost Estimates - Edit */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="estimated_material_cost"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Est. Material Cost (RM)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="estimated_labor_cost"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Est. Labor Cost (RM)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
                 </Form>
               )}

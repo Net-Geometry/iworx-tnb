@@ -30,8 +30,14 @@ export interface Incident {
   updated_by: string | null;
   organization_id: string;
   closure_date?: string | null;
-  // Work Order Planning Fields
+  // Engineering Assessment Fields
   immediate_actions: string | null;
+  suggested_job_plan_id?: string | null;
+  estimated_repair_hours?: number | null;
+  priority_assessment?: 'can_wait' | 'should_schedule' | 'urgent' | 'critical' | null;
+  estimated_material_cost?: number | null;
+  estimated_labor_cost?: number | null;
+  // Work Order Planning Fields (legacy - kept for compatibility)
   wo_maintenance_type: 'preventive' | 'corrective' | 'predictive' | 'emergency' | null;
   wo_priority: 'low' | 'medium' | 'high' | 'critical' | null;
   wo_estimated_duration_hours: number | null;

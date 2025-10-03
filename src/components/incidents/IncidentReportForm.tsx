@@ -21,13 +21,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
-import { Wrench } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Wrench, ChevronDown } from "lucide-react";
 import { useAssets } from "@/hooks/useAssets";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHierarchyNodes, useHierarchyLevels } from "@/hooks/useHierarchyData";
 import { MultiFileUpload } from "@/components/incidents/MultiFileUpload";
 import { useEffect } from "react";
+import { useJobPlans } from "@/hooks/useJobPlans";
 
 // Form validation schema
 const incidentSchema = z.object({
@@ -47,7 +48,13 @@ const incidentSchema = z.object({
     type: z.string(),
     size: z.number(),
   })).optional(),
-  // Work Order Planning Fields
+  // Engineering Assessment Fields
+  suggested_job_plan_id: z.string().uuid().optional(),
+  estimated_repair_hours: z.coerce.number().min(0).optional(),
+  priority_assessment: z.enum(['can_wait', 'should_schedule', 'urgent', 'critical']).optional(),
+  estimated_material_cost: z.coerce.number().min(0).optional(),
+  estimated_labor_cost: z.coerce.number().min(0).optional(),
+  // Work Order Planning Fields (legacy)
   requires_work_order: z.boolean().default(false),
   wo_maintenance_type: z.enum(["preventive", "corrective", "predictive", "emergency"]).optional(),
   wo_priority: z.enum(["low", "medium", "high", "critical"]).optional(),
@@ -71,6 +78,8 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
   const { user } = useAuth();
   const { levels } = useHierarchyLevels();
   const { nodes } = useHierarchyNodes();
+  const { data: jobPlans = [] } = useJobPlans();
+  const [showEngAssessment, setShowEngAssessment] = useState(false);
 
   // Filter for location nodes (level_order = 4)
   const locationLevel = levels.find(level => level.level_order === 4);
@@ -90,6 +99,9 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
   const locationNodes = allNodes.filter(node => 
     node.hierarchy_level_id === locationLevel?.id
   );
+  
+  // Filter to only active job plans
+  const activeJobPlans = jobPlans.filter(plan => plan.status === 'active');
 
   // State to track selected location node ID for asset filtering
   const [selectedLocationNodeId, setSelectedLocationNodeId] = useState<string | undefined>();
@@ -371,6 +383,136 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
             </FormItem>
           )}
         />
+
+        {/* Engineering Assessment & Work Planning Section - Collapsible */}
+        <Collapsible open={showEngAssessment} onOpenChange={setShowEngAssessment} className="border rounded-lg p-4 bg-muted/30 mt-6">
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="w-full justify-between hover:bg-transparent">
+              <span className="flex items-center gap-2 font-semibold">
+                <Wrench className="w-4 h-4" />
+                Engineering Assessment & Work Planning (Optional)
+              </span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${showEngAssessment ? 'rotate-180' : ''}`} />
+            </Button>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent className="space-y-4 pt-4">
+            {/* Suggested Job Plan */}
+            <FormField
+              control={form.control}
+              name="suggested_job_plan_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Suggested Job Plan (Optional)</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a standard job plan if applicable" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background">
+                      {activeJobPlans.map(plan => (
+                        <SelectItem key={plan.id} value={plan.id}>
+                          {plan.job_plan_number} - {plan.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Priority Assessment */}
+            <FormField
+              control={form.control}
+              name="priority_assessment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Business Impact Assessment</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Assess business impact" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background">
+                      <SelectItem value="can_wait">Can Wait - Schedule during maintenance window</SelectItem>
+                      <SelectItem value="should_schedule">Should Schedule - Plan within next week</SelectItem>
+                      <SelectItem value="urgent">Urgent - Address within 24-48 hours</SelectItem>
+                      <SelectItem value="critical">Critical - Immediate action required</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Estimated Repair Hours */}
+            <FormField
+              control={form.control}
+              name="estimated_repair_hours"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Estimated Repair Duration (Hours)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      placeholder="e.g., 4.5"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Cost Estimates */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="estimated_material_cost"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Est. Material Cost (RM)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="estimated_labor_cost"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Est. Labor Cost (RM)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* Work Order Planning Section - Collapsible */}
         <div className="border rounded-lg p-4 bg-muted/30 mt-6">
