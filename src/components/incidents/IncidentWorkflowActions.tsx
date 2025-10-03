@@ -50,19 +50,21 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Get current step before early returns affect hook order
+  const currentStep = steps?.find((s) => s.id === workflowState?.current_step_id);
+  
+  // Fetch role assignments for this step from database (must call hook before any returns)
+  const { data: stepRoleAssignments } = useStepRoleAssignments(currentStep?.id);
+
   if (!workflowState || !steps || steps.length === 0) {
     return null;
   }
 
-  const currentStep = steps.find((s) => s.id === workflowState.current_step_id);
   if (!currentStep) return null;
 
   // Get role assignments for current step
   const currentStepIndex = steps.findIndex((s) => s.id === currentStep.id);
   const nextStep = steps[currentStepIndex + 1];
-
-  // Fetch role assignments for this step from database
-  const { data: stepRoleAssignments } = useStepRoleAssignments(currentStep.id);
 
   // Check if this step requires approval or auto-transitions
   const isAutoTransitionStep = currentStep.approval_type === 'none';
