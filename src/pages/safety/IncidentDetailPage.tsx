@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, AlertTriangle, FileText, Calendar, User, MapPin, Mail, Package, Wrench, ExternalLink, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -118,6 +118,35 @@ const IncidentDetailPage = () => {
       wo_notes: incident?.wo_notes || "",
     },
   });
+
+  // Reset form when incident data loads
+  useEffect(() => {
+    if (incident) {
+      form.reset({
+        incident_date: incident.incident_date || "",
+        location: incident.location || "",
+        severity: incident.severity || "medium",
+        title: incident.title || "",
+        description: incident.description || "",
+        reporter_name: incident.reporter_name || "",
+        reporter_email: incident.reporter_email || "",
+        immediate_actions: incident.immediate_actions || "",
+        root_cause: incident.root_cause || "",
+        corrective_actions: incident.corrective_actions || "",
+        cost_estimate: incident.cost_estimate || undefined,
+        regulatory_reporting_required: incident.regulatory_reporting_required || false,
+        requires_work_order: !!incident.wo_maintenance_type,
+        wo_maintenance_type: incident.wo_maintenance_type || undefined,
+        wo_priority: incident.wo_priority || undefined,
+        wo_estimated_duration_hours: incident.wo_estimated_duration_hours || undefined,
+        wo_assigned_technician: incident.wo_assigned_technician || "",
+        wo_estimated_cost: incident.wo_estimated_cost || undefined,
+        wo_target_start_date: incident.wo_target_start_date || "",
+        wo_target_finish_date: incident.wo_target_finish_date || "",
+        wo_notes: incident.wo_notes || "",
+      });
+    }
+  }, [incident, form]);
 
   // Save handler
   const handleSave = async (data: IncidentFormValues) => {
