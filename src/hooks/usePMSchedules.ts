@@ -280,7 +280,7 @@ export const useCreatePMSchedule = () => {
     mutationFn: async (schedule: PMScheduleInsert) => {
       const { data, error } = await supabase
         .from("pm_schedules")
-        .insert([schedule])
+        .insert([schedule as any])
         .select()
         .single();
 
@@ -309,7 +309,7 @@ export const useUpdatePMSchedule = () => {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<PMScheduleInsert> }) => {
       const { data, error } = await supabase
         .from("pm_schedules")
-        .update(updates)
+        .update(updates as any)
         .eq("id", id)
         .select()
         .single();
@@ -370,7 +370,7 @@ export const usePausePMSchedule = () => {
         .update({ 
           status: pause ? 'paused' : 'active',
           is_active: !pause 
-        })
+        } as any)
         .eq("id", id)
         .select()
         .single();
