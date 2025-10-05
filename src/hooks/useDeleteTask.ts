@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { jobPlansApi } from "@/services/api-client";
 
 /**
  * Hook to delete a task from a job plan
@@ -10,12 +11,20 @@ export function useDeleteTask() {
 
   return useMutation({
     mutationFn: async (taskId: string) => {
-      const { error } = await supabase
-        .from("job_plan_tasks")
-        .delete()
-        .eq("id", taskId);
+      try {
+        // Try microservice first
+        return await jobPlansApi.tasks.delete(taskId);
+      } catch (error) {
+        console.warn('Job Plans microservice unavailable, falling back to direct query', error);
+        
+        // Fallback to direct Supabase
+        const { error: supabaseError } = await supabase
+          .from("job_plan_tasks")
+          .delete()
+          .eq("id", taskId);
 
-      if (error) throw error;
+        if (supabaseError) throw supabaseError;
+      }
     },
     onSuccess: () => {
       toast.success("Task deleted successfully");

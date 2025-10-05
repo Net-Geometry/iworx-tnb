@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { jobPlansApi } from "@/services/api-client";
 
 interface CreateJobPlanToolData {
   job_plan_id: string;
@@ -18,14 +19,22 @@ export function useCreateJobPlanTool() {
 
   return useMutation({
     mutationFn: async (data: CreateJobPlanToolData) => {
-      const { data: newTool, error } = await supabase
-        .from("job_plan_tools")
-        .insert(data)
-        .select()
-        .single();
+      try {
+        // Try microservice first
+        return await jobPlansApi.tools.create(data);
+      } catch (error) {
+        console.warn('Job Plans microservice unavailable, falling back to direct query', error);
+        
+        // Fallback to direct Supabase
+        const { data: newTool, error: supabaseError } = await supabase
+          .from("job_plan_tools")
+          .insert(data)
+          .select()
+          .single();
 
-      if (error) throw error;
-      return newTool;
+        if (supabaseError) throw supabaseError;
+        return newTool;
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["job-plan", variables.job_plan_id] });

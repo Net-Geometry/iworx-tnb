@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { jobPlansApi } from "@/services/api-client";
 
 interface CreateTaskData {
   job_plan_id: string;
@@ -23,14 +24,22 @@ export function useCreateTask() {
 
   return useMutation({
     mutationFn: async (data: CreateTaskData) => {
-      const { data: result, error } = await supabase
-        .from("job_plan_tasks")
-        .insert([data])
-        .select()
-        .single();
+      try {
+        // Try microservice first
+        return await jobPlansApi.tasks.create(data);
+      } catch (error) {
+        console.warn('Job Plans microservice unavailable, falling back to direct query', error);
+        
+        // Fallback to direct Supabase
+        const { data: result, error: supabaseError } = await supabase
+          .from("job_plan_tasks")
+          .insert([data])
+          .select()
+          .single();
 
-      if (error) throw error;
-      return result;
+        if (supabaseError) throw supabaseError;
+        return result;
+      }
     },
     onSuccess: () => {
       toast.success("Task created successfully");
