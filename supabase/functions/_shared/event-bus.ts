@@ -168,6 +168,16 @@ export const DomainEvents = {
   PM_SCHEDULE_RESUMED: 'pm_schedule.resumed',
   PM_WORK_ORDER_GENERATED: 'pm_schedule.work_order_generated',
   PM_MATERIAL_ASSIGNED: 'pm_schedule.material_assigned',
+
+  // Route Management Events
+  ROUTE_CREATED: 'route.created',
+  ROUTE_UPDATED: 'route.updated',
+  ROUTE_DELETED: 'route.deleted',
+  ROUTE_ASSET_ADDED: 'route.asset_added',
+  ROUTE_ASSET_REMOVED: 'route.asset_removed',
+  ROUTE_ASSET_REORDERED: 'route.asset_reordered',
+  ROUTE_PM_ASSIGNED: 'route.pm_assigned',
+  ROUTE_PM_UNASSIGNED: 'route.pm_unassigned',
 } as const;
 
 /**
