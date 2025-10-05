@@ -1,8 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { createEventBus, DomainEvents } from "../_shared/event-bus.ts";
-import { getCorrelationId } from "../_shared/correlation.ts";
+import { getOrCreateCorrelationId } from "../_shared/correlation.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -41,7 +41,7 @@ serve(async (req) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const eventBus = createEventBus("pm-schedules-service");
-    const correlationId = getCorrelationId(req);
+    const correlationId = getOrCreateCorrelationId(req);
 
     // Extract auth from headers
     const authHeader = req.headers.get("authorization");

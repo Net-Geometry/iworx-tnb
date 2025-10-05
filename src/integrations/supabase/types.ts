@@ -760,6 +760,20 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "notifications_pm_schedule_id_fkey"
+            columns: ["pm_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "pm_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
         ]
       }
       organization_data_embeddings: {
@@ -1001,6 +1015,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_generated_work_orders_pm_schedule_id_fkey"
+            columns: ["pm_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "pm_schedules"
             referencedColumns: ["id"]
           },
         ]
@@ -3635,186 +3656,78 @@ export type Database = {
         }
         Relationships: []
       }
-      pm_schedule_assignments: {
-        Row: {
-          assigned_by: string | null
-          assigned_date: string | null
-          assigned_person_id: string | null
-          assignment_role: string | null
-          created_at: string | null
-          id: string | null
-          organization_id: string | null
-          pm_schedule_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          assigned_by?: string | null
-          assigned_date?: string | null
-          assigned_person_id?: string | null
-          assignment_role?: string | null
-          created_at?: string | null
-          id?: string | null
-          organization_id?: string | null
-          pm_schedule_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          assigned_by?: string | null
-          assigned_date?: string | null
-          assigned_person_id?: string | null
-          assignment_role?: string | null
-          created_at?: string | null
-          id?: string | null
-          organization_id?: string | null
-          pm_schedule_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      pm_schedule_history: {
-        Row: {
-          actual_duration_hours: number | null
-          completed_by: string | null
-          completed_date: string | null
-          created_at: string | null
-          id: string | null
-          notes: string | null
-          organization_id: string | null
-          pm_schedule_id: string | null
-          work_order_id: string | null
-        }
-        Insert: {
-          actual_duration_hours?: number | null
-          completed_by?: string | null
-          completed_date?: string | null
-          created_at?: string | null
-          id?: string | null
-          notes?: string | null
-          organization_id?: string | null
-          pm_schedule_id?: string | null
-          work_order_id?: string | null
-        }
-        Update: {
-          actual_duration_hours?: number | null
-          completed_by?: string | null
-          completed_date?: string | null
-          created_at?: string | null
-          id?: string | null
-          notes?: string | null
-          organization_id?: string | null
-          pm_schedule_id?: string | null
-          work_order_id?: string | null
-        }
-        Relationships: []
-      }
-      pm_schedule_materials: {
-        Row: {
-          bom_item_id: string | null
-          created_at: string | null
-          estimated_unit_cost: number | null
-          id: string | null
-          notes: string | null
-          organization_id: string | null
-          planned_quantity: number | null
-          pm_schedule_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          bom_item_id?: string | null
-          created_at?: string | null
-          estimated_unit_cost?: number | null
-          id?: string | null
-          notes?: string | null
-          organization_id?: string | null
-          planned_quantity?: number | null
-          pm_schedule_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          bom_item_id?: string | null
-          created_at?: string | null
-          estimated_unit_cost?: number | null
-          id?: string | null
-          notes?: string | null
-          organization_id?: string | null
-          planned_quantity?: number | null
-          pm_schedule_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       pm_schedules: {
         Row: {
           asset_id: string | null
-          assigned_to: string | null
+          assigned_person_id: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
           estimated_duration_hours: number | null
           frequency_type: string | null
+          frequency_unit: string | null
           frequency_value: number | null
           id: string | null
           is_active: boolean | null
           job_plan_id: string | null
           last_completed_date: string | null
+          maintenance_route_id: string | null
           name: string | null
           next_due_date: string | null
           notes: string | null
           organization_id: string | null
           priority: string | null
-          schedule_number: string | null
           start_date: string | null
           status: string | null
           updated_at: string | null
-          updated_by: string | null
         }
         Insert: {
           asset_id?: string | null
-          assigned_to?: string | null
+          assigned_person_id?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           estimated_duration_hours?: number | null
-          frequency_type?: string | null
+          frequency_type?: never
+          frequency_unit?: never
           frequency_value?: number | null
           id?: string | null
           is_active?: boolean | null
           job_plan_id?: string | null
           last_completed_date?: string | null
+          maintenance_route_id?: string | null
           name?: string | null
           next_due_date?: string | null
           notes?: string | null
           organization_id?: string | null
           priority?: string | null
-          schedule_number?: string | null
           start_date?: string | null
-          status?: string | null
+          status?: never
           updated_at?: string | null
-          updated_by?: string | null
         }
         Update: {
           asset_id?: string | null
-          assigned_to?: string | null
+          assigned_person_id?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           estimated_duration_hours?: number | null
-          frequency_type?: string | null
+          frequency_type?: never
+          frequency_unit?: never
           frequency_value?: number | null
           id?: string | null
           is_active?: boolean | null
           job_plan_id?: string | null
           last_completed_date?: string | null
+          maintenance_route_id?: string | null
           name?: string | null
           next_due_date?: string | null
           notes?: string | null
           organization_id?: string | null
           priority?: string | null
-          schedule_number?: string | null
           start_date?: string | null
-          status?: string | null
+          status?: never
           updated_at?: string | null
-          updated_by?: string | null
         }
         Relationships: []
       }
@@ -4208,6 +4121,94 @@ export type Database = {
           skill_id?: string | null
           updated_at?: string | null
           work_order_id?: string | null
+        }
+        Relationships: []
+      }
+      work_orders: {
+        Row: {
+          actual_finish_date: string | null
+          actual_start_date: string | null
+          asset_id: string | null
+          assigned_technician: string | null
+          created_at: string | null
+          description: string | null
+          estimated_cost: number | null
+          estimated_duration_hours: number | null
+          generation_type: string | null
+          id: string | null
+          incident_report_id: string | null
+          job_plan_id: string | null
+          location_node_id: string | null
+          maintenance_type: string | null
+          notes: string | null
+          organization_id: string | null
+          pm_schedule_id: string | null
+          priority: string | null
+          scheduled_date: string | null
+          status: string | null
+          target_finish_date: string | null
+          target_start_date: string | null
+          title: string | null
+          updated_at: string | null
+          work_order_type: Database["public"]["Enums"]["work_order_type"] | null
+        }
+        Insert: {
+          actual_finish_date?: string | null
+          actual_start_date?: string | null
+          asset_id?: string | null
+          assigned_technician?: string | null
+          created_at?: string | null
+          description?: string | null
+          estimated_cost?: number | null
+          estimated_duration_hours?: number | null
+          generation_type?: string | null
+          id?: string | null
+          incident_report_id?: string | null
+          job_plan_id?: string | null
+          location_node_id?: string | null
+          maintenance_type?: string | null
+          notes?: string | null
+          organization_id?: string | null
+          pm_schedule_id?: string | null
+          priority?: string | null
+          scheduled_date?: string | null
+          status?: string | null
+          target_finish_date?: string | null
+          target_start_date?: string | null
+          title?: string | null
+          updated_at?: string | null
+          work_order_type?:
+            | Database["public"]["Enums"]["work_order_type"]
+            | null
+        }
+        Update: {
+          actual_finish_date?: string | null
+          actual_start_date?: string | null
+          asset_id?: string | null
+          assigned_technician?: string | null
+          created_at?: string | null
+          description?: string | null
+          estimated_cost?: number | null
+          estimated_duration_hours?: number | null
+          generation_type?: string | null
+          id?: string | null
+          incident_report_id?: string | null
+          job_plan_id?: string | null
+          location_node_id?: string | null
+          maintenance_type?: string | null
+          notes?: string | null
+          organization_id?: string | null
+          pm_schedule_id?: string | null
+          priority?: string | null
+          scheduled_date?: string | null
+          status?: string | null
+          target_finish_date?: string | null
+          target_start_date?: string | null
+          title?: string | null
+          updated_at?: string | null
+          work_order_type?:
+            | Database["public"]["Enums"]["work_order_type"]
+            | null
         }
         Relationships: []
       }

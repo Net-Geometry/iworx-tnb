@@ -159,6 +159,15 @@ export const DomainEvents = {
   JOB_PLAN_DELETED: 'job_plan.deleted',
   JOB_PLAN_USED: 'job_plan.used',
   JOB_PLAN_APPROVED: 'job_plan.approved',
+
+  // PM Schedule events
+  PM_SCHEDULE_CREATED: 'pm_schedule.created',
+  PM_SCHEDULE_UPDATED: 'pm_schedule.updated',
+  PM_SCHEDULE_COMPLETED: 'pm_schedule.completed',
+  PM_SCHEDULE_PAUSED: 'pm_schedule.paused',
+  PM_SCHEDULE_RESUMED: 'pm_schedule.resumed',
+  PM_WORK_ORDER_GENERATED: 'pm_schedule.work_order_generated',
+  PM_MATERIAL_ASSIGNED: 'pm_schedule.material_assigned',
 } as const;
 
 /**
