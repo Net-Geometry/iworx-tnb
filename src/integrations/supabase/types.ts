@@ -3686,6 +3686,45 @@ export type Database = {
         }
         Relationships: []
       }
+      pm_schedule_history: {
+        Row: {
+          completed_by: string | null
+          completed_date: string | null
+          created_at: string | null
+          id: string | null
+          notes: string | null
+          organization_id: string | null
+          pm_schedule_id: string | null
+          status: string | null
+          updated_at: string | null
+          work_order_id: string | null
+        }
+        Insert: {
+          completed_by?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          id?: string | null
+          notes?: string | null
+          organization_id?: string | null
+          pm_schedule_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          work_order_id?: string | null
+        }
+        Update: {
+          completed_by?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          id?: string | null
+          notes?: string | null
+          organization_id?: string | null
+          pm_schedule_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          work_order_id?: string | null
+        }
+        Relationships: []
+      }
       pm_schedule_materials: {
         Row: {
           bom_item_id: string | null
