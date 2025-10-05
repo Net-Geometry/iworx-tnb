@@ -142,7 +142,6 @@ export const useWorkOrders = () => {
         // Fallback to direct Supabase access
         const { data, error } = await supabase
           .from('work_orders')
-          // @ts-expect-error - Types will regenerate after schema migration
           .insert([workOrder])
           .select()
           .single();
@@ -201,7 +200,6 @@ export const useWorkOrders = () => {
       // Fallback to direct Supabase access
       const { error } = await supabase
         .from('work_orders')
-        // @ts-expect-error - Types will regenerate after schema migration
         .update(updates)
         .eq('id', id);
 

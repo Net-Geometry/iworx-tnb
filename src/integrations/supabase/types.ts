@@ -3724,6 +3724,7 @@ export type Database = {
       }
       pm_schedules: {
         Row: {
+          asset_id: string | null
           assigned_person_id: string | null
           assigned_team_id: string | null
           assigned_to: string | null
@@ -3739,6 +3740,7 @@ export type Database = {
           frequency_value: number | null
           id: string | null
           is_active: boolean | null
+          job_plan_id: string | null
           last_completed_date: string | null
           lead_time_days: number | null
           location_node_id: string | null
@@ -3758,6 +3760,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          asset_id?: string | null
           assigned_person_id?: string | null
           assigned_team_id?: string | null
           assigned_to?: string | null
@@ -3773,6 +3776,7 @@ export type Database = {
           frequency_value?: number | null
           id?: string | null
           is_active?: boolean | null
+          job_plan_id?: string | null
           last_completed_date?: string | null
           lead_time_days?: number | null
           location_node_id?: string | null
@@ -3792,6 +3796,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          asset_id?: string | null
           assigned_person_id?: string | null
           assigned_team_id?: string | null
           assigned_to?: string | null
@@ -3807,6 +3812,7 @@ export type Database = {
           frequency_value?: number | null
           id?: string | null
           is_active?: boolean | null
+          job_plan_id?: string | null
           last_completed_date?: string | null
           lead_time_days?: number | null
           location_node_id?: string | null

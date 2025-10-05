@@ -432,7 +432,6 @@ export const useGenerateWorkOrder = () => {
       // Create work order from PM schedule
       const { data: workOrder, error: woError } = await supabase
         .from("work_orders")
-        // @ts-expect-error - Types will regenerate after schema migration
         .insert([{
           title: schedule.title,
           description: schedule.description || `Generated from PM schedule ${schedule.schedule_number}`,
@@ -448,7 +447,6 @@ export const useGenerateWorkOrder = () => {
           organization_id: currentOrganization?.id,
           estimated_cost: plannedCost,
           work_order_type: "pm",
-          // @ts-expect-error - location_node_id exists but types need regeneration
           location_node_id: schedule.location_node_id, // Pass location for notification routing
         }])
         .select()
