@@ -439,13 +439,6 @@ export type Database = {
             foreignKeyName: "loto_procedures_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
-          {
-            foreignKeyName: "loto_procedures_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -498,13 +491,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "maintenance_records_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
           {
             foreignKeyName: "maintenance_records_organization_id_fkey"
             columns: ["organization_id"]
@@ -771,28 +757,7 @@ export type Database = {
             foreignKeyName: "notifications_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
-          {
-            foreignKeyName: "notifications_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notifications_pm_schedule_id_fkey"
-            columns: ["pm_schedule_id"]
-            isOneToOne: false
-            referencedRelation: "pm_schedules"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notifications_work_order_id_fkey"
-            columns: ["work_order_id"]
-            isOneToOne: false
-            referencedRelation: "work_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -832,13 +797,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "organization_data_embeddings_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
           {
             foreignKeyName: "organization_data_embeddings_organization_id_fkey"
             columns: ["organization_id"]
@@ -997,13 +955,6 @@ export type Database = {
             foreignKeyName: "person_locations_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
-          {
-            foreignKeyName: "person_locations_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -1049,79 +1000,7 @@ export type Database = {
             foreignKeyName: "pm_generated_work_orders_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
-          {
-            foreignKeyName: "pm_generated_work_orders_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pm_generated_work_orders_pm_schedule_id_fkey"
-            columns: ["pm_schedule_id"]
-            isOneToOne: false
-            referencedRelation: "pm_schedules"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      pm_schedule_history: {
-        Row: {
-          completed_date: string | null
-          created_at: string | null
-          id: string
-          notes: string | null
-          organization_id: string
-          pm_schedule_id: string
-          scheduled_date: string
-          status: string
-          work_order_id: string | null
-        }
-        Insert: {
-          completed_date?: string | null
-          created_at?: string | null
-          id?: string
-          notes?: string | null
-          organization_id: string
-          pm_schedule_id: string
-          scheduled_date: string
-          status: string
-          work_order_id?: string | null
-        }
-        Update: {
-          completed_date?: string | null
-          created_at?: string | null
-          id?: string
-          notes?: string | null
-          organization_id?: string
-          pm_schedule_id?: string
-          scheduled_date?: string
-          status?: string
-          work_order_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pm_schedule_history_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
-          {
-            foreignKeyName: "pm_schedule_history_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pm_schedule_history_pm_schedule_id_fkey"
-            columns: ["pm_schedule_id"]
-            isOneToOne: false
-            referencedRelation: "pm_schedules"
             referencedColumns: ["id"]
           },
         ]
@@ -1214,13 +1093,6 @@ export type Database = {
             foreignKeyName: "purchase_order_items_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
-          {
-            foreignKeyName: "purchase_order_items_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -1304,13 +1176,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "purchase_orders_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
           {
             foreignKeyName: "purchase_orders_organization_id_fkey"
             columns: ["organization_id"]
@@ -1516,13 +1381,6 @@ export type Database = {
             foreignKeyName: "safety_hazards_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
-          {
-            foreignKeyName: "safety_hazards_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -1641,13 +1499,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "user_organizations_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
           {
             foreignKeyName: "user_organizations_organization_id_fkey"
             columns: ["organization_id"]
@@ -1865,13 +1716,6 @@ export type Database = {
             foreignKeyName: "workflow_step_conditions_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
-          {
-            foreignKeyName: "workflow_step_conditions_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -1938,13 +1782,6 @@ export type Database = {
           step_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "workflow_step_role_assignments_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
           {
             foreignKeyName: "workflow_step_role_assignments_organization_id_fkey"
             columns: ["organization_id"]
@@ -2084,13 +1921,6 @@ export type Database = {
             foreignKeyName: "workflow_template_steps_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
-          {
-            foreignKeyName: "workflow_template_steps_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -2156,13 +1986,6 @@ export type Database = {
             foreignKeyName: "workflow_template_transitions_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
-          {
-            foreignKeyName: "workflow_template_transitions_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -2223,13 +2046,6 @@ export type Database = {
           version?: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "workflow_templates_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "mv_vertical_cost_analysis"
-            referencedColumns: ["organization_id"]
-          },
           {
             foreignKeyName: "workflow_templates_organization_id_fkey"
             columns: ["organization_id"]
@@ -3561,27 +3377,6 @@ export type Database = {
         }
         Relationships: []
       }
-      mv_vertical_cost_analysis: {
-        Row: {
-          avg_work_order_cost: number | null
-          completed_work_orders: number | null
-          critical_assets: number | null
-          critical_incidents: number | null
-          critical_work_orders: number | null
-          inventory_items_count: number | null
-          month: string | null
-          organization_code: string | null
-          organization_id: string | null
-          organization_name: string | null
-          total_assets: number | null
-          total_estimated_cost: number | null
-          total_incident_cost: number | null
-          total_incidents: number | null
-          total_inventory_value: number | null
-          total_work_orders: number | null
-        }
-        Relationships: []
-      }
       people: {
         Row: {
           certifications: string[] | null
@@ -3842,6 +3637,8 @@ export type Database = {
       }
       pm_schedule_assignments: {
         Row: {
+          assigned_by: string | null
+          assigned_date: string | null
           assigned_person_id: string | null
           assignment_role: string | null
           created_at: string | null
@@ -3851,6 +3648,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          assigned_by?: string | null
+          assigned_date?: string | null
           assigned_person_id?: string | null
           assignment_role?: string | null
           created_at?: string | null
@@ -3860,6 +3659,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          assigned_by?: string | null
+          assigned_date?: string | null
           assigned_person_id?: string | null
           assignment_role?: string | null
           created_at?: string | null
@@ -3867,6 +3668,42 @@ export type Database = {
           organization_id?: string | null
           pm_schedule_id?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      pm_schedule_history: {
+        Row: {
+          actual_duration_hours: number | null
+          completed_by: string | null
+          completed_date: string | null
+          created_at: string | null
+          id: string | null
+          notes: string | null
+          organization_id: string | null
+          pm_schedule_id: string | null
+          work_order_id: string | null
+        }
+        Insert: {
+          actual_duration_hours?: number | null
+          completed_by?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          id?: string | null
+          notes?: string | null
+          organization_id?: string | null
+          pm_schedule_id?: string | null
+          work_order_id?: string | null
+        }
+        Update: {
+          actual_duration_hours?: number | null
+          completed_by?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          id?: string | null
+          notes?: string | null
+          organization_id?: string | null
+          pm_schedule_id?: string | null
+          work_order_id?: string | null
         }
         Relationships: []
       }
@@ -3909,108 +3746,75 @@ export type Database = {
       pm_schedules: {
         Row: {
           asset_id: string | null
-          assigned_team_id: string | null
           assigned_to: string | null
-          auto_generate_wo: boolean | null
           created_at: string | null
+          created_by: string | null
           description: string | null
           estimated_duration_hours: number | null
-          estimated_labor_cost: number | null
-          estimated_material_cost: number | null
-          frequency_type:
-            | Database["public"]["Enums"]["pm_frequency_type"]
-            | null
-          frequency_unit:
-            | Database["public"]["Enums"]["pm_frequency_unit"]
-            | null
+          frequency_type: string | null
           frequency_value: number | null
           id: string | null
           is_active: boolean | null
           job_plan_id: string | null
           last_completed_date: string | null
-          lead_time_days: number | null
+          name: string | null
           next_due_date: string | null
-          notification_enabled: boolean | null
+          notes: string | null
           organization_id: string | null
-          other_costs: number | null
           priority: string | null
-          route_id: string | null
-          safety_precaution_ids: string[] | null
           schedule_number: string | null
           start_date: string | null
-          status: Database["public"]["Enums"]["pm_status"] | null
-          title: string | null
+          status: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           asset_id?: string | null
-          assigned_team_id?: string | null
           assigned_to?: string | null
-          auto_generate_wo?: boolean | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           estimated_duration_hours?: number | null
-          estimated_labor_cost?: number | null
-          estimated_material_cost?: number | null
-          frequency_type?:
-            | Database["public"]["Enums"]["pm_frequency_type"]
-            | null
-          frequency_unit?:
-            | Database["public"]["Enums"]["pm_frequency_unit"]
-            | null
+          frequency_type?: string | null
           frequency_value?: number | null
           id?: string | null
           is_active?: boolean | null
           job_plan_id?: string | null
           last_completed_date?: string | null
-          lead_time_days?: number | null
+          name?: string | null
           next_due_date?: string | null
-          notification_enabled?: boolean | null
+          notes?: string | null
           organization_id?: string | null
-          other_costs?: number | null
           priority?: string | null
-          route_id?: string | null
-          safety_precaution_ids?: string[] | null
           schedule_number?: string | null
           start_date?: string | null
-          status?: Database["public"]["Enums"]["pm_status"] | null
-          title?: string | null
+          status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           asset_id?: string | null
-          assigned_team_id?: string | null
           assigned_to?: string | null
-          auto_generate_wo?: boolean | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           estimated_duration_hours?: number | null
-          estimated_labor_cost?: number | null
-          estimated_material_cost?: number | null
-          frequency_type?:
-            | Database["public"]["Enums"]["pm_frequency_type"]
-            | null
-          frequency_unit?:
-            | Database["public"]["Enums"]["pm_frequency_unit"]
-            | null
+          frequency_type?: string | null
           frequency_value?: number | null
           id?: string | null
           is_active?: boolean | null
           job_plan_id?: string | null
           last_completed_date?: string | null
-          lead_time_days?: number | null
+          name?: string | null
           next_due_date?: string | null
-          notification_enabled?: boolean | null
+          notes?: string | null
           organization_id?: string | null
-          other_costs?: number | null
           priority?: string | null
-          route_id?: string | null
-          safety_precaution_ids?: string[] | null
           schedule_number?: string | null
           start_date?: string | null
-          status?: Database["public"]["Enums"]["pm_status"] | null
-          title?: string | null
+          status?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -4404,43 +4208,6 @@ export type Database = {
           skill_id?: string | null
           updated_at?: string | null
           work_order_id?: string | null
-        }
-        Relationships: []
-      }
-      work_orders: {
-        Row: {
-          actual_finish_date: string | null
-          actual_start_date: string | null
-          asset_category: string | null
-          asset_id: string | null
-          asset_name: string | null
-          asset_number: string | null
-          asset_status: string | null
-          assigned_technician: string | null
-          assigned_technician_name: string | null
-          created_at: string | null
-          description: string | null
-          estimated_cost: number | null
-          estimated_duration_hours: number | null
-          generation_type: string | null
-          id: string | null
-          incident_report_id: string | null
-          maintenance_type: string | null
-          notes: string | null
-          organization_id: string | null
-          pm_frequency_type:
-            | Database["public"]["Enums"]["pm_frequency_type"]
-            | null
-          pm_schedule_id: string | null
-          pm_schedule_name: string | null
-          priority: string | null
-          scheduled_date: string | null
-          status: string | null
-          target_finish_date: string | null
-          target_start_date: string | null
-          title: string | null
-          updated_at: string | null
-          work_order_type: Database["public"]["Enums"]["work_order_type"] | null
         }
         Relationships: []
       }

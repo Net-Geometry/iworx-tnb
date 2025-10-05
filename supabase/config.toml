@@ -33,6 +33,9 @@ verify_jwt = true
 [functions.job-plans-service]
 verify_jwt = true
 
+[functions.pm-schedules-service]
+verify_jwt = true
+
 [functions.notification-service]
 verify_jwt = true
 
