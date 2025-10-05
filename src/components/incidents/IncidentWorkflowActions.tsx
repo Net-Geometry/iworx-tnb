@@ -255,7 +255,6 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
 
       const { data: workOrder, error: woError } = await supabase
         .from("work_orders")
-        // @ts-expect-error - Types will regenerate after work order updates
         .insert([workOrderData])
         .select()
         .single();

@@ -102,7 +102,7 @@ export const WorkOrderDetailsModal = ({
       if (workOrder.pm_schedule_id) {
         const { data: scheduleData } = await supabase
           .from('pm_schedules')
-          .select('id, name, schedule_number, frequency_type')
+          .select('id, name, title, schedule_number, frequency_type')
           .eq('id', workOrder.pm_schedule_id)
           .single();
 
@@ -124,7 +124,6 @@ export const WorkOrderDetailsModal = ({
     try {
       const { error } = await supabase
         .from('work_orders')
-        // @ts-expect-error - Types will regenerate after schema migration
         .update({ status: newStatus })
         .eq('id', workOrder.id);
 

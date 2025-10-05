@@ -3724,75 +3724,105 @@ export type Database = {
       }
       pm_schedules: {
         Row: {
-          asset_id: string | null
           assigned_person_id: string | null
+          assigned_team_id: string | null
+          assigned_to: string | null
+          auto_generate_wo: boolean | null
           created_at: string | null
           created_by: string | null
           description: string | null
           estimated_duration_hours: number | null
+          estimated_labor_cost: number | null
+          estimated_material_cost: number | null
           frequency_type: string | null
           frequency_unit: string | null
           frequency_value: number | null
           id: string | null
           is_active: boolean | null
-          job_plan_id: string | null
           last_completed_date: string | null
+          lead_time_days: number | null
+          location_node_id: string | null
           maintenance_route_id: string | null
           name: string | null
           next_due_date: string | null
-          notes: string | null
+          notification_enabled: boolean | null
           organization_id: string | null
+          other_costs: number | null
           priority: string | null
+          route_id: string | null
+          safety_precaution_ids: string[] | null
+          schedule_number: string | null
           start_date: string | null
           status: string | null
+          title: string | null
           updated_at: string | null
         }
         Insert: {
-          asset_id?: string | null
           assigned_person_id?: string | null
+          assigned_team_id?: string | null
+          assigned_to?: string | null
+          auto_generate_wo?: boolean | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           estimated_duration_hours?: number | null
+          estimated_labor_cost?: number | null
+          estimated_material_cost?: number | null
           frequency_type?: never
           frequency_unit?: never
           frequency_value?: number | null
           id?: string | null
           is_active?: boolean | null
-          job_plan_id?: string | null
           last_completed_date?: string | null
+          lead_time_days?: number | null
+          location_node_id?: string | null
           maintenance_route_id?: string | null
           name?: string | null
           next_due_date?: string | null
-          notes?: string | null
+          notification_enabled?: boolean | null
           organization_id?: string | null
+          other_costs?: number | null
           priority?: string | null
+          route_id?: string | null
+          safety_precaution_ids?: string[] | null
+          schedule_number?: string | null
           start_date?: string | null
           status?: never
+          title?: string | null
           updated_at?: string | null
         }
         Update: {
-          asset_id?: string | null
           assigned_person_id?: string | null
+          assigned_team_id?: string | null
+          assigned_to?: string | null
+          auto_generate_wo?: boolean | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           estimated_duration_hours?: number | null
+          estimated_labor_cost?: number | null
+          estimated_material_cost?: number | null
           frequency_type?: never
           frequency_unit?: never
           frequency_value?: number | null
           id?: string | null
           is_active?: boolean | null
-          job_plan_id?: string | null
           last_completed_date?: string | null
+          lead_time_days?: number | null
+          location_node_id?: string | null
           maintenance_route_id?: string | null
           name?: string | null
           next_due_date?: string | null
-          notes?: string | null
+          notification_enabled?: boolean | null
           organization_id?: string | null
+          other_costs?: number | null
           priority?: string | null
+          route_id?: string | null
+          safety_precaution_ids?: string[] | null
+          schedule_number?: string | null
           start_date?: string | null
           status?: never
+          title?: string | null
           updated_at?: string | null
         }
         Relationships: []
