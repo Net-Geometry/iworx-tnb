@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { routesApi } from "@/services/api-client";
+import { useState } from "react";
 
 /**
  * Hook for managing maintenance routes
@@ -26,11 +28,22 @@ export interface MaintenanceRoute {
 export const useMaintenanceRoutes = () => {
   const { currentOrganization, hasCrossProjectAccess } = useAuth();
   const queryClient = useQueryClient();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   // Fetch all routes
   const { data: routes = [], isLoading } = useQuery({
     queryKey: ["maintenance-routes", currentOrganization?.id],
     queryFn: async () => {
+      if (useMicroservice) {
+        try {
+          return await routesApi.getAll();
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       let query = supabase
         .from("maintenance_routes")
         .select("*")
@@ -64,6 +77,19 @@ export const useMaintenanceRoutes = () => {
   // Create route
   const createRoute = useMutation({
     mutationFn: async (routeData: Partial<MaintenanceRoute> & { name: string; route_number: string }) => {
+      if (useMicroservice) {
+        try {
+          return await routesApi.create({
+            ...routeData,
+            organization_id: currentOrganization?.id!,
+          });
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("maintenance_routes")
         .insert([
@@ -100,6 +126,16 @@ export const useMaintenanceRoutes = () => {
       id: string;
       updates: Partial<MaintenanceRoute>;
     }) => {
+      if (useMicroservice) {
+        try {
+          return await routesApi.update(id, updates);
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("maintenance_routes")
         .update(updates)
@@ -122,6 +158,16 @@ export const useMaintenanceRoutes = () => {
   // Delete route
   const deleteRoute = useMutation({
     mutationFn: async (id: string) => {
+      if (useMicroservice) {
+        try {
+          return await routesApi.delete(id);
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { error } = await supabase
         .from("maintenance_routes")
         .delete()
@@ -150,11 +196,22 @@ export const useMaintenanceRoutes = () => {
 // Hook for fetching a single route with details
 export const useMaintenanceRoute = (routeId: string | undefined) => {
   const { currentOrganization } = useAuth();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useQuery({
     queryKey: ["maintenance-route", routeId],
     queryFn: async () => {
       if (!routeId) return null;
+
+      if (useMicroservice) {
+        try {
+          return await routesApi.getById(routeId);
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
 
       const { data, error } = await supabase
         .from("maintenance_routes")

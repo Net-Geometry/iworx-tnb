@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { pmSchedulesApi } from "@/services/api-client";
+import { useState } from "react";
 
 // Types for PM Schedules
 export interface PMSchedule {
@@ -88,10 +90,21 @@ export interface PMScheduleStats {
  */
 export const usePMSchedules = () => {
   const { currentOrganization } = useAuth();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useQuery({
     queryKey: ["pm_schedules", currentOrganization?.id],
     queryFn: async () => {
+      if (useMicroservice) {
+        try {
+          return await pmSchedulesApi.getAll();
+        } catch (error) {
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("pm_schedules")
         .select("*")
@@ -131,10 +144,21 @@ export const usePMSchedules = () => {
  */
 export const usePMSchedule = (id: string) => {
   const { currentOrganization } = useAuth();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useQuery({
     queryKey: ["pm_schedule", id],
     queryFn: async () => {
+      if (useMicroservice) {
+        try {
+          return await pmSchedulesApi.getById(id);
+        } catch (error) {
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("pm_schedules")
         .select("*")
@@ -168,10 +192,21 @@ export const usePMSchedule = (id: string) => {
  */
 export const usePMSchedulesByAsset = (assetId: string) => {
   const { currentOrganization } = useAuth();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useQuery({
     queryKey: ["pm_schedules_by_asset", assetId],
     queryFn: async () => {
+      if (useMicroservice) {
+        try {
+          return await pmSchedulesApi.getByAsset(assetId);
+        } catch (error) {
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("pm_schedules")
         .select("*")
@@ -210,10 +245,21 @@ export const usePMSchedulesByAsset = (assetId: string) => {
  */
 export const usePMScheduleStats = () => {
   const { currentOrganization } = useAuth();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useQuery({
     queryKey: ["pm_schedule_stats", currentOrganization?.id],
     queryFn: async () => {
+      if (useMicroservice) {
+        try {
+          return await pmSchedulesApi.getStats();
+        } catch (error) {
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const today = new Date().toISOString().split('T')[0];
       const weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
@@ -275,9 +321,20 @@ export const usePMScheduleStats = () => {
 export const useCreatePMSchedule = () => {
   const queryClient = useQueryClient();
   const { currentOrganization } = useAuth();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
     mutationFn: async (schedule: PMScheduleInsert) => {
+      if (useMicroservice) {
+        try {
+          return await pmSchedulesApi.create(schedule);
+        } catch (error) {
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("pm_schedules")
         .insert([schedule as any])
@@ -304,9 +361,20 @@ export const useCreatePMSchedule = () => {
  */
 export const useUpdatePMSchedule = () => {
   const queryClient = useQueryClient();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<PMScheduleInsert> }) => {
+      if (useMicroservice) {
+        try {
+          return await pmSchedulesApi.update(id, updates);
+        } catch (error) {
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("pm_schedules")
         .update(updates as any)
@@ -335,9 +403,20 @@ export const useUpdatePMSchedule = () => {
  */
 export const useDeletePMSchedule = () => {
   const queryClient = useQueryClient();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
     mutationFn: async (id: string) => {
+      if (useMicroservice) {
+        try {
+          return await pmSchedulesApi.delete(id);
+        } catch (error) {
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { error } = await supabase
         .from("pm_schedules")
         .delete()
@@ -362,9 +441,20 @@ export const useDeletePMSchedule = () => {
  */
 export const usePausePMSchedule = () => {
   const queryClient = useQueryClient();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
     mutationFn: async ({ id, pause }: { id: string; pause: boolean }) => {
+      if (useMicroservice) {
+        try {
+          return pause ? await pmSchedulesApi.pause(id) : await pmSchedulesApi.resume(id);
+        } catch (error) {
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("pm_schedules")
         .update({ 

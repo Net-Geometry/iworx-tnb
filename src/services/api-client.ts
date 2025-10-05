@@ -615,3 +615,344 @@ export const jobPlansApi = {
     },
   },
 };
+
+/**
+ * PM Schedules Service API
+ */
+export const pmSchedulesApi = {
+  async getAll() {
+    const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch PM schedules');
+    return response.json();
+  },
+
+  async getById(id: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/${id}`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch PM schedule');
+    return response.json();
+  },
+
+  async getByAsset(assetId: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/by-asset/${assetId}`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch PM schedules for asset');
+    return response.json();
+  },
+
+  async create(data: any) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to create PM schedule');
+    return response.json();
+  },
+
+  async update(id: string, updates: any) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/${id}`, {
+      method: 'PATCH',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) throw new Error('Failed to update PM schedule');
+    return response.json();
+  },
+
+  async delete(id: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/${id}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to delete PM schedule');
+    return response.json();
+  },
+
+  async getStats() {
+    const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/stats`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch PM schedule stats');
+    return response.json();
+  },
+
+  async generateWorkOrder(scheduleId: string, dueDate: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/${scheduleId}/generate-work-order`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ dueDate }),
+    });
+    if (!response.ok) throw new Error('Failed to generate work order');
+    return response.json();
+  },
+
+  async pause(scheduleId: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/${scheduleId}/pause`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ pause: true }),
+    });
+    if (!response.ok) throw new Error('Failed to pause PM schedule');
+    return response.json();
+  },
+
+  async resume(scheduleId: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/${scheduleId}/pause`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ pause: false }),
+    });
+    if (!response.ok) throw new Error('Failed to resume PM schedule');
+    return response.json();
+  },
+
+  // Materials management
+  materials: {
+    async getAll(scheduleId: string) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/${scheduleId}/materials`, {
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to fetch materials');
+      return response.json();
+    },
+
+    async create(scheduleId: string, data: any) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/${scheduleId}/materials`, {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create material');
+      return response.json();
+    },
+
+    async update(materialId: string, data: any) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/materials/${materialId}`, {
+        method: 'PATCH',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update material');
+      return response.json();
+    },
+
+    async delete(materialId: string) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/materials/${materialId}`, {
+        method: 'DELETE',
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to delete material');
+      return response.json();
+    },
+  },
+
+  // Assignments management
+  assignments: {
+    async getAll(scheduleId: string) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/${scheduleId}/assignments`, {
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to fetch assignments');
+      return response.json();
+    },
+
+    async create(scheduleId: string, data: any) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/${scheduleId}/assignments`, {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create assignment');
+      return response.json();
+    },
+
+    async bulkUpdate(scheduleId: string, personIds: string[]) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/${scheduleId}/assignments`, {
+        method: 'PUT',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ assignedPersonIds: personIds }),
+      });
+      if (!response.ok) throw new Error('Failed to bulk update assignments');
+      return response.json();
+    },
+
+    async delete(assignmentId: string) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/assignments/${assignmentId}`, {
+        method: 'DELETE',
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to delete assignment');
+      return response.json();
+    },
+  },
+
+  // History management
+  history: {
+    async getAll(scheduleId: string) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/${scheduleId}/history`, {
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to fetch history');
+      return response.json();
+    },
+
+    async create(scheduleId: string, data: any) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/pm-schedules/${scheduleId}/history`, {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create history record');
+      return response.json();
+    },
+  },
+};
+
+/**
+ * Routes Service API
+ */
+export const routesApi = {
+  async getAll() {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch routes');
+    return response.json();
+  },
+
+  async getById(id: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes/${id}`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch route');
+    return response.json();
+  },
+
+  async create(data: any) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to create route');
+    return response.json();
+  },
+
+  async update(id: string, updates: any) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes/${id}`, {
+      method: 'PATCH',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) throw new Error('Failed to update route');
+    return response.json();
+  },
+
+  async delete(id: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes/${id}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to delete route');
+    return response.json();
+  },
+
+  async getStats() {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes/stats`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch route stats');
+    return response.json();
+  },
+
+  // Route assets management
+  async getRouteAssets(routeId: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes/${routeId}/assets`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch route assets');
+    return response.json();
+  },
+
+  async addAsset(routeId: string, assetData: any) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes/${routeId}/assets`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(assetData),
+    });
+    if (!response.ok) throw new Error('Failed to add asset to route');
+    return response.json();
+  },
+
+  async updateAsset(assetId: string, updates: any) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes/assets/${assetId}`, {
+      method: 'PATCH',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) throw new Error('Failed to update route asset');
+    return response.json();
+  },
+
+  async removeAsset(assetId: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes/assets/${assetId}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to remove asset from route');
+    return response.json();
+  },
+
+  async reorderAssets(routeId: string, assetOrders: Array<{ id: string; sequence_order: number }>) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes/${routeId}/assets/reorder`, {
+      method: 'PATCH',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ assetOrders }),
+    });
+    if (!response.ok) throw new Error('Failed to reorder assets');
+    return response.json();
+  },
+
+  // PM schedule assignments
+  async getAssignments(routeId: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes/${routeId}/pm-assignments`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch PM assignments');
+    return response.json();
+  },
+
+  async assignPMSchedule(routeId: string, scheduleId: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes/${routeId}/pm-assignments`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ scheduleId }),
+    });
+    if (!response.ok) throw new Error('Failed to assign PM schedule');
+    return response.json();
+  },
+
+  async unassignPMSchedule(scheduleId: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes/pm-assignments/${scheduleId}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to unassign PM schedule');
+    return response.json();
+  },
+
+  async bulkAssignPMSchedules(routeId: string, scheduleIds: string[]) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/routes/${routeId}/pm-assignments/bulk`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ scheduleIds }),
+    });
+    if (!response.ok) throw new Error('Failed to bulk assign PM schedules');
+    return response.json();
+  },
+};

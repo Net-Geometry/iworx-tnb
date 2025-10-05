@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { routesApi } from "@/services/api-client";
+import { useState } from "react";
 
 /**
  * Hook for managing route asset assignments
@@ -30,12 +32,23 @@ export interface RouteAsset {
 export const useRouteAssets = (routeId: string | undefined) => {
   const { currentOrganization } = useAuth();
   const queryClient = useQueryClient();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   // Fetch route assets
   const { data: routeAssets = [], isLoading } = useQuery({
     queryKey: ["route-assets", routeId],
     queryFn: async () => {
       if (!routeId) return [];
+
+      if (useMicroservice) {
+        try {
+          return await routesApi.getRouteAssets(routeId);
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
 
       const { data, error } = await supabase
         .from("route_assets")
@@ -80,6 +93,19 @@ export const useRouteAssets = (routeId: string | undefined) => {
       estimated_time_minutes?: number;
       notes?: string;
     }) => {
+      if (useMicroservice && routeId) {
+        try {
+          return await routesApi.addAsset(routeId, {
+            ...assetData,
+            organization_id: currentOrganization?.id,
+          });
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("route_assets")
         .insert([
@@ -108,6 +134,16 @@ export const useRouteAssets = (routeId: string | undefined) => {
   // Remove asset from route
   const removeAsset = useMutation({
     mutationFn: async (assetId: string) => {
+      if (useMicroservice) {
+        try {
+          return await routesApi.removeAsset(assetId);
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { error } = await supabase
         .from("route_assets")
         .delete()
@@ -134,6 +170,16 @@ export const useRouteAssets = (routeId: string | undefined) => {
       id: string;
       updates: Partial<RouteAsset>;
     }) => {
+      if (useMicroservice) {
+        try {
+          return await routesApi.updateAsset(id, updates);
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("route_assets")
         .update(updates)
@@ -158,6 +204,16 @@ export const useRouteAssets = (routeId: string | undefined) => {
     mutationFn: async (
       reorderedAssets: Array<{ id: string; sequence_order: number }>
     ) => {
+      if (useMicroservice && routeId) {
+        try {
+          return await routesApi.reorderAssets(routeId, reorderedAssets);
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const updates = reorderedAssets.map((asset) =>
         supabase
           .from("route_assets")

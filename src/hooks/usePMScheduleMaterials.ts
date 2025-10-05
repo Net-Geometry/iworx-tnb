@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { pmSchedulesApi } from "@/services/api-client";
+import { useState } from "react";
 
 /**
  * Hook for managing PM Schedule Materials
@@ -28,10 +30,22 @@ export interface PMScheduleMaterial {
 
 // Fetch materials for a PM schedule
 export const usePMScheduleMaterials = (pmScheduleId?: string) => {
+  const [useMicroservice, setUseMicroservice] = useState(true);
+
   return useQuery({
     queryKey: ["pm-schedule-materials", pmScheduleId],
     queryFn: async () => {
       if (!pmScheduleId) return [];
+
+      if (useMicroservice) {
+        try {
+          return await pmSchedulesApi.materials.getAll(pmScheduleId);
+        } catch (error) {
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
 
       const { data, error } = await supabase
         .from("pm_schedule_materials")
@@ -72,9 +86,20 @@ export const usePMScheduleMaterials = (pmScheduleId?: string) => {
 export const useCreatePMScheduleMaterial = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
     mutationFn: async (material: Omit<PMScheduleMaterial, "id" | "created_at" | "updated_at">) => {
+      if (useMicroservice) {
+        try {
+          return await pmSchedulesApi.materials.create(material.pm_schedule_id, material);
+        } catch (error) {
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("pm_schedule_materials")
         .insert(material)
@@ -105,9 +130,20 @@ export const useCreatePMScheduleMaterial = () => {
 export const useUpdatePMScheduleMaterial = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<PMScheduleMaterial> }) => {
+      if (useMicroservice) {
+        try {
+          return await pmSchedulesApi.materials.update(id, updates);
+        } catch (error) {
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("pm_schedule_materials")
         .update(updates)
@@ -139,9 +175,21 @@ export const useUpdatePMScheduleMaterial = () => {
 export const useDeletePMScheduleMaterial = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
     mutationFn: async ({ id, pmScheduleId }: { id: string; pmScheduleId: string }) => {
+      if (useMicroservice) {
+        try {
+          await pmSchedulesApi.materials.delete(id);
+          return { id, pmScheduleId };
+        } catch (error) {
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { error } = await supabase
         .from("pm_schedule_materials")
         .delete()

@@ -3,17 +3,30 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { PMSchedule } from "./usePMSchedules";
+import { routesApi } from "@/services/api-client";
+import { useState } from "react";
 
 /**
  * Hook to fetch PM schedules assigned to a specific route
  */
 export const useRouteAssignments = (routeId?: string) => {
   const { currentOrganization } = useAuth();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useQuery({
     queryKey: ["route_assignments", routeId],
     queryFn: async () => {
       if (!routeId) return [];
+
+      if (useMicroservice) {
+        try {
+          return await routesApi.getAssignments(routeId);
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
 
       const { data, error } = await supabase
         .from("pm_schedules")
@@ -104,9 +117,20 @@ export const useUnassignedPMSchedules = () => {
  */
 export const useAssignPMScheduleToRoute = () => {
   const queryClient = useQueryClient();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
     mutationFn: async ({ scheduleId, routeId }: { scheduleId: string; routeId: string }) => {
+      if (useMicroservice) {
+        try {
+          return await routesApi.assignPMSchedule(routeId, scheduleId);
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("pm_schedules")
         .update({ route_id: routeId })
@@ -135,9 +159,20 @@ export const useAssignPMScheduleToRoute = () => {
  */
 export const useUnassignPMScheduleFromRoute = () => {
   const queryClient = useQueryClient();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
     mutationFn: async ({ scheduleId, routeId }: { scheduleId: string; routeId: string }) => {
+      if (useMicroservice) {
+        try {
+          return await routesApi.unassignPMSchedule(scheduleId);
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const { data, error } = await supabase
         .from("pm_schedules")
         .update({ route_id: null })
@@ -166,9 +201,20 @@ export const useUnassignPMScheduleFromRoute = () => {
  */
 export const useBulkAssignPMSchedulesToRoute = () => {
   const queryClient = useQueryClient();
+  const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
     mutationFn: async ({ scheduleIds, routeId }: { scheduleIds: string[]; routeId: string }) => {
+      if (useMicroservice) {
+        try {
+          return await routesApi.bulkAssignPMSchedules(routeId, scheduleIds);
+        } catch (error) {
+          console.warn('Routes microservice unavailable, falling back to direct query:', error);
+          setUseMicroservice(false);
+          // Fall through to direct Supabase query
+        }
+      }
+
       const updates = scheduleIds.map((scheduleId) =>
         supabase.from("pm_schedules").update({ route_id: routeId }).eq("id", scheduleId)
       );
