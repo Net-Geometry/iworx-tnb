@@ -47,6 +47,14 @@ const SERVICE_REGISTRY = {
     url: `${SUPABASE_URL}/functions/v1/job-plans-service`,
     healthEndpoint: "/health",
   },
+  "pm-schedules": {
+    url: `${SUPABASE_URL}/functions/v1/pm-schedules-service`,
+    healthEndpoint: "/health",
+  },
+  "routes": {
+    url: `${SUPABASE_URL}/functions/v1/routes-service`,
+    healthEndpoint: "/health",
+  },
 };
 
 /**
