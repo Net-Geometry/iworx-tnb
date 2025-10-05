@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { jobPlansApi } from "@/services/api-client";
 import type { Database } from "@/integrations/supabase/types";
 
 // Local type definitions for job_plans (now a view in microservices architecture)
@@ -137,39 +138,51 @@ export const useJobPlans = () => {
   return useQuery({
     queryKey: ["job-plans", currentOrganization?.id],
     queryFn: async () => {
-      let query = supabase
-        .from("job_plans")
-        .select("*");
+      try {
+        // Try microservice first
+        console.log('[Job Plans Hook] Attempting to fetch from microservice');
+        const data = await jobPlansApi.getAll();
+        console.log('[Job Plans Hook] Successfully fetched from microservice:', data?.length || 0, 'job plans');
+        return data as JobPlanWithDetails[];
+      } catch (microserviceError) {
+        console.warn('[Job Plans Hook] Microservice unavailable, falling back to direct query:', microserviceError);
+        
+        // Fallback to direct Supabase query
+        let query = supabase
+          .from("job_plans")
+          .select("*");
 
-      if (!hasCrossProjectAccess && currentOrganization) {
-        query = query.eq("organization_id", currentOrganization.id);
+        if (!hasCrossProjectAccess && currentOrganization) {
+          query = query.eq("organization_id", currentOrganization.id);
+        }
+
+        const { data, error } = await query.order("created_at", { ascending: false });
+
+        if (error) throw error;
+        
+        // Fetch related data separately (cross-schema relationships)
+        const enrichedData = await Promise.all(
+          (data || []).map(async (jobPlan) => {
+            const [tasksData, partsData, toolsData, docsData] = await Promise.all([
+              supabase.from("job_plan_tasks").select("*").eq("job_plan_id", jobPlan.id).order("task_sequence"),
+              supabase.from("job_plan_parts").select("*").eq("job_plan_id", jobPlan.id),
+              supabase.from("job_plan_tools").select("*").eq("job_plan_id", jobPlan.id),
+              supabase.from("job_plan_documents").select("*").eq("job_plan_id", jobPlan.id),
+            ]);
+            
+            return {
+              ...jobPlan,
+              tasks: tasksData.data || [],
+              parts: partsData.data || [],
+              tools: toolsData.data || [],
+              documents: docsData.data || [],
+            };
+          })
+        );
+        
+        console.log('[Job Plans Hook] Fallback query successful:', enrichedData.length, 'job plans');
+        return enrichedData as JobPlanWithDetails[];
       }
-
-      const { data, error } = await query.order("created_at", { ascending: false });
-
-      if (error) throw error;
-      
-      // Fetch related data separately (cross-schema relationships)
-      const enrichedData = await Promise.all(
-        (data || []).map(async (jobPlan) => {
-          const [tasksData, partsData, toolsData, docsData] = await Promise.all([
-            supabase.from("job_plan_tasks").select("*").eq("job_plan_id", jobPlan.id).order("task_sequence"),
-            supabase.from("job_plan_parts").select("*").eq("job_plan_id", jobPlan.id),
-            supabase.from("job_plan_tools").select("*").eq("job_plan_id", jobPlan.id),
-            supabase.from("job_plan_documents").select("*").eq("job_plan_id", jobPlan.id),
-          ]);
-          
-          return {
-            ...jobPlan,
-            tasks: tasksData.data || [],
-            parts: partsData.data || [],
-            tools: toolsData.data || [],
-            documents: docsData.data || [],
-          };
-        })
-      );
-      
-      return enrichedData as JobPlanWithDetails[];
     },
     enabled: !!currentOrganization || hasCrossProjectAccess,
   });

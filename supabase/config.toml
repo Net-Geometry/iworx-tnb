@@ -30,6 +30,9 @@ verify_jwt = true
 [functions.safety-service]
 verify_jwt = true
 
+[functions.job-plans-service]
+verify_jwt = true
+
 [functions.notification-service]
 verify_jwt = true
 

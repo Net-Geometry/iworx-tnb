@@ -461,3 +461,157 @@ export const safetyApi = {
     },
   },
 };
+
+/**
+ * Job Plans Service API
+ */
+export const jobPlansApi = {
+  async getAll() {
+    const response = await fetch(`${API_GATEWAY_URL}/api/job-plans`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch job plans');
+    return response.json();
+  },
+
+  async getById(id: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/job-plans/${id}`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch job plan');
+    return response.json();
+  },
+
+  async create(jobPlan: any) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/job-plans`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(jobPlan),
+    });
+    if (!response.ok) throw new Error('Failed to create job plan');
+    return response.json();
+  },
+
+  async update(id: string, updates: any) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/job-plans/${id}`, {
+      method: 'PATCH',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) throw new Error('Failed to update job plan');
+    return response.json();
+  },
+
+  async delete(id: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/job-plans/${id}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to delete job plan');
+    return response.json();
+  },
+
+  async getStats() {
+    const response = await fetch(`${API_GATEWAY_URL}/api/job-plans/stats`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch job plan stats');
+    return response.json();
+  },
+
+  // Task management
+  tasks: {
+    create: async (data: any) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/job-plans/tasks`, {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create task');
+      return response.json();
+    },
+    
+    update: async (id: string, data: any) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/job-plans/tasks/${id}`, {
+        method: 'PATCH',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update task');
+      return response.json();
+    },
+    
+    delete: async (id: string) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/job-plans/tasks/${id}`, {
+        method: 'DELETE',
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to delete task');
+      return response.json();
+    },
+  },
+
+  // Parts management
+  parts: {
+    create: async (data: any) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/job-plans/parts`, {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create part');
+      return response.json();
+    },
+    
+    update: async (id: string, data: any) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/job-plans/parts/${id}`, {
+        method: 'PATCH',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update part');
+      return response.json();
+    },
+    
+    delete: async (id: string) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/job-plans/parts/${id}`, {
+        method: 'DELETE',
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to delete part');
+      return response.json();
+    },
+  },
+
+  // Tools management
+  tools: {
+    create: async (data: any) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/job-plans/tools`, {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create tool');
+      return response.json();
+    },
+    
+    update: async (id: string, data: any) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/job-plans/tools/${id}`, {
+        method: 'PATCH',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update tool');
+      return response.json();
+    },
+    
+    delete: async (id: string) => {
+      const response = await fetch(`${API_GATEWAY_URL}/api/job-plans/tools/${id}`, {
+        method: 'DELETE',
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to delete tool');
+      return response.json();
+    },
+  },
+};

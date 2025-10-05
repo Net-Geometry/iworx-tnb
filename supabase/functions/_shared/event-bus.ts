@@ -152,6 +152,13 @@ export const DomainEvents = {
   PERSON_SKILL_UPDATED: 'people.skill_updated',
   TEAM_CREATED: 'people.team_created',
   TEAM_MEMBER_ADDED: 'people.team_member_added',
+
+  // Job Plan events
+  JOB_PLAN_CREATED: 'job_plan.created',
+  JOB_PLAN_UPDATED: 'job_plan.updated',
+  JOB_PLAN_DELETED: 'job_plan.deleted',
+  JOB_PLAN_USED: 'job_plan.used',
+  JOB_PLAN_APPROVED: 'job_plan.approved',
 } as const;
 
 /**
