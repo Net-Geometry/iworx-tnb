@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { metersApi } from '@/services/api-client';
 
 export interface MeterGroupAssignment {
   id: string;
@@ -20,6 +21,7 @@ export interface MeterGroupAssignment {
 export const useMeterGroupAssignments = (meterGroupId?: string) => {
   const [assignments, setAssignments] = useState<MeterGroupAssignment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [useMicroservice, setUseMicroservice] = useState(true);
   const { toast } = useToast();
   const { currentOrganization } = useAuth();
 
@@ -32,6 +34,17 @@ export const useMeterGroupAssignments = (meterGroupId?: string) => {
 
     try {
       setLoading(true);
+
+      if (useMicroservice) {
+        try {
+          const data = await metersApi.assignments.getForGroup(meterGroupId);
+          setAssignments(data || []);
+          return;
+        } catch (error) {
+          console.warn('Meters microservice unavailable, falling back to direct query', error);
+          setUseMicroservice(false);
+        }
+      }
 
       const { data, error } = await supabase
         .from('meter_group_assignments')
@@ -57,6 +70,25 @@ export const useMeterGroupAssignments = (meterGroupId?: string) => {
     if (!meterGroupId) return;
 
     try {
+      if (useMicroservice) {
+        try {
+          const data = await metersApi.assignments.create(meterGroupId, {
+            meter_id: meterId,
+            is_primary: isPrimary,
+            notes,
+          });
+          toast({
+            title: "Success",
+            description: "Meter assigned to group successfully",
+          });
+          await fetchAssignments();
+          return data;
+        } catch (error) {
+          console.warn('Meters microservice unavailable, falling back to direct query', error);
+          setUseMicroservice(false);
+        }
+      }
+
       const { data, error } = await supabase
         .from('meter_group_assignments')
         .insert([{
@@ -91,6 +123,21 @@ export const useMeterGroupAssignments = (meterGroupId?: string) => {
 
   const unassignMeter = async (assignmentId: string) => {
     try {
+      if (useMicroservice) {
+        try {
+          await metersApi.assignments.delete(assignmentId);
+          toast({
+            title: "Success",
+            description: "Meter removed from group successfully",
+          });
+          await fetchAssignments();
+          return;
+        } catch (error) {
+          console.warn('Meters microservice unavailable, falling back to direct query', error);
+          setUseMicroservice(false);
+        }
+      }
+
       const { error } = await supabase
         .from('meter_group_assignments')
         .delete()

@@ -55,6 +55,10 @@ const SERVICE_REGISTRY = {
     url: `${SUPABASE_URL}/functions/v1/routes-service`,
     healthEndpoint: "/health",
   },
+  "meters": {
+    url: `${SUPABASE_URL}/functions/v1/meters-service`,
+    healthEndpoint: "/health",
+  },
 };
 
 /**

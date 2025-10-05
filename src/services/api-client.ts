@@ -814,6 +814,148 @@ export const pmSchedulesApi = {
 };
 
 /**
+ * Meters Service API
+ */
+export const metersApi = {
+  // ============ METERS OPERATIONS ============
+  
+  async getAll() {
+    const response = await fetch(`${API_GATEWAY_URL}/api/meters`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch meters');
+    const data = await response.json();
+    return data.meters;
+  },
+
+  async getById(id: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/meters/${id}`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch meter');
+    const data = await response.json();
+    return data.meter;
+  },
+
+  async create(meterData: any) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/meters`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(meterData),
+    });
+    if (!response.ok) throw new Error('Failed to create meter');
+    const data = await response.json();
+    return data.meter;
+  },
+
+  async update(id: string, updates: any) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/meters/${id}`, {
+      method: 'PATCH',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) throw new Error('Failed to update meter');
+    const data = await response.json();
+    return data.meter;
+  },
+
+  async delete(id: string) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/meters/${id}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to delete meter');
+    return response.json();
+  },
+
+  // ============ GROUPS OPERATIONS ============
+  
+  groups: {
+    async getAll() {
+      const response = await fetch(`${API_GATEWAY_URL}/api/groups`, {
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to fetch meter groups');
+      const data = await response.json();
+      return data.groups;
+    },
+
+    async getById(id: string) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/groups/${id}`, {
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to fetch meter group');
+      const data = await response.json();
+      return data.group;
+    },
+
+    async create(groupData: any) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/groups`, {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(groupData),
+      });
+      if (!response.ok) throw new Error('Failed to create meter group');
+      const data = await response.json();
+      return data.group;
+    },
+
+    async update(id: string, updates: any) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/groups/${id}`, {
+        method: 'PATCH',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(updates),
+      });
+      if (!response.ok) throw new Error('Failed to update meter group');
+      const data = await response.json();
+      return data.group;
+    },
+
+    async delete(id: string) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/groups/${id}`, {
+        method: 'DELETE',
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to delete meter group');
+      return response.json();
+    },
+  },
+
+  // ============ ASSIGNMENTS OPERATIONS ============
+  
+  assignments: {
+    async getForGroup(groupId: string) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/groups/${groupId}/assignments`, {
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to fetch assignments');
+      const data = await response.json();
+      return data.assignments;
+    },
+
+    async create(groupId: string, assignmentData: any) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/groups/${groupId}/assignments`, {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(assignmentData),
+      });
+      if (!response.ok) throw new Error('Failed to create assignment');
+      const data = await response.json();
+      return data.assignment;
+    },
+
+    async delete(assignmentId: string) {
+      const response = await fetch(`${API_GATEWAY_URL}/api/assignments/${assignmentId}`, {
+        method: 'DELETE',
+        headers: await getAuthHeaders(),
+      });
+      if (!response.ok) throw new Error('Failed to delete assignment');
+      return response.json();
+    },
+  },
+};
+
+/**
  * Routes Service API
  */
 export const routesApi = {

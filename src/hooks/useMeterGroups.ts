@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { metersApi } from '@/services/api-client';
 
 export interface MeterGroup {
   id: string;
@@ -21,12 +22,24 @@ export interface MeterGroup {
 export const useMeterGroups = () => {
   const [meterGroups, setMeterGroups] = useState<MeterGroup[]>([]);
   const [loading, setLoading] = useState(true);
+  const [useMicroservice, setUseMicroservice] = useState(true);
   const { toast } = useToast();
   const { currentOrganization, hasCrossProjectAccess } = useAuth();
 
   const fetchMeterGroups = async () => {
     try {
       setLoading(true);
+
+      if (useMicroservice) {
+        try {
+          const data = await metersApi.groups.getAll();
+          setMeterGroups(data || []);
+          return;
+        } catch (error) {
+          console.warn('Meters microservice unavailable, falling back to direct query', error);
+          setUseMicroservice(false);
+        }
+      }
 
       let query = supabase.from('meter_groups').select('*');
 
@@ -52,6 +65,21 @@ export const useMeterGroups = () => {
 
   const addMeterGroup = async (groupData: Omit<MeterGroup, 'id' | 'created_at' | 'updated_at' | 'organization_id'>) => {
     try {
+      if (useMicroservice) {
+        try {
+          const data = await metersApi.groups.create(groupData);
+          toast({
+            title: "Success",
+            description: "Meter group created successfully",
+          });
+          await fetchMeterGroups();
+          return data;
+        } catch (error) {
+          console.warn('Meters microservice unavailable, falling back to direct query', error);
+          setUseMicroservice(false);
+        }
+      }
+
       const { data, error } = await supabase
         .from('meter_groups')
         .insert([{
@@ -83,6 +111,21 @@ export const useMeterGroups = () => {
 
   const updateMeterGroup = async (id: string, groupData: Partial<MeterGroup>) => {
     try {
+      if (useMicroservice) {
+        try {
+          const data = await metersApi.groups.update(id, groupData);
+          toast({
+            title: "Success",
+            description: "Meter group updated successfully",
+          });
+          await fetchMeterGroups();
+          return data;
+        } catch (error) {
+          console.warn('Meters microservice unavailable, falling back to direct query', error);
+          setUseMicroservice(false);
+        }
+      }
+
       const { data, error } = await supabase
         .from('meter_groups')
         .update(groupData)
@@ -112,6 +155,21 @@ export const useMeterGroups = () => {
 
   const deleteMeterGroup = async (id: string) => {
     try {
+      if (useMicroservice) {
+        try {
+          await metersApi.groups.delete(id);
+          toast({
+            title: "Success",
+            description: "Meter group deleted successfully",
+          });
+          await fetchMeterGroups();
+          return;
+        } catch (error) {
+          console.warn('Meters microservice unavailable, falling back to direct query', error);
+          setUseMicroservice(false);
+        }
+      }
+
       const { error } = await supabase
         .from('meter_groups')
         .delete()

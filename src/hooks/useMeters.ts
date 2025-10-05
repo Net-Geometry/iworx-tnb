@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { metersApi } from '@/services/api-client';
 
 export interface Meter {
   id: string;
@@ -43,12 +44,24 @@ export interface Meter {
 export const useMeters = () => {
   const [meters, setMeters] = useState<Meter[]>([]);
   const [loading, setLoading] = useState(true);
+  const [useMicroservice, setUseMicroservice] = useState(true);
   const { toast } = useToast();
   const { currentOrganization, hasCrossProjectAccess } = useAuth();
 
   const fetchMeters = async () => {
     try {
       setLoading(true);
+
+      if (useMicroservice) {
+        try {
+          const data = await metersApi.getAll();
+          setMeters(data || []);
+          return;
+        } catch (error) {
+          console.warn('Meters microservice unavailable, falling back to direct query', error);
+          setUseMicroservice(false);
+        }
+      }
 
       let query = supabase.from('meters').select(`
         *,
@@ -81,6 +94,21 @@ export const useMeters = () => {
 
   const addMeter = async (meterData: Omit<Meter, 'id' | 'created_at' | 'updated_at' | 'organization_id' | 'location'>) => {
     try {
+      if (useMicroservice) {
+        try {
+          const data = await metersApi.create(meterData);
+          toast({
+            title: "Success",
+            description: "Meter registered successfully",
+          });
+          await fetchMeters();
+          return data;
+        } catch (error) {
+          console.warn('Meters microservice unavailable, falling back to direct query', error);
+          setUseMicroservice(false);
+        }
+      }
+
       const { data, error } = await supabase
         .from('meters')
         .insert([{
@@ -112,7 +140,21 @@ export const useMeters = () => {
 
   const updateMeter = async (id: string, meterData: Partial<Meter>) => {
     try {
-      // Clean the data to remove joined/computed fields
+      if (useMicroservice) {
+        try {
+          const data = await metersApi.update(id, meterData);
+          toast({
+            title: "Success",
+            description: "Meter updated successfully",
+          });
+          await fetchMeters();
+          return data;
+        } catch (error) {
+          console.warn('Meters microservice unavailable, falling back to direct query', error);
+          setUseMicroservice(false);
+        }
+      }
+
       const { unit, location, ...cleanData } = meterData;
       
       const { data, error } = await supabase
@@ -144,6 +186,21 @@ export const useMeters = () => {
 
   const deleteMeter = async (id: string) => {
     try {
+      if (useMicroservice) {
+        try {
+          await metersApi.delete(id);
+          toast({
+            title: "Success",
+            description: "Meter deleted successfully",
+          });
+          await fetchMeters();
+          return;
+        } catch (error) {
+          console.warn('Meters microservice unavailable, falling back to direct query', error);
+          setUseMicroservice(false);
+        }
+      }
+
       const { error } = await supabase
         .from('meters')
         .delete()
