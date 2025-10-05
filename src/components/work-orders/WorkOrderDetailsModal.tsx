@@ -102,7 +102,7 @@ export const WorkOrderDetailsModal = ({
       if (workOrder.pm_schedule_id) {
         const { data: scheduleData } = await supabase
           .from('pm_schedules')
-          .select('id, title, schedule_number, frequency_type')
+          .select('id, name, schedule_number, frequency_type')
           .eq('id', workOrder.pm_schedule_id)
           .single();
 
