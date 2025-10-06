@@ -133,6 +133,33 @@ const App = () => (
                 </Layout>
               </AuthGuard>
             } />
+            <Route path="/assets/hierarchy/levels" element={
+              <AuthGuard>
+                <Layout>
+                  {React.createElement(
+                    React.lazy(() => import("./pages/hierarchy/LevelsManagementPage"))
+                  )}
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/assets/hierarchy/nodes" element={
+              <AuthGuard>
+                <Layout>
+                  {React.createElement(
+                    React.lazy(() => import("./pages/hierarchy/NodesManagementPage"))
+                  )}
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/assets/hierarchy/visualizer" element={
+              <AuthGuard>
+                <Layout>
+                  {React.createElement(
+                    React.lazy(() => import("./pages/hierarchy/HierarchyVisualizerPage"))
+                  )}
+                </Layout>
+              </AuthGuard>
+            } />
             <Route path="/meters" element={
               <AuthGuard>
                 <Layout>

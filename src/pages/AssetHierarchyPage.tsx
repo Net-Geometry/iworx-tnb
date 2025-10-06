@@ -1,13 +1,13 @@
-import { HierarchyManagementPage } from "@/components/assets/HierarchyManagementPage";
+import HierarchyOverviewPage from "./hierarchy/HierarchyOverviewPage";
 
 /**
  * AssetHierarchyPage - Asset Hierarchy Management Route
  * 
- * This page provides a dedicated route for the Asset Hierarchy Management functionality,
- * allowing users to manage asset hierarchy levels and structure independently.
+ * This page now redirects to the new comprehensive hierarchy overview page.
+ * The old HierarchyManagementPage component is replaced with a modern multi-page system.
  */
 const AssetHierarchyPage = () => {
-  return <HierarchyManagementPage />;
+  return <HierarchyOverviewPage />;
 };
 
 export default AssetHierarchyPage;
