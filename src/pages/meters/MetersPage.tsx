@@ -18,6 +18,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { MeterForm } from '@/components/meters/MeterForm';
 
@@ -182,6 +183,11 @@ export default function MetersPage() {
             <DialogTitle>
               {selectedMeter ? 'Edit Meter' : 'Register New Meter'}
             </DialogTitle>
+            <DialogDescription>
+              {selectedMeter 
+                ? 'Update the meter information below' 
+                : 'Fill in the details to register a new meter'}
+            </DialogDescription>
           </DialogHeader>
           <MeterForm
             meter={selectedMeter}

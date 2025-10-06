@@ -872,7 +872,7 @@ export const metersApi = {
   
   groups: {
     async getAll() {
-      const response = await fetch(`${API_GATEWAY_URL}/api/groups`, {
+      const response = await fetch(`${API_GATEWAY_URL}/api/meters/groups`, {
         headers: await getAuthHeaders(),
       });
       if (!response.ok) throw new Error('Failed to fetch meter groups');
@@ -881,7 +881,7 @@ export const metersApi = {
     },
 
     async getById(id: string) {
-      const response = await fetch(`${API_GATEWAY_URL}/api/groups/${id}`, {
+      const response = await fetch(`${API_GATEWAY_URL}/api/meters/groups/${id}`, {
         headers: await getAuthHeaders(),
       });
       if (!response.ok) throw new Error('Failed to fetch meter group');
@@ -890,7 +890,7 @@ export const metersApi = {
     },
 
     async create(groupData: any) {
-      const response = await fetch(`${API_GATEWAY_URL}/api/groups`, {
+      const response = await fetch(`${API_GATEWAY_URL}/api/meters/groups`, {
         method: 'POST',
         headers: await getAuthHeaders(),
         body: JSON.stringify(groupData),
@@ -901,7 +901,7 @@ export const metersApi = {
     },
 
     async update(id: string, updates: any) {
-      const response = await fetch(`${API_GATEWAY_URL}/api/groups/${id}`, {
+      const response = await fetch(`${API_GATEWAY_URL}/api/meters/groups/${id}`, {
         method: 'PATCH',
         headers: await getAuthHeaders(),
         body: JSON.stringify(updates),
@@ -912,7 +912,7 @@ export const metersApi = {
     },
 
     async delete(id: string) {
-      const response = await fetch(`${API_GATEWAY_URL}/api/groups/${id}`, {
+      const response = await fetch(`${API_GATEWAY_URL}/api/meters/groups/${id}`, {
         method: 'DELETE',
         headers: await getAuthHeaders(),
       });
