@@ -55,25 +55,36 @@ export const useMeterGroupAssignments = (meterGroupId?: string) => {
         }
       }
 
-      const { data, error } = await supabase
+      // Fetch assignments
+      const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('meter_group_assignments')
-        .select(`
-          *,
-          meters!meter_id (
-            id,
-            meter_number,
-            serial_number,
-            meter_type,
-            status,
-            manufacturer,
-            model
-          )
-        `)
+        .select('*')
         .eq('meter_group_id', meterGroupId)
         .order('assigned_date', { ascending: false });
 
-      if (error) throw error;
-      setAssignments((data || []) as MeterGroupAssignment[]);
+      if (assignmentsError) throw assignmentsError;
+
+      if (!assignmentsData || assignmentsData.length === 0) {
+        setAssignments([]);
+        return;
+      }
+
+      // Fetch meter details for all assigned meter_ids
+      const meterIds = assignmentsData.map((a: any) => a.meter_id);
+      const { data: metersData, error: metersError } = await supabase
+        .from('meters')
+        .select('id, meter_number, serial_number, meter_type, status, manufacturer, model')
+        .in('id', meterIds);
+
+      if (metersError) throw metersError;
+
+      // Combine the data
+      const combinedData = assignmentsData.map((assignment: any) => ({
+        ...assignment,
+        meters: metersData?.find((m: any) => m.id === assignment.meter_id),
+      }));
+
+      setAssignments(combinedData as MeterGroupAssignment[]);
     } catch (error: any) {
       console.error('Error fetching assignments:', error);
       toast({

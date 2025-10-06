@@ -280,7 +280,7 @@ async function handleGetAssignments(supabase: any, groupId: string, organization
     .from('meter_group_assignments')
     .select(`
       *,
-      meters!meter_id (
+      meters (
         id,
         meter_number,
         serial_number,
