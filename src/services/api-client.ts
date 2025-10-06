@@ -1098,3 +1098,324 @@ export const routesApi = {
     return response.json();
   },
 };
+
+/**
+ * Workflow Service API
+ * Manages workflow templates, steps, states, and transitions
+ */
+export const workflowApi = {
+  // ==================== Template Management ====================
+  templates: {
+    async getAll(module?: string) {
+      const headers = await getAuthHeaders();
+      const url = module 
+        ? `${API_GATEWAY_URL}/api/workflows/templates?module=${module}`
+        : `${API_GATEWAY_URL}/api/workflows/templates`;
+      
+      const response = await fetch(url, { headers });
+      if (!response.ok) throw new Error('Failed to fetch workflow templates');
+      return response.json();
+    },
+
+    async getById(templateId: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/templates/${templateId}`,
+        { headers }
+      );
+      if (!response.ok) throw new Error('Failed to fetch workflow template');
+      return response.json();
+    },
+
+    async create(templateData: any) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/templates`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(templateData),
+        }
+      );
+      if (!response.ok) throw new Error('Failed to create workflow template');
+      return response.json();
+    },
+
+    async update(templateId: string, templateData: any) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/templates/${templateId}`,
+        {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify(templateData),
+        }
+      );
+      if (!response.ok) throw new Error('Failed to update workflow template');
+      return response.json();
+    },
+
+    async delete(templateId: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/templates/${templateId}`,
+        {
+          method: 'DELETE',
+          headers,
+        }
+      );
+      if (!response.ok) throw new Error('Failed to delete workflow template');
+      return response.json();
+    },
+
+    async setDefault(templateId: string, module: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/templates/${templateId}/set-default`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ module }),
+        }
+      );
+      if (!response.ok) throw new Error('Failed to set default template');
+      return response.json();
+    },
+
+    async clone(templateId: string, newName: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/templates/${templateId}/clone`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ name: newName }),
+        }
+      );
+      if (!response.ok) throw new Error('Failed to clone workflow template');
+      return response.json();
+    },
+
+    async activate(templateId: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/templates/${templateId}/activate`,
+        {
+          method: 'POST',
+          headers,
+        }
+      );
+      if (!response.ok) throw new Error('Failed to activate workflow template');
+      return response.json();
+    },
+  },
+
+  // ==================== Step Management ====================
+  steps: {
+    async getAll(templateId: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/templates/${templateId}/steps`,
+        { headers }
+      );
+      if (!response.ok) throw new Error('Failed to fetch workflow steps');
+      return response.json();
+    },
+
+    async create(templateId: string, stepData: any) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/templates/${templateId}/steps`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(stepData),
+        }
+      );
+      if (!response.ok) throw new Error('Failed to create workflow step');
+      return response.json();
+    },
+
+    async update(stepId: string, stepData: any) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/steps/${stepId}`,
+        {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify(stepData),
+        }
+      );
+      if (!response.ok) throw new Error('Failed to update workflow step');
+      return response.json();
+    },
+
+    async delete(stepId: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/steps/${stepId}`,
+        {
+          method: 'DELETE',
+          headers,
+        }
+      );
+      if (!response.ok) throw new Error('Failed to delete workflow step');
+      return response.json();
+    },
+
+    async getRoleAssignments(stepId: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/steps/${stepId}/roles`,
+        { headers }
+      );
+      if (!response.ok) throw new Error('Failed to fetch step role assignments');
+      return response.json();
+    },
+
+    async upsertRoleAssignment(stepId: string, roleData: any) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/steps/${stepId}/roles`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(roleData),
+        }
+      );
+      if (!response.ok) throw new Error('Failed to upsert role assignment');
+      return response.json();
+    },
+
+    async getConditions(stepId: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/steps/${stepId}/conditions`,
+        { headers }
+      );
+      if (!response.ok) throw new Error('Failed to fetch step conditions');
+      return response.json();
+    },
+  },
+
+  // ==================== State Management ====================
+  state: {
+    async getWorkOrderState(workOrderId: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/work-orders/${workOrderId}/state`,
+        { headers }
+      );
+      if (!response.ok) throw new Error('Failed to fetch work order workflow state');
+      return response.json();
+    },
+
+    async getIncidentState(incidentId: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/incidents/${incidentId}/state`,
+        { headers }
+      );
+      if (!response.ok) throw new Error('Failed to fetch incident workflow state');
+      return response.json();
+    },
+
+    async transitionWorkOrder(workOrderId: string, transitionData: any) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/work-orders/${workOrderId}/transition`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(transitionData),
+        }
+      );
+      if (!response.ok) throw new Error('Failed to transition work order workflow');
+      return response.json();
+    },
+
+    async transitionIncident(incidentId: string, transitionData: any) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/incidents/${incidentId}/transition`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(transitionData),
+        }
+      );
+      if (!response.ok) throw new Error('Failed to transition incident workflow');
+      return response.json();
+    },
+  },
+
+  // ==================== Analytics & Reporting ====================
+  analytics: {
+    async getWorkflowStats(module: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/analytics/stats?module=${module}`,
+        { headers }
+      );
+      if (!response.ok) throw new Error('Failed to fetch workflow stats');
+      return response.json();
+    },
+
+    async getStepMetrics(templateId: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/analytics/steps/${templateId}`,
+        { headers }
+      );
+      if (!response.ok) throw new Error('Failed to fetch step metrics');
+      return response.json();
+    },
+
+    async getBottlenecks(module: string) {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/analytics/bottlenecks?module=${module}`,
+        { headers }
+      );
+      if (!response.ok) throw new Error('Failed to fetch workflow bottlenecks');
+      return response.json();
+    },
+
+    async getApprovalHistory(entityId: string, entityType: 'work_order' | 'incident') {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/analytics/approvals/${entityType}/${entityId}`,
+        { headers }
+      );
+      if (!response.ok) throw new Error('Failed to fetch approval history');
+      return response.json();
+    },
+  },
+
+  // ==================== Bulk Operations ====================
+  bulk: {
+    async initializeWorkflows(module: 'work_orders' | 'safety_incidents') {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/bulk/initialize`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ module }),
+        }
+      );
+      if (!response.ok) throw new Error('Failed to bulk initialize workflows');
+      return response.json();
+    },
+
+    async getStatus(module: 'work_orders' | 'safety_incidents') {
+      const headers = await getAuthHeaders();
+      const response = await fetch(
+        `${API_GATEWAY_URL}/api/workflows/bulk/status?module=${module}`,
+        { headers }
+      );
+      if (!response.ok) throw new Error('Failed to fetch bulk workflow status');
+      return response.json();
+    },
+  },
+};
