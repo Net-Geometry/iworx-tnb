@@ -304,8 +304,8 @@ serve(async (req) => {
       });
     }
 
-    // PUT /assets/:id - Update asset
-    if (req.method === "PUT" && assetId) {
+    // PUT/PATCH /assets/:id - Update asset
+    if ((req.method === "PUT" || req.method === "PATCH") && assetId) {
       const body = await req.json();
       const asset = await updateAsset(supabase, assetId, body, organizationId || "", hasCrossProjectAccess);
       return new Response(JSON.stringify(asset), {
