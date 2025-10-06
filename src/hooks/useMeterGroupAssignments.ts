@@ -16,6 +16,15 @@ export interface MeterGroupAssignment {
   notes?: string;
   created_at: string;
   updated_at: string;
+  meters?: {
+    id: string;
+    meter_number: string;
+    serial_number: string;
+    meter_type: string;
+    status: string;
+    manufacturer?: string;
+    model?: string;
+  };
 }
 
 export const useMeterGroupAssignments = (meterGroupId?: string) => {
@@ -48,7 +57,18 @@ export const useMeterGroupAssignments = (meterGroupId?: string) => {
 
       const { data, error } = await supabase
         .from('meter_group_assignments')
-        .select('*')
+        .select(`
+          *,
+          meters!meter_id (
+            id,
+            meter_number,
+            serial_number,
+            meter_type,
+            status,
+            manufacturer,
+            model
+          )
+        `)
         .eq('meter_group_id', meterGroupId)
         .order('assigned_date', { ascending: false });
 

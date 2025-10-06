@@ -45,7 +45,7 @@ export function MeterGroupDetailsModal({
 }: MeterGroupDetailsModalProps) {
   const { assignments, loading, assignMeter, unassignMeter } =
     useMeterGroupAssignments(meterGroup.id);
-  const { meters } = useMeters();
+  const { meters } = useMeters(); // Still needed for assignment dropdown
   const [selectedMeterId, setSelectedMeterId] = useState<string>('');
 
   // Get meters not already assigned to this group
@@ -63,15 +63,6 @@ export function MeterGroupDetailsModal({
   const handleUnassign = async (assignmentId: string) => {
     await unassignMeter(assignmentId);
   };
-
-  // Get full meter details for assignments
-  const assignedMeters = assignments.map((assignment) => {
-    const meter = meters.find((m) => m.id === assignment.meter_id);
-    return {
-      ...assignment,
-      meter,
-    };
-  });
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -132,7 +123,7 @@ export function MeterGroupDetailsModal({
           <Card>
             <div className="p-4 border-b">
               <h3 className="font-semibold">
-                Assigned Meters ({assignedMeters.length})
+                Assigned Meters ({assignments.length})
               </h3>
             </div>
             <Table>
@@ -153,24 +144,24 @@ export function MeterGroupDetailsModal({
                       Loading...
                     </TableCell>
                   </TableRow>
-                ) : assignedMeters.length === 0 ? (
+                ) : assignments.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center">
                       No meters assigned to this group
                     </TableCell>
                   </TableRow>
                 ) : (
-                  assignedMeters.map(({ meter, ...assignment }) => (
+                  assignments.map((assignment) => (
                     <TableRow key={assignment.id}>
                       <TableCell className="font-medium">
-                        {meter?.meter_number || '-'}
+                        {assignment.meters?.meter_number || '-'}
                       </TableCell>
-                      <TableCell>{meter?.serial_number || '-'}</TableCell>
+                      <TableCell>{assignment.meters?.serial_number || '-'}</TableCell>
                       <TableCell>
-                        <Badge>{meter?.meter_type || '-'}</Badge>
+                        <Badge>{assignment.meters?.meter_type || '-'}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge>{meter?.status || '-'}</Badge>
+                        <Badge>{assignment.meters?.status || '-'}</Badge>
                       </TableCell>
                       <TableCell>
                         {new Date(assignment.assigned_date).toLocaleDateString()}

@@ -278,7 +278,18 @@ async function handleDeleteGroup(supabase: any, groupId: string, organizationId:
 async function handleGetAssignments(supabase: any, groupId: string, organizationId: string | null) {
   let query = supabase
     .from('meter_group_assignments')
-    .select('*')
+    .select(`
+      *,
+      meters!meter_id (
+        id,
+        meter_number,
+        serial_number,
+        meter_type,
+        status,
+        manufacturer,
+        model
+      )
+    `)
     .eq('meter_group_id', groupId);
 
   if (organizationId) {
