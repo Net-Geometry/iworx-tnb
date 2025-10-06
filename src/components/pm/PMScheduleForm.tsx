@@ -54,7 +54,7 @@ const pmScheduleSchema = z.object({
   frequency_unit: z.enum(['days', 'weeks', 'months', 'years']).optional(),
   start_date: z.date({ required_error: "Start date is required" }),
   lead_time_days: z.coerce.number().min(0, "Lead time must be 0 or greater"),
-  assigned_to: z.string().optional(),
+  assigned_person_id: z.string().optional(),
   priority: z.enum(['low', 'medium', 'high']),
   estimated_duration_hours: z.coerce.number().optional(),
   auto_generate_wo: z.boolean(),
@@ -119,7 +119,7 @@ const PMScheduleForm = ({ open, onOpenChange, schedule }: PMScheduleFormProps) =
       frequency_unit: schedule?.frequency_unit || "months",
       start_date: schedule?.start_date ? new Date(schedule.start_date) : new Date(),
       lead_time_days: schedule?.lead_time_days || 7,
-      assigned_to: schedule?.assigned_to || "",
+      assigned_person_id: schedule?.assigned_person_id || "",
       priority: (schedule?.priority as 'low' | 'medium' | 'high') || "medium",
       estimated_duration_hours: schedule?.estimated_duration_hours || undefined,
       auto_generate_wo: schedule?.auto_generate_wo ?? true,
@@ -141,7 +141,7 @@ const PMScheduleForm = ({ open, onOpenChange, schedule }: PMScheduleFormProps) =
       frequency_unit: values.frequency_unit,
       start_date: format(values.start_date, 'yyyy-MM-dd'),
       lead_time_days: values.lead_time_days,
-      assigned_to: values.assigned_to,
+      assigned_person_id: values.assigned_person_id,
       priority: values.priority,
       estimated_duration_hours: values.estimated_duration_hours,
       auto_generate_wo: values.auto_generate_wo,
@@ -455,7 +455,7 @@ const PMScheduleForm = ({ open, onOpenChange, schedule }: PMScheduleFormProps) =
               
               <FormField
                 control={form.control}
-                name="assigned_to"
+                name="assigned_person_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Assigned Person (Optional)</FormLabel>
