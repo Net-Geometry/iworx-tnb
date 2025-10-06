@@ -79,7 +79,15 @@ export const useMeters = () => {
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMeters((data || []) as Meter[]);
+      
+      // Transform data to match Meter type, handling Json types and nested relations
+      const transformedData = (data || []).map(meter => ({
+        ...meter,
+        coordinates: meter.coordinates ? (meter.coordinates as any) : undefined,
+        unit: meter.unit && typeof meter.unit === 'object' && !Array.isArray(meter.unit) && 'id' in meter.unit ? meter.unit : undefined,
+      })) as Meter[];
+      
+      setMeters(transformedData);
     } catch (error: any) {
       console.error('Error fetching meters:', error);
       toast({
