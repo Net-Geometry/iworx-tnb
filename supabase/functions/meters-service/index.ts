@@ -107,7 +107,7 @@ serve(async (req) => {
 
 async function handleGetMeters(supabase: any, organizationId: string | null) {
   let query = supabase
-    .from('meters_service.meters')
+    .from('meters')
     .select('*, unit:unit_id(id, name, abbreviation)');
 
   if (organizationId) {
@@ -122,7 +122,7 @@ async function handleGetMeters(supabase: any, organizationId: string | null) {
 
 async function handleGetMeter(supabase: any, meterId: string, organizationId: string | null) {
   let query = supabase
-    .from('meters_service.meters')
+    .from('meters')
     .select('*, unit:unit_id(id, name, abbreviation)')
     .eq('id', meterId);
 
@@ -138,7 +138,7 @@ async function handleGetMeter(supabase: any, meterId: string, organizationId: st
 
 async function handleCreateMeter(supabase: any, body: any, organizationId: string | null, userId: string | null) {
   const { data, error } = await supabase
-    .from('meters_service.meters')
+    .from('meters')
     .insert([{
       ...body,
       organization_id: organizationId,
@@ -155,7 +155,7 @@ async function handleUpdateMeter(supabase: any, meterId: string, body: any, orga
   const { unit, location, ...cleanData } = body;
 
   let query = supabase
-    .from('meters_service.meters')
+    .from('meters')
     .update({
       ...cleanData,
       updated_at: new Date().toISOString(),
@@ -176,7 +176,7 @@ async function handleUpdateMeter(supabase: any, meterId: string, body: any, orga
 
 async function handleDeleteMeter(supabase: any, meterId: string, organizationId: string | null) {
   let query = supabase
-    .from('meters_service.meters')
+    .from('meters')
     .delete()
     .eq('id', meterId);
 
@@ -194,7 +194,7 @@ async function handleDeleteMeter(supabase: any, meterId: string, organizationId:
 
 async function handleGetGroups(supabase: any, organizationId: string | null) {
   let query = supabase
-    .from('meters_service.groups')
+    .from('meter_groups')
     .select('*');
 
   if (organizationId) {
@@ -209,7 +209,7 @@ async function handleGetGroups(supabase: any, organizationId: string | null) {
 
 async function handleGetGroup(supabase: any, groupId: string, organizationId: string | null) {
   let query = supabase
-    .from('meters_service.groups')
+    .from('meter_groups')
     .select('*')
     .eq('id', groupId);
 
@@ -225,7 +225,7 @@ async function handleGetGroup(supabase: any, groupId: string, organizationId: st
 
 async function handleCreateGroup(supabase: any, body: any, organizationId: string | null, userId: string | null) {
   const { data, error } = await supabase
-    .from('meters_service.groups')
+    .from('meter_groups')
     .insert([{
       ...body,
       organization_id: organizationId,
@@ -240,7 +240,7 @@ async function handleCreateGroup(supabase: any, body: any, organizationId: strin
 
 async function handleUpdateGroup(supabase: any, groupId: string, body: any, organizationId: string | null) {
   let query = supabase
-    .from('meters_service.groups')
+    .from('meter_groups')
     .update({
       ...body,
       updated_at: new Date().toISOString(),
@@ -259,7 +259,7 @@ async function handleUpdateGroup(supabase: any, groupId: string, body: any, orga
 
 async function handleDeleteGroup(supabase: any, groupId: string, organizationId: string | null) {
   let query = supabase
-    .from('meters_service.groups')
+    .from('meter_groups')
     .delete()
     .eq('id', groupId);
 
@@ -277,7 +277,7 @@ async function handleDeleteGroup(supabase: any, groupId: string, organizationId:
 
 async function handleGetAssignments(supabase: any, groupId: string, organizationId: string | null) {
   let query = supabase
-    .from('meters_service.group_assignments')
+    .from('meter_group_assignments')
     .select('*')
     .eq('meter_group_id', groupId);
 
@@ -293,7 +293,7 @@ async function handleGetAssignments(supabase: any, groupId: string, organization
 
 async function handleCreateAssignment(supabase: any, groupId: string, body: any, organizationId: string | null, userId: string | null) {
   const { data, error } = await supabase
-    .from('meters_service.group_assignments')
+    .from('meter_group_assignments')
     .insert([{
       ...body,
       meter_group_id: groupId,
@@ -309,7 +309,7 @@ async function handleCreateAssignment(supabase: any, groupId: string, body: any,
 
 async function handleDeleteAssignment(supabase: any, assignmentId: string, organizationId: string | null) {
   let query = supabase
-    .from('meters_service.group_assignments')
+    .from('meter_group_assignments')
     .delete()
     .eq('id', assignmentId);
 
