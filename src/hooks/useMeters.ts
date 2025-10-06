@@ -63,7 +63,7 @@ export const useMeters = () => {
         }
       }
 
-      let query = (supabase as any).from('meters_service.meters').select(`
+      let query = (supabase as any).from('meters').select(`
         *,
         unit:unit_id (
           id,
@@ -118,7 +118,7 @@ export const useMeters = () => {
       }
 
       const { data, error } = await (supabase as any)
-        .from('meters_service.meters')
+        .from('meters')
         .insert([{
           ...meterData,
           organization_id: currentOrganization?.id
@@ -166,7 +166,7 @@ export const useMeters = () => {
       const { unit, location, ...cleanData } = meterData;
       
       const { data, error } = await (supabase as any)
-        .from('meters_service.meters')
+        .from('meters')
         .update(cleanData)
         .eq('id', id)
         .select()
@@ -210,7 +210,7 @@ export const useMeters = () => {
       }
 
       const { error } = await (supabase as any)
-        .from('meters_service.meters')
+        .from('meters')
         .delete()
         .eq('id', id);
 
