@@ -25,6 +25,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -219,6 +220,11 @@ export default function MeterGroupsPage() {
             <DialogTitle>
               {selectedGroup ? 'Edit Meter Group' : 'Create New Meter Group'}
             </DialogTitle>
+            <DialogDescription>
+              {selectedGroup 
+                ? 'Update the meter group information below' 
+                : 'Fill in the details to create a new meter group'}
+            </DialogDescription>
           </DialogHeader>
           <MeterGroupForm
             meterGroup={selectedGroup}

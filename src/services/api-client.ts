@@ -925,7 +925,7 @@ export const metersApi = {
   
   assignments: {
     async getForGroup(groupId: string) {
-      const response = await fetch(`${API_GATEWAY_URL}/api/groups/${groupId}/assignments`, {
+      const response = await fetch(`${API_GATEWAY_URL}/api/meters/groups/${groupId}/assignments`, {
         headers: await getAuthHeaders(),
       });
       if (!response.ok) throw new Error('Failed to fetch assignments');
@@ -934,7 +934,7 @@ export const metersApi = {
     },
 
     async create(groupId: string, assignmentData: any) {
-      const response = await fetch(`${API_GATEWAY_URL}/api/groups/${groupId}/assignments`, {
+      const response = await fetch(`${API_GATEWAY_URL}/api/meters/groups/${groupId}/assignments`, {
         method: 'POST',
         headers: await getAuthHeaders(),
         body: JSON.stringify(assignmentData),
@@ -945,7 +945,7 @@ export const metersApi = {
     },
 
     async delete(assignmentId: string) {
-      const response = await fetch(`${API_GATEWAY_URL}/api/assignments/${assignmentId}`, {
+      const response = await fetch(`${API_GATEWAY_URL}/api/meters/assignments/${assignmentId}`, {
         method: 'DELETE',
         headers: await getAuthHeaders(),
       });
