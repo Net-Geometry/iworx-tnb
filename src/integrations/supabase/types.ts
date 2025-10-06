@@ -555,13 +555,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "notifications_pm_schedule_id_fkey"
-            columns: ["pm_schedule_id"]
-            isOneToOne: false
-            referencedRelation: "pm_schedules"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "notifications_work_order_id_fkey"
             columns: ["work_order_id"]
             isOneToOne: false
@@ -809,13 +802,6 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pm_generated_work_orders_pm_schedule_id_fkey"
-            columns: ["pm_schedule_id"]
-            isOneToOne: false
-            referencedRelation: "pm_schedules"
             referencedColumns: ["id"]
           },
         ]
@@ -3635,31 +3621,34 @@ export type Database = {
       }
       pm_schedule_assignments: {
         Row: {
+          assigned_by: string | null
+          assigned_date: string | null
           assigned_person_id: string | null
           assignment_role: string | null
           created_at: string | null
           id: string | null
           organization_id: string | null
           pm_schedule_id: string | null
-          updated_at: string | null
         }
         Insert: {
+          assigned_by?: string | null
+          assigned_date?: string | null
           assigned_person_id?: string | null
           assignment_role?: string | null
           created_at?: string | null
           id?: string | null
           organization_id?: string | null
           pm_schedule_id?: string | null
-          updated_at?: string | null
         }
         Update: {
+          assigned_by?: string | null
+          assigned_date?: string | null
           assigned_person_id?: string | null
           assignment_role?: string | null
           created_at?: string | null
           id?: string | null
           organization_id?: string | null
           pm_schedule_id?: string | null
-          updated_at?: string | null
         }
         Relationships: []
       }
@@ -3712,6 +3701,7 @@ export type Database = {
           organization_id: string | null
           planned_quantity: number | null
           pm_schedule_id: string | null
+          unit: string | null
           updated_at: string | null
         }
         Insert: {
@@ -3723,6 +3713,7 @@ export type Database = {
           organization_id?: string | null
           planned_quantity?: number | null
           pm_schedule_id?: string | null
+          unit?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -3734,6 +3725,7 @@ export type Database = {
           organization_id?: string | null
           planned_quantity?: number | null
           pm_schedule_id?: string | null
+          unit?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -3787,8 +3779,8 @@ export type Database = {
           estimated_duration_hours?: number | null
           estimated_labor_cost?: number | null
           estimated_material_cost?: number | null
-          frequency_type?: never
-          frequency_unit?: never
+          frequency_type?: string | null
+          frequency_unit?: string | null
           frequency_value?: number | null
           id?: string | null
           is_active?: boolean | null
@@ -3807,7 +3799,7 @@ export type Database = {
           safety_precaution_ids?: string[] | null
           schedule_number?: string | null
           start_date?: string | null
-          status?: never
+          status?: string | null
           title?: string | null
           updated_at?: string | null
         }
@@ -3823,8 +3815,8 @@ export type Database = {
           estimated_duration_hours?: number | null
           estimated_labor_cost?: number | null
           estimated_material_cost?: number | null
-          frequency_type?: never
-          frequency_unit?: never
+          frequency_type?: string | null
+          frequency_unit?: string | null
           frequency_value?: number | null
           id?: string | null
           is_active?: boolean | null
@@ -3843,7 +3835,7 @@ export type Database = {
           safety_precaution_ids?: string[] | null
           schedule_number?: string | null
           start_date?: string | null
-          status?: never
+          status?: string | null
           title?: string | null
           updated_at?: string | null
         }
