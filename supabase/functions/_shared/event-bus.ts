@@ -178,6 +178,17 @@ export const DomainEvents = {
   ROUTE_ASSET_REORDERED: 'route.asset_reordered',
   ROUTE_PM_ASSIGNED: 'route.pm_assigned',
   ROUTE_PM_UNASSIGNED: 'route.pm_unassigned',
+
+  // Workflow Events
+  WORKFLOW_INITIALIZED: 'workflow.initialized',
+  WORKFLOW_STEP_TRANSITIONED: 'workflow.step_transitioned',
+  WORKFLOW_STEP_APPROVED: 'workflow.step_approved',
+  WORKFLOW_STEP_REJECTED: 'workflow.step_rejected',
+  WORKFLOW_STEP_REASSIGNED: 'workflow.step_reassigned',
+  WORKFLOW_COMPLETED: 'workflow.completed',
+  WORKFLOW_TEMPLATE_CREATED: 'workflow.template_created',
+  WORKFLOW_TEMPLATE_UPDATED: 'workflow.template_updated',
+  WORKFLOW_TEMPLATE_DELETED: 'workflow.template_deleted',
 } as const;
 
 /**
