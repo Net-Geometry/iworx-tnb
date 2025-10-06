@@ -21,7 +21,7 @@ FAILED=0
 TOTAL=0
 
 # Test organization ID (you'll need to replace this with a valid org ID)
-ORG_ID="replace-with-valid-org-id"
+ORG_ID="d2b00bd4-7266-4942-b4c8-a5cfcb448daf"
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║    Phase 1 Microservices Comprehensive API Testing        ║${NC}"

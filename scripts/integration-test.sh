@@ -15,7 +15,7 @@ NC='\033[0m'
 PROJECT_ID="jsqzkaarpfowgmijcwaw"
 ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzcXprYWFycGZvd2dtaWpjd2F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMTE2NjEsImV4cCI6MjA3NDY4NzY2MX0.Wmx2DQY5sNMlzMqnkTAftfdkIUFkm_w577fy-4nPXWY"
 BASE_URL="https://${PROJECT_ID}.supabase.co/functions/v1"
-ORG_ID="replace-with-valid-org-id"
+ORG_ID="d2b00bd4-7266-4942-b4c8-a5cfcb448daf"
 
 # Test results
 PASSED=0
