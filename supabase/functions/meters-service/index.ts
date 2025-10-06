@@ -35,7 +35,7 @@ serve(async (req) => {
     let response;
 
     // METERS endpoints
-    if (path === 'meters' && req.method === 'GET') {
+    if ((path === 'meters' || path === '' || path === '/') && req.method === 'GET') {
       response = await handleGetMeters(supabase, organizationId);
     } else if (path.match(/^meters\/[^/]+$/) && req.method === 'GET') {
       const meterId = pathParts[1];
