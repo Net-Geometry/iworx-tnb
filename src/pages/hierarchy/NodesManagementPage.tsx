@@ -43,12 +43,30 @@ const NodesManagementPage = () => {
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   const [deletingNodeId, setDeletingNodeId] = useState<string | null>(null);
 
-  const selectedNode = nodes.find((n) => n.id === selectedNodeId);
+  // Flatten all nodes including nested children for easy lookup
+  const flattenAllNodes = (nodeList: typeof nodes): typeof nodes => {
+    const result: typeof nodes = [];
+    const flatten = (items: typeof nodes) => {
+      items.forEach(item => {
+        if (item.nodeType === 'node') {
+          result.push(item);
+          if (item.children) {
+            flatten(item.children as typeof nodes);
+          }
+        }
+      });
+    };
+    flatten(nodeList);
+    return result;
+  };
+
+  const allNodes = flattenAllNodes(nodes);
+  const selectedNode = allNodes.find((n) => n.id === selectedNodeId);
 
   // Build breadcrumb path for selected node
   const buildPath = (nodeId: string): any[] => {
     const path: any[] = [];
-    let current = nodes.find((n) => n.id === nodeId);
+    let current = allNodes.find((n) => n.id === nodeId);
     
     while (current) {
       path.unshift({
@@ -56,7 +74,7 @@ const NodesManagementPage = () => {
         name: current.name,
         level: current.level_info?.name,
       });
-      current = current.parent_id ? nodes.find((n) => n.id === current?.parent_id) : undefined;
+      current = current.parent_id ? allNodes.find((n) => n.id === current?.parent_id) : undefined;
     }
     
     return path;
