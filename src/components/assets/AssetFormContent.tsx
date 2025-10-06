@@ -149,11 +149,14 @@ const AssetFormContent: React.FC<AssetFormContentProps> = ({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Unassigned</SelectItem>
-                      {flatNodes.map((node) => (
-                        <SelectItem key={node.id} value={node.id}>
-                          {'  '.repeat(node.depth)}• {node.name} ({node.level_info?.name})
-                        </SelectItem>
-                      ))}
+                      {/* Filter to show only Location level nodes (level_order: 4) */}
+                      {flatNodes
+                        .filter((node) => node.level_info?.name === 'Location')
+                        .map((node) => (
+                          <SelectItem key={node.id} value={node.id}>
+                            {'  '.repeat(node.depth)}• {node.name} ({node.level_info?.name})
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
