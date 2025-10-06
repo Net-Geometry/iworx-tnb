@@ -72,6 +72,7 @@ export const usePMScheduleAssignments = (scheduleId?: string) => {
           
           return {
             ...assignment,
+            updated_at: assignment.created_at,
             person: personData || {
               id: assignment.assigned_person_id,
               first_name: 'Unknown',

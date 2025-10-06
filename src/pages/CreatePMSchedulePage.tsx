@@ -164,7 +164,6 @@ const CreatePMSchedulePage = () => {
         start_date: format(values.start_date, 'yyyy-MM-dd'),
         next_due_date: format(nextDueDate, 'yyyy-MM-dd'),
         lead_time_days: values.lead_time_days,
-        assigned_person_id: values.assigned_person_ids?.[0] || null,
         priority: values.priority,
         estimated_duration_hours: values.estimated_duration_hours,
         auto_generate_wo: values.auto_generate_wo,

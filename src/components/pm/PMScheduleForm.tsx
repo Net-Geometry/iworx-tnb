@@ -119,7 +119,7 @@ const PMScheduleForm = ({ open, onOpenChange, schedule }: PMScheduleFormProps) =
       frequency_unit: schedule?.frequency_unit || "months",
       start_date: schedule?.start_date ? new Date(schedule.start_date) : new Date(),
       lead_time_days: schedule?.lead_time_days || 7,
-      assigned_person_id: schedule?.assigned_person_id || "",
+      assigned_person_id: "",
       priority: (schedule?.priority as 'low' | 'medium' | 'high') || "medium",
       estimated_duration_hours: schedule?.estimated_duration_hours || undefined,
       auto_generate_wo: schedule?.auto_generate_wo ?? true,
@@ -141,13 +141,10 @@ const PMScheduleForm = ({ open, onOpenChange, schedule }: PMScheduleFormProps) =
       frequency_unit: values.frequency_unit,
       start_date: format(values.start_date, 'yyyy-MM-dd'),
       lead_time_days: values.lead_time_days,
-      assigned_person_id: values.assigned_person_id,
       priority: values.priority,
       estimated_duration_hours: values.estimated_duration_hours,
       auto_generate_wo: values.auto_generate_wo,
       notification_enabled: values.notification_enabled,
-      // @ts-expect-error - location_node_id exists in DB but types not regenerated yet
-      location_node_id: values.location_node_id,
       organization_id: currentOrganization!.id,
     };
 

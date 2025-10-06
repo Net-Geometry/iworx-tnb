@@ -142,12 +142,12 @@ serve(async (req) => {
 async function listJobPlans(supabase: any, organizationId: string | null, hasCrossProjectAccess: boolean) {
   console.log('[Job Plans Service] Listing job plans');
   
-  let query = supabase.from('job_plans').select(`
+  let query = supabase.from('jobplans_service.job_plans').select(`
     *,
-    tasks:job_plan_tasks(*),
-    parts:job_plan_parts(*),
-    tools:job_plan_tools(*),
-    documents:job_plan_documents(*)
+    tasks:jobplans_service.tasks(*),
+    parts:jobplans_service.parts(*),
+    tools:jobplans_service.tools(*),
+    documents:jobplans_service.documents(*)
   `);
 
   if (!hasCrossProjectAccess && organizationId) {
@@ -230,7 +230,7 @@ async function createJobPlan(supabase: any, body: any, organizationId: string | 
       job_plan_id: jobPlan.id,
       organization_id: organizationId
     }));
-    await supabase.from('job_plan_tasks').insert(tasksToInsert);
+    await supabase.from('jobplans_service.tasks').insert(tasksToInsert);
   }
 
   if (parts && parts.length > 0) {
@@ -239,7 +239,7 @@ async function createJobPlan(supabase: any, body: any, organizationId: string | 
       job_plan_id: jobPlan.id,
       organization_id: organizationId
     }));
-    await supabase.from('job_plan_parts').insert(partsToInsert);
+    await supabase.from('jobplans_service.parts').insert(partsToInsert);
   }
 
   if (tools && tools.length > 0) {
@@ -248,7 +248,7 @@ async function createJobPlan(supabase: any, body: any, organizationId: string | 
       job_plan_id: jobPlan.id,
       organization_id: organizationId
     }));
-    await supabase.from('job_plan_tools').insert(toolsToInsert);
+    await supabase.from('jobplans_service.tools').insert(toolsToInsert);
   }
 
   // Publish event
@@ -276,7 +276,7 @@ async function updateJobPlan(supabase: any, id: string, body: any, organizationI
   console.log('[Job Plans Service] Updating job plan:', id);
   
   let query = supabase
-    .from('job_plans')
+    .from('jobplans_service.job_plans')
     .update({ ...body, updated_at: new Date().toISOString() })
     .eq('id', id);
 
@@ -321,7 +321,7 @@ async function deleteJobPlan(supabase: any, id: string, organizationId: string |
   console.log('[Job Plans Service] Deleting job plan:', id);
   
   let query = supabase
-    .from('job_plans')
+    .from('jobplans_service.job_plans')
     .delete()
     .eq('id', id);
 
@@ -357,7 +357,7 @@ async function deleteJobPlan(supabase: any, id: string, organizationId: string |
 async function getJobPlanStats(supabase: any, organizationId: string | null, hasCrossProjectAccess: boolean) {
   console.log('[Job Plans Service] Getting job plan stats');
   
-  let query = supabase.from('job_plans').select('*');
+  let query = supabase.from('jobplans_service.job_plans').select('*');
   
   if (!hasCrossProjectAccess && organizationId) {
     query = query.eq('organization_id', organizationId);
@@ -397,7 +397,7 @@ async function createTask(supabase: any, body: any, organizationId: string | nul
   console.log('[Job Plans Service] Creating task');
   
   const { data, error } = await supabase
-    .from('job_plan_tasks')
+    .from('jobplans_service.tasks')
     .insert([{ ...body, organization_id: organizationId }])
     .select()
     .single();
@@ -416,7 +416,7 @@ async function updateTask(supabase: any, id: string, body: any, correlationId: s
   console.log('[Job Plans Service] Updating task:', id);
   
   const { data, error } = await supabase
-    .from('job_plan_tasks')
+    .from('jobplans_service.tasks')
     .update({ ...body, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
@@ -442,7 +442,7 @@ async function deleteTask(supabase: any, id: string, correlationId: string) {
   console.log('[Job Plans Service] Deleting task:', id);
   
   const { error } = await supabase
-    .from('job_plan_tasks')
+    .from('jobplans_service.tasks')
     .delete()
     .eq('id', id);
 
@@ -464,7 +464,7 @@ async function createPart(supabase: any, body: any, organizationId: string | nul
   console.log('[Job Plans Service] Creating part');
   
   const { data, error } = await supabase
-    .from('job_plan_parts')
+    .from('jobplans_service.parts')
     .insert([{ ...body, organization_id: organizationId }])
     .select()
     .single();
@@ -483,7 +483,7 @@ async function updatePart(supabase: any, id: string, body: any, correlationId: s
   console.log('[Job Plans Service] Updating part:', id);
   
   const { data, error } = await supabase
-    .from('job_plan_parts')
+    .from('jobplans_service.parts')
     .update({ ...body, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
@@ -509,7 +509,7 @@ async function deletePart(supabase: any, id: string, correlationId: string) {
   console.log('[Job Plans Service] Deleting part:', id);
   
   const { error } = await supabase
-    .from('job_plan_parts')
+    .from('jobplans_service.parts')
     .delete()
     .eq('id', id);
 
@@ -531,7 +531,7 @@ async function createTool(supabase: any, body: any, organizationId: string | nul
   console.log('[Job Plans Service] Creating tool');
   
   const { data, error } = await supabase
-    .from('job_plan_tools')
+    .from('jobplans_service.tools')
     .insert([{ ...body, organization_id: organizationId }])
     .select()
     .single();
@@ -550,7 +550,7 @@ async function updateTool(supabase: any, id: string, body: any, correlationId: s
   console.log('[Job Plans Service] Updating tool:', id);
   
   const { data, error } = await supabase
-    .from('job_plan_tools')
+    .from('jobplans_service.tools')
     .update({ ...body, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
@@ -576,7 +576,7 @@ async function deleteTool(supabase: any, id: string, correlationId: string) {
   console.log('[Job Plans Service] Deleting tool:', id);
   
   const { error } = await supabase
-    .from('job_plan_tools')
+    .from('jobplans_service.tools')
     .delete()
     .eq('id', id);
 
