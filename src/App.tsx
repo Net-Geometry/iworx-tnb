@@ -78,6 +78,9 @@ import MaintenanceRoutesPage from "./pages/MaintenanceRoutesPage";
 import RouteDetailPage from "./pages/RouteDetailPage";
 import MobilePage from "./pages/MobilePage";
 import AssetHierarchyPage from "./pages/AssetHierarchyPage";
+import LevelsManagementPage from "./pages/hierarchy/LevelsManagementPage";
+import NodesManagementPage from "./pages/hierarchy/NodesManagementPage";
+import HierarchyVisualizerPage from "./pages/hierarchy/HierarchyVisualizerPage";
 import ProfilePage from "./pages/ProfilePage";
 
 const queryClient = new QueryClient();
@@ -136,27 +139,21 @@ const App = () => (
             <Route path="/assets/hierarchy/levels" element={
               <AuthGuard>
                 <Layout>
-                  {React.createElement(
-                    React.lazy(() => import("./pages/hierarchy/LevelsManagementPage"))
-                  )}
+                  <LevelsManagementPage />
                 </Layout>
               </AuthGuard>
             } />
             <Route path="/assets/hierarchy/nodes" element={
               <AuthGuard>
                 <Layout>
-                  {React.createElement(
-                    React.lazy(() => import("./pages/hierarchy/NodesManagementPage"))
-                  )}
+                  <NodesManagementPage />
                 </Layout>
               </AuthGuard>
             } />
             <Route path="/assets/hierarchy/visualizer" element={
               <AuthGuard>
                 <Layout>
-                  {React.createElement(
-                    React.lazy(() => import("./pages/hierarchy/HierarchyVisualizerPage"))
-                  )}
+                  <HierarchyVisualizerPage />
                 </Layout>
               </AuthGuard>
             } />
