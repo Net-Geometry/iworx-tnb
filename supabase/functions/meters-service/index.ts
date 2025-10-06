@@ -25,7 +25,7 @@ serve(async (req) => {
       organizationId,
     });
 
-    if (path === 'health' || path === '') {
+    if (path === 'health') {
       return new Response(
         JSON.stringify({ status: 'healthy', service: 'meters-service' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
