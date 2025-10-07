@@ -142,6 +142,28 @@ async function handleIncidents(
   if (method === 'POST' && pathParts.length === 1) {
     const body = await req.json();
     
+    // Log incident creation details
+    console.log('📝 Creating incident:', {
+      incident_number: body.incident_number,
+      title: body.title,
+      asset_id: body.asset_id,
+      asset_id_type: typeof body.asset_id,
+      location: body.location,
+      timestamp: new Date().toISOString()
+    });
+
+    // Validate asset_id if provided
+    if (body.asset_id && body.asset_id !== null && body.asset_id !== '') {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(body.asset_id)) {
+        console.error('❌ Invalid asset_id UUID format:', body.asset_id);
+        throw new Error(`Invalid asset_id UUID format: ${body.asset_id}`);
+      }
+      console.log('✅ Valid asset_id:', body.asset_id);
+    } else {
+      console.log('ℹ️ No asset assigned to this incident');
+    }
+    
     const { data, error } = await supabase
       .from('safety_incidents')
       .insert({
@@ -154,6 +176,8 @@ async function handleIncidents(
 
     if (error) throw error;
 
+    console.log('✅ Incident created successfully:', data.id);
+
     return new Response(
       JSON.stringify(data),
       { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -165,6 +189,26 @@ async function handleIncidents(
     const incidentId = pathParts[1];
     const body = await req.json();
     
+    // Log incident update details
+    console.log('📝 Updating incident:', {
+      incident_id: incidentId,
+      asset_id: body.asset_id,
+      asset_id_type: typeof body.asset_id,
+      timestamp: new Date().toISOString()
+    });
+
+    // Validate asset_id if provided
+    if (body.asset_id && body.asset_id !== null && body.asset_id !== '') {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(body.asset_id)) {
+        console.error('❌ Invalid asset_id UUID format:', body.asset_id);
+        throw new Error(`Invalid asset_id UUID format: ${body.asset_id}`);
+      }
+      console.log('✅ Valid asset_id:', body.asset_id);
+    } else if (body.hasOwnProperty('asset_id')) {
+      console.log('ℹ️ Clearing asset assignment');
+    }
+    
     const { data, error } = await supabase
       .from('safety_incidents')
       .update(body)
@@ -173,6 +217,8 @@ async function handleIncidents(
       .single();
 
     if (error) throw error;
+
+    console.log('✅ Incident updated successfully:', incidentId);
 
     return new Response(
       JSON.stringify(data),

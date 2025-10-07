@@ -230,23 +230,25 @@ export const IncidentReportForm = ({ onSubmit, onCancel }: IncidentReportFormPro
           name="asset_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Asset Involved (if applicable)</FormLabel>
+              <FormLabel>Asset Involved (Optional)</FormLabel>
               <Select 
-                onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} 
-                value={field.value || "none"}
+                onValueChange={(value) => field.onChange(value === "" ? undefined : value)} 
+                value={field.value || ""}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select asset" />
+                    <SelectValue placeholder="Select an asset (if applicable)" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="none">No asset involved</SelectItem>
-                  {filteredAssets.map((asset) => (
-                    <SelectItem key={asset.id} value={asset.id}>
-                      {asset.name} - {asset.asset_number}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="">No Asset Involved</SelectItem>
+                  {filteredAssets
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((asset) => (
+                      <SelectItem key={asset.id} value={asset.id}>
+                        {asset.asset_number} - {asset.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
               <FormMessage />

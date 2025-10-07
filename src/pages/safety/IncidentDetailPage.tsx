@@ -53,6 +53,7 @@ const incidentSchema = z.object({
   severity: z.enum(["low", "medium", "high", "critical"]),
   title: z.string().min(1, "Title is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
+  asset_id: z.string().uuid().optional(),
   reporter_name: z.string().min(1, "Reporter name is required"),
   reporter_email: z.string().email("Invalid email").optional().or(z.literal("")),
   root_cause: z.string().optional(),
@@ -99,6 +100,7 @@ const IncidentDetailPage = () => {
       severity: incident?.severity || "medium",
       title: incident?.title || "",
       description: incident?.description || "",
+      asset_id: incident?.asset_id || "",
       reporter_name: incident?.reporter_name || "",
       reporter_email: incident?.reporter_email || "",
       root_cause: incident?.root_cause || "",
@@ -122,6 +124,7 @@ const IncidentDetailPage = () => {
         severity: incident.severity || "medium",
         title: incident.title || "",
         description: incident.description || "",
+        asset_id: incident.asset_id || "",
         reporter_name: incident.reporter_name || "",
         reporter_email: incident.reporter_email || "",
         root_cause: incident.root_cause || "",
@@ -370,6 +373,17 @@ const IncidentDetailPage = () => {
                         </div>
                       </div>
                     )}
+                    {!incident.asset_id && (
+                      <div className="flex items-center space-x-2 col-span-2">
+                        <Package className="w-4 h-4 text-muted-foreground" />
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Asset Involved
+                          </label>
+                          <Badge variant="outline" className="mt-1">No Asset Assigned</Badge>
+                        </div>
+                      </div>
+                    )}
                 <div className="col-span-2">
                   <label className="text-sm font-medium text-muted-foreground">
                     Regulatory Reporting
@@ -497,6 +511,38 @@ const IncidentDetailPage = () => {
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Asset Involved */}
+                    <FormField
+                      control={form.control}
+                      name="asset_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Asset Involved (Optional)</FormLabel>
+                          <Select 
+                            onValueChange={(value) => field.onChange(value === "" ? undefined : value)} 
+                            value={field.value || ""}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select an asset (if applicable)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">No Asset Involved</SelectItem>
+                              {assets
+                                .sort((a, b) => a.name.localeCompare(b.name))
+                                .map((asset) => (
+                                  <SelectItem key={asset.id} value={asset.id}>
+                                    {asset.asset_number} - {asset.name}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
