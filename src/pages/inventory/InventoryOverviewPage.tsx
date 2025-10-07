@@ -18,28 +18,28 @@ const InventoryOverviewPage = () => {
   const overviewStats = [
     {
       title: "Total Items",
-      value: stats?.totalItems.toLocaleString() || "0",
+      value: stats?.totalItems?.toLocaleString() ?? "0",
       change: "+12%",
       trend: "up",
       icon: Package,
     },
     {
       title: "Total Value",
-      value: `$${(stats?.totalValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: `$${(stats?.totalValue ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       change: "+8%", 
       trend: "up",
       icon: DollarSign,
     },
     {
       title: "Low Stock Items",
-      value: stats?.lowStockCount.toString() || "0",
+      value: (stats?.lowStockCount ?? 0).toString(),
       change: "-5%",
       trend: "down",
       icon: AlertTriangle,
     },
     {
       title: "Pending Orders",
-      value: stats?.pendingOrdersCount.toString() || "0",
+      value: (stats?.pendingOrdersCount ?? 0).toString(),
       change: "+3%",
       trend: "up", 
       icon: Truck,
