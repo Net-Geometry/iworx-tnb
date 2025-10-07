@@ -33,6 +33,7 @@ export const useAssetMeterGroups = (assetId?: string) => {
     try {
       setLoading(true);
 
+      // Try nested query first (optimal performance with FK)
       const { data, error } = await supabase
         .from('asset_meter_groups')
         .select(`
@@ -48,8 +49,42 @@ export const useAssetMeterGroups = (assetId?: string) => {
         .eq('asset_id', assetId)
         .order('assigned_date', { ascending: false });
 
-      if (error) throw error;
-      setAssetMeterGroups(data || []);
+      if (error) {
+        // Fallback: fetch separately and join manually
+        console.warn('Nested query failed, using fallback:', error.message);
+        
+        const { data: amgData, error: amgError } = await supabase
+          .from('asset_meter_groups')
+          .select('*')
+          .eq('asset_id', assetId)
+          .order('assigned_date', { ascending: false });
+
+        if (amgError) throw amgError;
+
+        if (!amgData || amgData.length === 0) {
+          setAssetMeterGroups([]);
+          return;
+        }
+
+        // Fetch related meter groups
+        const meterGroupIds = amgData.map(amg => amg.meter_group_id);
+        const { data: mgData, error: mgError } = await supabase
+          .from('meter_groups')
+          .select('id, name, group_number, group_type, description')
+          .in('id', meterGroupIds);
+
+        if (mgError) throw mgError;
+
+        // Manual join
+        const joinedData = amgData.map(amg => ({
+          ...amg,
+          meter_groups: mgData?.find(mg => mg.id === amg.meter_group_id) || null
+        }));
+
+        setAssetMeterGroups(joinedData);
+      } else {
+        setAssetMeterGroups(data || []);
+      }
     } catch (error: any) {
       console.error('Error fetching asset meter groups:', error);
       toast({
