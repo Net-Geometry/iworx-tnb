@@ -45,6 +45,12 @@ serve(async (req) => {
       );
     }
 
+    // Root route - defaults to listing job plans
+    if (pathParts.length === 0 && req.method === 'GET') {
+      console.log('[Job Plans Service] Root GET request - listing job plans');
+      return await listJobPlans(supabase, organizationId, hasCrossProjectAccess);
+    }
+
     // Job Plans routes
     if (pathParts[0] === 'job-plans') {
       if (pathParts.length === 1) {
@@ -140,14 +146,14 @@ serve(async (req) => {
 // ============================================================================
 
 async function listJobPlans(supabase: any, organizationId: string | null, hasCrossProjectAccess: boolean) {
-  console.log('[Job Plans Service] Listing job plans');
+  console.log('[Job Plans Service] Listing job plans', { organizationId, hasCrossProjectAccess });
   
-  let query = supabase.from('jobplans_service.job_plans').select(`
+  let query = supabase.from('job_plans').select(`
     *,
-    tasks:jobplans_service.tasks(*),
-    parts:jobplans_service.parts(*),
-    tools:jobplans_service.tools(*),
-    documents:jobplans_service.documents(*)
+    tasks:job_plan_tasks(*),
+    parts:job_plan_parts(*),
+    tools:job_plan_tools(*),
+    documents:job_plan_documents(*)
   `);
 
   if (!hasCrossProjectAccess && organizationId) {
@@ -157,11 +163,16 @@ async function listJobPlans(supabase: any, organizationId: string | null, hasCro
   const { data, error } = await query.order('created_at', { ascending: false });
 
   if (error) {
-    console.error('[Job Plans Service] Error listing job plans:', error);
+    console.error('[Job Plans Service] Error listing job plans:', {
+      error,
+      errorDetails: error.details,
+      errorHint: error.hint,
+      errorMessage: error.message
+    });
     throw error;
   }
 
-  console.log('[Job Plans Service] Found', data?.length || 0, 'job plans');
+  console.log('[Job Plans Service] Successfully fetched', data?.length || 0, 'job plans');
   return new Response(
     JSON.stringify(data),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -230,7 +241,7 @@ async function createJobPlan(supabase: any, body: any, organizationId: string | 
       job_plan_id: jobPlan.id,
       organization_id: organizationId
     }));
-    await supabase.from('jobplans_service.tasks').insert(tasksToInsert);
+    await supabase.from('job_plan_tasks').insert(tasksToInsert);
   }
 
   if (parts && parts.length > 0) {
@@ -239,7 +250,7 @@ async function createJobPlan(supabase: any, body: any, organizationId: string | 
       job_plan_id: jobPlan.id,
       organization_id: organizationId
     }));
-    await supabase.from('jobplans_service.parts').insert(partsToInsert);
+    await supabase.from('job_plan_parts').insert(partsToInsert);
   }
 
   if (tools && tools.length > 0) {
@@ -248,7 +259,7 @@ async function createJobPlan(supabase: any, body: any, organizationId: string | 
       job_plan_id: jobPlan.id,
       organization_id: organizationId
     }));
-    await supabase.from('jobplans_service.tools').insert(toolsToInsert);
+    await supabase.from('job_plan_tools').insert(toolsToInsert);
   }
 
   // Publish event
@@ -276,7 +287,7 @@ async function updateJobPlan(supabase: any, id: string, body: any, organizationI
   console.log('[Job Plans Service] Updating job plan:', id);
   
   let query = supabase
-    .from('jobplans_service.job_plans')
+    .from('job_plans')
     .update({ ...body, updated_at: new Date().toISOString() })
     .eq('id', id);
 
@@ -321,7 +332,7 @@ async function deleteJobPlan(supabase: any, id: string, organizationId: string |
   console.log('[Job Plans Service] Deleting job plan:', id);
   
   let query = supabase
-    .from('jobplans_service.job_plans')
+    .from('job_plans')
     .delete()
     .eq('id', id);
 
@@ -357,7 +368,7 @@ async function deleteJobPlan(supabase: any, id: string, organizationId: string |
 async function getJobPlanStats(supabase: any, organizationId: string | null, hasCrossProjectAccess: boolean) {
   console.log('[Job Plans Service] Getting job plan stats');
   
-  let query = supabase.from('jobplans_service.job_plans').select('*');
+  let query = supabase.from('job_plans').select('*');
   
   if (!hasCrossProjectAccess && organizationId) {
     query = query.eq('organization_id', organizationId);
@@ -397,7 +408,7 @@ async function createTask(supabase: any, body: any, organizationId: string | nul
   console.log('[Job Plans Service] Creating task');
   
   const { data, error } = await supabase
-    .from('jobplans_service.tasks')
+    .from('job_plan_tasks')
     .insert([{ ...body, organization_id: organizationId }])
     .select()
     .single();
@@ -416,7 +427,7 @@ async function updateTask(supabase: any, id: string, body: any, correlationId: s
   console.log('[Job Plans Service] Updating task:', id);
   
   const { data, error } = await supabase
-    .from('jobplans_service.tasks')
+    .from('job_plan_tasks')
     .update({ ...body, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
@@ -442,7 +453,7 @@ async function deleteTask(supabase: any, id: string, correlationId: string) {
   console.log('[Job Plans Service] Deleting task:', id);
   
   const { error } = await supabase
-    .from('jobplans_service.tasks')
+    .from('job_plan_tasks')
     .delete()
     .eq('id', id);
 
@@ -464,7 +475,7 @@ async function createPart(supabase: any, body: any, organizationId: string | nul
   console.log('[Job Plans Service] Creating part');
   
   const { data, error } = await supabase
-    .from('jobplans_service.parts')
+    .from('job_plan_parts')
     .insert([{ ...body, organization_id: organizationId }])
     .select()
     .single();
@@ -483,7 +494,7 @@ async function updatePart(supabase: any, id: string, body: any, correlationId: s
   console.log('[Job Plans Service] Updating part:', id);
   
   const { data, error } = await supabase
-    .from('jobplans_service.parts')
+    .from('job_plan_parts')
     .update({ ...body, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
@@ -509,7 +520,7 @@ async function deletePart(supabase: any, id: string, correlationId: string) {
   console.log('[Job Plans Service] Deleting part:', id);
   
   const { error } = await supabase
-    .from('jobplans_service.parts')
+    .from('job_plan_parts')
     .delete()
     .eq('id', id);
 
@@ -531,7 +542,7 @@ async function createTool(supabase: any, body: any, organizationId: string | nul
   console.log('[Job Plans Service] Creating tool');
   
   const { data, error } = await supabase
-    .from('jobplans_service.tools')
+    .from('job_plan_tools')
     .insert([{ ...body, organization_id: organizationId }])
     .select()
     .single();
@@ -550,7 +561,7 @@ async function updateTool(supabase: any, id: string, body: any, correlationId: s
   console.log('[Job Plans Service] Updating tool:', id);
   
   const { data, error } = await supabase
-    .from('jobplans_service.tools')
+    .from('job_plan_tools')
     .update({ ...body, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
@@ -576,7 +587,7 @@ async function deleteTool(supabase: any, id: string, correlationId: string) {
   console.log('[Job Plans Service] Deleting tool:', id);
   
   const { error } = await supabase
-    .from('jobplans_service.tools')
+    .from('job_plan_tools')
     .delete()
     .eq('id', id);
 
