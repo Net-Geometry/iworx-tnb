@@ -41,6 +41,8 @@ import {
   PackageSearch,
   UsersRound,
   Workflow,
+  HelpCircle,
+  Rocket,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -195,6 +197,11 @@ const systemAdminModules = [
   { title: "Verticals", url: "/admin/organizations", icon: Building },
   { title: "Reference Data", url: "/admin/reference-data", icon: Database },
   { title: "AI Assistant", url: "/admin/ai-assistant", icon: Brain },
+];
+
+// Demo - Easy to Remove
+const demoModules = [
+  { title: "Help System Demo", url: "/demo/help-system", icon: Rocket },
 ];
 
 export function AppSidebar() {
@@ -536,6 +543,31 @@ export function AppSidebar() {
             </CollapsibleContent>
           </SidebarGroup>
         </Collapsible>
+
+        {/* Demo Section - Easy to Remove */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-destructive">
+            🚀 Demo (Temporary)
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {demoModules.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)}
+                    tooltip={state === "collapsed" ? item.title : undefined}
+                  >
+                    <NavLink to={item.url}>
+                      <item.icon className="w-4 h-4" />
+                      <span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );

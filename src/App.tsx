@@ -82,6 +82,7 @@ import LevelsManagementPage from "./pages/hierarchy/LevelsManagementPage";
 import NodesManagementPage from "./pages/hierarchy/NodesManagementPage";
 import HierarchyVisualizerPage from "./pages/hierarchy/HierarchyVisualizerPage";
 import ProfilePage from "./pages/ProfilePage";
+import HelpSystemDemo from "./pages/demo/HelpSystemDemo";
 
 const queryClient = new QueryClient();
 
@@ -473,6 +474,15 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <SkillsLibraryPage />
+                </Layout>
+              </AuthGuard>
+            } />
+
+            {/* Demo Routes - Easy to Remove */}
+            <Route path="/demo/help-system" element={
+              <AuthGuard>
+                <Layout>
+                  <HelpSystemDemo />
                 </Layout>
               </AuthGuard>
             } />
