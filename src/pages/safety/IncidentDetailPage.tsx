@@ -524,8 +524,8 @@ const IncidentDetailPage = () => {
                         <FormItem>
                           <FormLabel>Asset Involved (Optional)</FormLabel>
                           <Select 
-                            onValueChange={(value) => field.onChange(value === "" ? undefined : value)} 
-                            value={field.value || ""}
+                            onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} 
+                            value={field.value || "none"}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -533,7 +533,7 @@ const IncidentDetailPage = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">No Asset Involved</SelectItem>
+                              <SelectItem value="none">No Asset Involved</SelectItem>
                               {assets
                                 .sort((a, b) => a.name.localeCompare(b.name))
                                 .map((asset) => (
