@@ -68,7 +68,7 @@ export const useInventoryItems = () => {
       } catch (microserviceError) {
         console.warn("Microservice failed, falling back to direct Supabase:", microserviceError);
         
-        // Fallback to direct Supabase call
+        // ✅ OPTIMIZED: Try nested query first, fallback to batch queries
         let query = supabase
           .from("inventory_items")
           .select(`
@@ -88,8 +88,26 @@ export const useInventoryItems = () => {
         const { data, error } = await query.order("name");
 
         if (error) {
-          console.error("Error fetching inventory items:", error);
-          throw error;
+          console.warn("Nested query failed, using batch queries:", error);
+          
+          // Double fallback: batch queries
+          let itemsQuery = supabase.from("inventory_items").select("*").eq("is_active", true);
+          if (!hasCrossProjectAccess && currentOrganization) {
+            itemsQuery = itemsQuery.eq("organization_id", currentOrganization.id);
+          }
+          
+          const { data: items, error: itemsError } = await itemsQuery.order("name");
+          if (itemsError) throw itemsError;
+
+          const supplierIds = [...new Set(items.filter(i => i.supplier_id).map(i => i.supplier_id))];
+          const { data: suppliers } = supplierIds.length > 0
+            ? await supabase.from("suppliers").select("id, name").in("id", supplierIds)
+            : { data: [] };
+
+          return items.map(item => ({
+            ...item,
+            suppliers: suppliers?.find(s => s.id === item.supplier_id) || null
+          })) as InventoryItem[];
         }
 
         return data as InventoryItem[];

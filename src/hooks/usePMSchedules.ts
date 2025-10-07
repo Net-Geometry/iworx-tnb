@@ -113,25 +113,36 @@ export const usePMSchedules = () => {
 
       if (error) throw error;
       
-      // Fetch related data separately (cross-schema relationships)
-      const enrichedData = await Promise.all(
-        (data || []).map(async (schedule) => {
-          const [assetData, jobPlanData, personData, routeData] = await Promise.all([
-            schedule.asset_id ? supabase.from("assets").select("name, asset_number").eq("id", schedule.asset_id).maybeSingle() : Promise.resolve(null),
-            schedule.job_plan_id ? supabase.from("job_plans").select("title, job_plan_number").eq("id", schedule.job_plan_id).maybeSingle() : Promise.resolve(null),
-            schedule.assigned_to ? supabase.from("people").select("first_name, last_name").eq("id", schedule.assigned_to).maybeSingle() : Promise.resolve(null),
-            schedule.route_id ? supabase.from("maintenance_routes").select("route_number, name").eq("id", schedule.route_id).maybeSingle() : Promise.resolve(null),
-          ]);
-          
-          return {
-            ...schedule,
-            asset: assetData?.data || null,
-            job_plan: jobPlanData?.data || null,
-            assigned_person: personData?.data || null,
-            maintenance_route: routeData?.data || null,
-          };
-        })
-      );
+      // ✅ OPTIMIZED: Batch fetch all related data with .in() to eliminate N+1 queries
+      const assetIds = [...new Set(data.filter(s => s.asset_id).map(s => s.asset_id))];
+      const jobPlanIds = [...new Set(data.filter(s => s.job_plan_id).map(s => s.job_plan_id))];
+      const personIds = [...new Set(data.filter(s => s.assigned_to).map(s => s.assigned_to))];
+      const routeIds = [...new Set(data.filter(s => s.route_id).map(s => s.route_id))];
+
+      // Parallel batch queries (only 4 queries total instead of N*4)
+      const [assetsData, jobPlansData, peopleData, routesData] = await Promise.all([
+        assetIds.length > 0 
+          ? supabase.from("assets").select("id, name, asset_number").in("id", assetIds).then(r => r.data || [])
+          : Promise.resolve([]),
+        jobPlanIds.length > 0 
+          ? supabase.from("job_plans").select("id, title, job_plan_number").in("id", jobPlanIds).then(r => r.data || [])
+          : Promise.resolve([]),
+        personIds.length > 0 
+          ? supabase.from("people").select("id, first_name, last_name").in("id", personIds).then(r => r.data || [])
+          : Promise.resolve([]),
+        routeIds.length > 0 
+          ? supabase.from("maintenance_routes").select("id, route_number, name").in("id", routeIds).then(r => r.data || [])
+          : Promise.resolve([]),
+      ]);
+
+      // Client-side join (fast in-memory operation)
+      const enrichedData = data.map(schedule => ({
+        ...schedule,
+        asset: assetsData.find(a => a.id === schedule.asset_id) || null,
+        job_plan: jobPlansData.find(j => j.id === schedule.job_plan_id) || null,
+        assigned_person: peopleData.find(p => p.id === schedule.assigned_to) || null,
+        maintenance_route: routesData.find(r => r.id === schedule.route_id) || null,
+      }));
       
       return enrichedData as PMSchedule[];
     },
@@ -216,23 +227,29 @@ export const usePMSchedulesByAsset = (assetId: string) => {
 
       if (error) throw error;
       
-      // Fetch related data separately (cross-schema relationships)
-      const enrichedData = await Promise.all(
-        (data || []).map(async (schedule) => {
-          const [jobPlanData, personData, routeData] = await Promise.all([
-            schedule.job_plan_id ? supabase.from("job_plans").select("title, job_plan_number").eq("id", schedule.job_plan_id).maybeSingle() : Promise.resolve(null),
-            schedule.assigned_to ? supabase.from("people").select("first_name, last_name").eq("id", schedule.assigned_to).maybeSingle() : Promise.resolve(null),
-            schedule.route_id ? supabase.from("maintenance_routes").select("route_number, name").eq("id", schedule.route_id).maybeSingle() : Promise.resolve(null),
-          ]);
-          
-          return {
-            ...schedule,
-            job_plan: jobPlanData?.data || null,
-            assigned_person: personData?.data || null,
-            maintenance_route: routeData?.data || null,
-          };
-        })
-      );
+      // ✅ OPTIMIZED: Batch fetch all related data
+      const jobPlanIds = [...new Set(data.filter(s => s.job_plan_id).map(s => s.job_plan_id))];
+      const personIds = [...new Set(data.filter(s => s.assigned_to).map(s => s.assigned_to))];
+      const routeIds = [...new Set(data.filter(s => s.route_id).map(s => s.route_id))];
+
+      const [jobPlansData, peopleData, routesData] = await Promise.all([
+        jobPlanIds.length > 0 
+          ? supabase.from("job_plans").select("id, title, job_plan_number").in("id", jobPlanIds).then(r => r.data || [])
+          : Promise.resolve([]),
+        personIds.length > 0 
+          ? supabase.from("people").select("id, first_name, last_name").in("id", personIds).then(r => r.data || [])
+          : Promise.resolve([]),
+        routeIds.length > 0 
+          ? supabase.from("maintenance_routes").select("id, route_number, name").in("id", routeIds).then(r => r.data || [])
+          : Promise.resolve([]),
+      ]);
+
+      const enrichedData = data.map(schedule => ({
+        ...schedule,
+        job_plan: jobPlansData.find(j => j.id === schedule.job_plan_id) || null,
+        assigned_person: peopleData.find(p => p.id === schedule.assigned_to) || null,
+        maintenance_route: routesData.find(r => r.id === schedule.route_id) || null,
+      }));
       
       return enrichedData as PMSchedule[];
     },

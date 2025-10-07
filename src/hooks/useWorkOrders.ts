@@ -91,12 +91,27 @@ export const useWorkOrders = () => {
 
       if (error) throw error;
 
+      // ✅ OPTIMIZED: Batch fetch related asset and technician data
+      const assetIds = [...new Set(data.filter(wo => wo.asset_id).map(wo => wo.asset_id))];
+      const techIds = [...new Set(data.filter(wo => wo.assigned_technician).map(wo => wo.assigned_technician))];
+
+      const [assetsData, techniciansData] = await Promise.all([
+        assetIds.length > 0 
+          ? supabase.from('assets').select('id, name, asset_number').in('id', assetIds).then(r => r.data || [])
+          : Promise.resolve([]),
+        techIds.length > 0 
+          ? supabase.from('people').select('id, first_name, last_name').in('id', techIds).then(r => r.data || [])
+          : Promise.resolve([]),
+      ]);
+
       const typedData: WorkOrder[] = (data || []).map(order => ({
         ...order,
         maintenance_type: order.maintenance_type as WorkOrder['maintenance_type'],
         priority: order.priority as WorkOrder['priority'],
         status: order.status as WorkOrder['status'],
-        generation_type: order.generation_type as WorkOrder['generation_type']
+        generation_type: order.generation_type as WorkOrder['generation_type'],
+        asset: assetsData.find(a => a.id === order.asset_id) || null,
+        technician: techniciansData.find(t => t.id === order.assigned_technician) || null,
       }));
 
       setWorkOrders(typedData);

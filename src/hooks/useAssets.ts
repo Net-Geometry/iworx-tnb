@@ -85,34 +85,30 @@ export const useAssets = () => {
 
         if (fetchError) throw fetchError;
 
-        const transformedAssets: Asset[] = await Promise.all(
-          (data || []).map(async (asset) => {
-            // Fetch hierarchy node separately (cross-schema relationship)
-            let locationName = 'Unassigned';
-            let hierarchyPath = 'Unassigned';
-            
-            if (asset.hierarchy_node_id) {
-              const { data: nodeData } = await supabase
-                .from('hierarchy_nodes')
-                .select('name, path')
-                .eq('id', asset.hierarchy_node_id)
-                .single();
-              
-              if (nodeData) {
-                locationName = nodeData.name;
-                hierarchyPath = nodeData.path || nodeData.name;
-              }
-            }
-            
-            return {
-              ...asset,
-              status: asset.status as Asset['status'],
-              criticality: asset.criticality as Asset['criticality'],
-              location: locationName,
-              hierarchy_path: hierarchyPath
-            };
-          })
-        );
+        // ✅ OPTIMIZED: Batch fetch all hierarchy nodes with .in() to eliminate N+1 queries
+        const nodeIds = [...new Set(data.filter(a => a.hierarchy_node_id).map(a => a.hierarchy_node_id))];
+        
+        let nodesData: any[] = [];
+        if (nodeIds.length > 0) {
+          const { data: nodes } = await supabase
+            .from('hierarchy_nodes')
+            .select('id, name, path')
+            .in('id', nodeIds);
+          nodesData = nodes || [];
+        }
+
+        // Client-side join (fast in-memory operation)
+        const transformedAssets: Asset[] = data.map(asset => {
+          const nodeData = nodesData.find(n => n.id === asset.hierarchy_node_id);
+          
+          return {
+            ...asset,
+            status: asset.status as Asset['status'],
+            criticality: asset.criticality as Asset['criticality'],
+            location: nodeData ? nodeData.name : 'Unassigned',
+            hierarchy_path: nodeData ? (nodeData.path || nodeData.name) : 'Unassigned'
+          };
+        });
 
         setAssets(transformedAssets);
         setError(null); // Clear error on successful fallback
