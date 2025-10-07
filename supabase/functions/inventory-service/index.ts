@@ -278,28 +278,129 @@ serve(async (req) => {
       });
     }
 
-    // Route: GET /stats - Get inventory statistics
+    // Route: GET /stats - Get comprehensive inventory statistics
     if (req.method === 'GET' && pathParts[0] === 'stats') {
       let itemsQuery = supabase
         .from('inventory_items')
-        .select('*', { count: 'exact', head: true });
+        .select('current_stock, unit_cost', { count: 'exact' })
+        .eq('is_active', true);
 
-      let lowStockQuery = supabase
+      let allItemsQuery = supabase
         .from('inventory_items')
-        .select('*', { count: 'exact', head: true });
+        .select('current_stock, reorder_point')
+        .eq('is_active', true);
+
+      let poQuery = supabase
+        .from('purchase_orders')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['pending', 'approved']);
 
       if (!hasCrossProjectAccess && organizationId) {
         itemsQuery = itemsQuery.eq('organization_id', organizationId);
-        lowStockQuery = lowStockQuery.eq('organization_id', organizationId);
+        allItemsQuery = allItemsQuery.eq('organization_id', organizationId);
+        poQuery = poQuery.eq('organization_id', organizationId);
       }
 
-      const { count: totalItems } = await itemsQuery;
-      const { count: lowStockItems } = await lowStockQuery;
+      const [itemsResult, allItemsResult, poResult] = await Promise.all([
+        itemsQuery,
+        allItemsQuery,
+        poQuery,
+      ]);
+
+      if (itemsResult.error) throw itemsResult.error;
+      if (allItemsResult.error) throw allItemsResult.error;
+      if (poResult.error) throw poResult.error;
+
+      // Calculate total value
+      const totalValue = itemsResult.data?.reduce((sum: number, item: any) => {
+        return sum + (item.current_stock || 0) * (item.unit_cost || 0);
+      }, 0) || 0;
+
+      // Calculate low stock count
+      const lowStockCount = allItemsResult.data?.filter((item: any) => 
+        (item.current_stock || 0) <= (item.reorder_point || 0)
+      ).length || 0;
 
       return new Response(JSON.stringify({
-        totalItems: totalItems || 0,
-        lowStockItems: lowStockItems || 0,
+        totalItems: itemsResult.count || 0,
+        totalValue,
+        lowStockCount,
+        pendingOrdersCount: poResult.count || 0,
       }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Route: GET /items/low-stock - Get items below reorder point
+    if (req.method === 'GET' && pathParts[0] === 'items' && pathParts[1] === 'low-stock') {
+      const limit = parseInt(url.searchParams.get('limit') || '10');
+
+      let query = supabase
+        .from('inventory_items')
+        .select('id, name, category, current_stock, reorder_point, unit_of_measure')
+        .eq('is_active', true);
+
+      if (!hasCrossProjectAccess && organizationId) {
+        query = query.eq('organization_id', organizationId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      // Filter and sort low stock items in JavaScript
+      const lowStockItems = (data || [])
+        .filter((item: any) => (item.current_stock || 0) <= (item.reorder_point || 0))
+        .sort((a: any, b: any) => (a.current_stock || 0) - (b.current_stock || 0))
+        .slice(0, limit);
+
+      return new Response(JSON.stringify(lowStockItems), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Route: GET /transactions/recent - Get recent inventory transactions
+    if (req.method === 'GET' && pathParts[0] === 'transactions' && pathParts[1] === 'recent') {
+      const limit = parseInt(url.searchParams.get('limit') || '10');
+
+      let query = supabase
+        .from('inventory_transactions')
+        .select('id, transaction_type, transaction_date, quantity, reference_type, item_id');
+
+      if (!hasCrossProjectAccess && organizationId) {
+        query = query.eq('organization_id', organizationId);
+      }
+
+      const { data, error } = await query
+        .order('transaction_date', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+
+      // Fetch item names separately
+      if (data && data.length > 0) {
+        const itemIds = data.map((t: any) => t.item_id).filter(Boolean);
+        
+        if (itemIds.length > 0) {
+          const { data: items } = await supabase
+            .from('inventory_items')
+            .select('id, name')
+            .in('id', itemIds);
+
+          const itemMap = new Map((items || []).map((item: any) => [item.id, item]));
+
+          const transactionsWithItems = data.map((transaction: any) => ({
+            ...transaction,
+            item: transaction.item_id ? itemMap.get(transaction.item_id) : null
+          }));
+
+          return new Response(JSON.stringify(transactionsWithItems), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+
+      return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

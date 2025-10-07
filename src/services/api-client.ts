@@ -220,6 +220,30 @@ export const inventoryApi = {
     if (!response.ok) throw new Error('Failed to create supplier');
     return response.json();
   },
+
+  async getStats() {
+    const response = await fetch(`${API_GATEWAY_URL}/api/inventory/stats`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch inventory stats');
+    return response.json();
+  },
+
+  async getLowStockItems(limit: number = 10) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/inventory/items/low-stock?limit=${limit}`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch low stock items');
+    return response.json();
+  },
+
+  async getRecentTransactions(limit: number = 10) {
+    const response = await fetch(`${API_GATEWAY_URL}/api/inventory/transactions/recent?limit=${limit}`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch recent transactions');
+    return response.json();
+  },
 };
 
 // People API
