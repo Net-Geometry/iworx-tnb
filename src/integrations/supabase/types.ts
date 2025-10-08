@@ -14,6 +14,123 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_chat_conversations: {
+        Row: {
+          anomaly_ids: string[] | null
+          asset_ids: string[] | null
+          created_at: string | null
+          function_calls: Json | null
+          id: string
+          message: string
+          model_used: string | null
+          organization_id: string
+          prediction_ids: string[] | null
+          response_time_ms: number | null
+          role: string
+          tokens_used: number | null
+          user_id: string
+          work_order_ids: string[] | null
+        }
+        Insert: {
+          anomaly_ids?: string[] | null
+          asset_ids?: string[] | null
+          created_at?: string | null
+          function_calls?: Json | null
+          id?: string
+          message: string
+          model_used?: string | null
+          organization_id: string
+          prediction_ids?: string[] | null
+          response_time_ms?: number | null
+          role: string
+          tokens_used?: number | null
+          user_id: string
+          work_order_ids?: string[] | null
+        }
+        Update: {
+          anomaly_ids?: string[] | null
+          asset_ids?: string[] | null
+          created_at?: string | null
+          function_calls?: Json | null
+          id?: string
+          message?: string
+          model_used?: string | null
+          organization_id?: string
+          prediction_ids?: string[] | null
+          response_time_ms?: number | null
+          role?: string
+          tokens_used?: number | null
+          user_id?: string
+          work_order_ids?: string[] | null
+        }
+        Relationships: []
+      }
+      anomaly_detections: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          anomaly_score: number
+          anomaly_type: string
+          asset_id: string | null
+          created_at: string | null
+          description: string
+          detected_at: string
+          detected_values: Json | null
+          expected_range: Json | null
+          id: string
+          meter_group_id: string | null
+          organization_id: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          anomaly_score: number
+          anomaly_type: string
+          asset_id?: string | null
+          created_at?: string | null
+          description: string
+          detected_at?: string
+          detected_values?: Json | null
+          expected_range?: Json | null
+          id?: string
+          meter_group_id?: string | null
+          organization_id: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          anomaly_score?: number
+          anomaly_type?: string
+          asset_id?: string | null
+          created_at?: string | null
+          description?: string
+          detected_at?: string
+          detected_values?: Json | null
+          expected_range?: Json | null
+          id?: string
+          meter_group_id?: string | null
+          organization_id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       asset_location_history: {
         Row: {
           asset_id: string
@@ -499,6 +616,75 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ml_predictions: {
+        Row: {
+          asset_id: string
+          confidence_score: number
+          contributing_factors: Json | null
+          created_at: string | null
+          failure_probability_30d: number | null
+          failure_probability_60d: number | null
+          failure_probability_90d: number | null
+          feature_importance: Json | null
+          health_score: number | null
+          id: string
+          model_type: string
+          model_version: string
+          organization_id: string
+          predicted_at: string
+          predicted_failure_date: string | null
+          prediction_type: string
+          prediction_window_days: number | null
+          remaining_useful_life_days: number | null
+          training_data_period: Json | null
+          valid_until: string | null
+        }
+        Insert: {
+          asset_id: string
+          confidence_score: number
+          contributing_factors?: Json | null
+          created_at?: string | null
+          failure_probability_30d?: number | null
+          failure_probability_60d?: number | null
+          failure_probability_90d?: number | null
+          feature_importance?: Json | null
+          health_score?: number | null
+          id?: string
+          model_type: string
+          model_version: string
+          organization_id: string
+          predicted_at?: string
+          predicted_failure_date?: string | null
+          prediction_type: string
+          prediction_window_days?: number | null
+          remaining_useful_life_days?: number | null
+          training_data_period?: Json | null
+          valid_until?: string | null
+        }
+        Update: {
+          asset_id?: string
+          confidence_score?: number
+          contributing_factors?: Json | null
+          created_at?: string | null
+          failure_probability_30d?: number | null
+          failure_probability_60d?: number | null
+          failure_probability_90d?: number | null
+          feature_importance?: Json | null
+          health_score?: number | null
+          id?: string
+          model_type?: string
+          model_version?: string
+          organization_id?: string
+          predicted_at?: string
+          predicted_failure_date?: string | null
+          prediction_type?: string
+          prediction_window_days?: number | null
+          remaining_useful_life_days?: number | null
+          training_data_period?: Json | null
+          valid_until?: string | null
+        }
+        Relationships: []
       }
       notifications: {
         Row: {

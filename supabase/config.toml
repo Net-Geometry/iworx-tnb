@@ -1,5 +1,8 @@
 project_id = "jsqzkaarpfowgmijcwaw"
 
+[functions.predictive-maintenance-ai]
+verify_jwt = true
+
 [functions.superadmin-ai-chat]
 verify_jwt = true
 
