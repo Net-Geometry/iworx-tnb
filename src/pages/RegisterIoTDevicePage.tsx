@@ -1,6 +1,7 @@
 /**
  * Register IoT Device Page
  * Full-page form for registering new IoT devices with validation
+ * Microservices-based implementation with proper code structure
  */
 
 import { useNavigate } from "react-router-dom";
