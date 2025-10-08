@@ -182,37 +182,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           .eq('id', userId);
       }
 
-      // Set current organization from profile's current_organization_id if available
-      if (profile?.current_organization_id) {
-        const org = userOrgs?.find(uo => uo.organization?.id === profile.current_organization_id)?.organization;
-        if (org) {
-          setCurrentOrganization(org);
-          localStorage.setItem('currentOrganizationId', org.id);
-          return;
-        }
-      }
-
-      // Fallback to localStorage
-      const savedOrgId = localStorage.getItem('currentOrganizationId');
-      if (savedOrgId && userOrgs?.some(uo => uo.organization?.id === savedOrgId)) {
-        const org = userOrgs.find(uo => uo.organization?.id === savedOrgId)?.organization;
-        if (org) {
-          setCurrentOrganization(org);
-          return;
-        }
-      }
-
-      // Default to first organization
-      if (userOrgs && userOrgs.length > 0 && userOrgs[0].organization) {
-        setCurrentOrganization(userOrgs[0].organization);
-        localStorage.setItem('currentOrganizationId', userOrgs[0].organization.id);
-        
-        // Persist to database
-        await supabase
-          .from('profiles')
-          .update({ current_organization_id: userOrgs[0].organization.id })
-          .eq('id', userId);
-      }
     } catch (error) {
       console.error('Error fetching organizations:', error);
     }
