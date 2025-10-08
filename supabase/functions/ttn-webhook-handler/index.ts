@@ -184,10 +184,28 @@ serve(async (req) => {
     for (const [metricName, value] of Object.entries(decodedData)) {
       const metricConfig = sensorSchema[metricName] || {};
       
+      // Parse value to number if it's a string, skip if not numeric
+      let numericValue: number;
+      
+      if (typeof value === 'number') {
+        numericValue = value;
+      } else if (typeof value === 'string') {
+        // Try to parse string to number
+        const parsed = parseFloat(value);
+        if (isNaN(parsed)) {
+          console.log(`[TTN Webhook] Skipping non-numeric value for ${metricName}: ${value}`);
+          continue; // Skip this metric
+        }
+        numericValue = parsed;
+      } else {
+        console.log(`[TTN Webhook] Skipping non-numeric value for ${metricName}: ${value}`);
+        continue; // Skip this metric
+      }
+      
       iotDataRecords.push({
         device_id: device.id,
         metric_name: metricName,
-        value: value,
+        value: numericValue,
         unit: metricConfig.unit || null,
         timestamp: new Date().toISOString(),
         lorawan_metadata: lorawanMetadata,
