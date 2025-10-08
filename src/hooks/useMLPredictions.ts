@@ -47,7 +47,7 @@ export const useMLPredictions = (assetId?: string, predictionType?: string) => {
 
       let query = supabase
         .from('ml_predictions')
-        .select('*, assets(name, asset_number)')
+        .select('*')
         .eq('organization_id', currentOrganization.id)
         .order('predicted_at', { ascending: false});
 
@@ -59,10 +59,29 @@ export const useMLPredictions = (assetId?: string, predictionType?: string) => {
         query = query.eq('prediction_type', predictionType);
       }
 
-      const { data, error } = await query;
+      const { data: predictionData, error } = await query;
 
       if (error) throw error;
-      return data as MLPrediction[];
+      if (!predictionData) return [];
+
+      // Fetch asset details separately for all unique asset IDs
+      const uniqueAssetIds = [...new Set(predictionData.map(p => p.asset_id))];
+      
+      const { data: assetsData } = await supabase
+        .from('assets')
+        .select('id, name, asset_number')
+        .in('id', uniqueAssetIds);
+
+      // Create asset lookup map
+      const assetMap = new Map(
+        assetsData?.map(asset => [asset.id, { name: asset.name, asset_number: asset.asset_number }]) || []
+      );
+
+      // Merge asset data with predictions
+      return predictionData.map(prediction => ({
+        ...prediction,
+        assets: assetMap.get(prediction.asset_id)
+      })) as MLPrediction[];
     },
     enabled: !!currentOrganization?.id,
   });
