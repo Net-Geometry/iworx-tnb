@@ -13,20 +13,31 @@ export const useIoTDevices = (organizationId?: string, filters?: UseIoTDevicesFi
   return useQuery({
     queryKey: ['iot-devices', organizationId, filters],
     queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
       const params = new URLSearchParams();
       if (filters?.asset_id) params.append('asset_id', filters.asset_id);
       if (filters?.status) params.append('status', filters.status);
       if (filters?.device_type_id) params.append('device_type_id', filters.device_type_id);
 
-      const { data, error } = await supabase.functions.invoke('api-gateway', {
-        body: {
-          path: `/api/iot/devices${params.toString() ? `?${params.toString()}` : ''}`,
-          method: 'GET'
-        }
+      const url = `https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/iot-service/devices${params.toString() ? `?${params.toString()}` : ''}`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzcXprYWFycGZvd2dtaWpjd2F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMTE2NjEsImV4cCI6MjA3NDY4NzY2MX0.Wmx2DQY5sNMlzMqnkTAftfdkIUFkm_w577fy-4nPXWY',
+          'Content-Type': 'application/json',
+        },
       });
 
-      if (error) throw error;
-      return data as IoTDevice[];
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to fetch devices: ${error}`);
+      }
+
+      return await response.json() as IoTDevice[];
     },
     enabled: !!organizationId,
   });
@@ -37,16 +48,27 @@ export const useCreateIoTDevice = () => {
 
   return useMutation({
     mutationFn: async (deviceData: Partial<IoTDevice>) => {
-      const { data, error } = await supabase.functions.invoke('api-gateway', {
-        body: {
-          path: '/api/iot/devices',
-          method: 'POST',
-          body: deviceData
-        }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const url = 'https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/iot-service/devices';
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzcXprYWFycGZvd2dtaWpjd2F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMTE2NjEsImV4cCI6MjA3NDY4NzY2MX0.Wmx2DQY5sNMlzMqnkTAftfdkIUFkm_w577fy-4nPXWY',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(deviceData),
       });
 
-      if (error) throw error;
-      return data as IoTDevice;
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to create device: ${error}`);
+      }
+
+      return await response.json() as IoTDevice;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['iot-devices'] });
@@ -63,16 +85,27 @@ export const useUpdateIoTDevice = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...deviceData }: Partial<IoTDevice> & { id: string }) => {
-      const { data, error } = await supabase.functions.invoke('api-gateway', {
-        body: {
-          path: `/api/iot/devices/${id}`,
-          method: 'PUT',
-          body: deviceData
-        }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const url = `https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/iot-service/devices/${id}`;
+      
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzcXprYWFycGZvd2dtaWpjd2F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMTE2NjEsImV4cCI6MjA3NDY4NzY2MX0.Wmx2DQY5sNMlzMqnkTAftfdkIUFkm_w577fy-4nPXWY',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(deviceData),
       });
 
-      if (error) throw error;
-      return data as IoTDevice;
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to update device: ${error}`);
+      }
+
+      return await response.json() as IoTDevice;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['iot-devices'] });
@@ -90,14 +123,24 @@ export const useDeleteIoTDevice = () => {
 
   return useMutation({
     mutationFn: async (deviceId: string) => {
-      const { error } = await supabase.functions.invoke('api-gateway', {
-        body: {
-          path: `/api/iot/devices/${deviceId}`,
-          method: 'DELETE'
-        }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const url = `https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/iot-service/devices/${deviceId}`;
+      
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzcXprYWFycGZvd2dtaWpjd2F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMTE2NjEsImV4cCI6MjA3NDY4NzY2MX0.Wmx2DQY5sNMlzMqnkTAftfdkIUFkm_w577fy-4nPXWY',
+          'Content-Type': 'application/json',
+        },
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to delete device: ${error}`);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['iot-devices'] });
