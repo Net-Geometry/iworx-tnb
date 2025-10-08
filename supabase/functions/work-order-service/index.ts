@@ -102,6 +102,32 @@ Deno.serve(async (req) => {
       });
     }
 
+    // GET /work-orders/prioritized - Get AI-prioritized work orders
+    if (method === 'GET' && pathParts.length === 1 && pathParts[0] === 'prioritized') {
+      let query = supabase
+        .from('work_orders')
+        .select('*')
+        .not('ai_priority_score', 'is', null)
+        .order('ai_priority_score', { ascending: false })
+        .limit(10);
+
+      // Apply organization filter unless user has cross-project access
+      if (!hasCrossProjectAccess && organizationId) {
+        query = query.eq('organization_id', organizationId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      console.log(`[Work Order Service] Retrieved ${data.length} prioritized work orders`);
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
+
     // GET /work-orders/:id - Get single work order
     if (method === 'GET' && pathParts.length === 1) {
       const workOrderId = pathParts[0];

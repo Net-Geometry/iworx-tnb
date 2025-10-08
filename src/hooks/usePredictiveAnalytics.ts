@@ -18,25 +18,33 @@ export const usePredictiveAnalytics = () => {
   const { predictions, riskStats, isLoading: predictionsLoading } = useMLPredictions();
   const { anomalies, isLoading: anomaliesLoading } = useAnomalyDetections('active');
 
-  // Fetch AI-prioritized work orders using the RPC function
+  // Fetch AI-prioritized work orders via API Gateway
   const { data: aiWorkOrders, isLoading: workOrdersLoading } = useQuery({
     queryKey: ['ai-work-orders', currentOrganization?.id],
     queryFn: async () => {
       if (!currentOrganization?.id) return [];
       
-      const { data, error } = await supabase
-        .schema('workorder_service' as any)
-        .rpc('get_prioritized_work_orders' as any, {
-          _organization_id: currentOrganization.id,
-          _limit: 10
-        });
+      const { data, error } = await supabase.functions.invoke('api-gateway', {
+        body: {
+          path: '/api/work-orders/prioritized',
+          method: 'GET'
+        }
+      });
       
       if (error) {
         console.error('Error fetching AI work orders:', error);
         return [];
       }
+
+      // Map work order fields to component expectations
+      const mappedData = (data || []).map((wo: any) => ({
+        ...wo,
+        priority_score: wo.ai_priority_score,
+        failure_risk: wo.predicted_failure_risk,
+        ml_recommended: wo.ai_priority_score >= 70 // High priority threshold
+      }));
       
-      return data || [];
+      return mappedData;
     },
     enabled: !!currentOrganization?.id,
   });
