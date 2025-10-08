@@ -492,12 +492,10 @@ async function analyzeMeterTrends(supabase: any, organizationId: string, assetId
  */
 async function getWorkOrderPriorities(supabase: any, organizationId: string, limit: number) {
   const { data, error } = await supabase
-    .from('workorder_service.work_orders')
-    .select('*')
-    .eq('organization_id', organizationId)
-    .not('ai_priority_score', 'is', null)
-    .order('ai_priority_score', { ascending: false })
-    .limit(limit);
+    .rpc('get_prioritized_work_orders', {
+      _organization_id: organizationId,
+      _limit: limit
+    });
 
   if (error) {
     return { error: error.message };
@@ -507,10 +505,10 @@ async function getWorkOrderPriorities(supabase: any, organizationId: string, lim
     work_orders: data.map((wo: any) => ({
       id: wo.id,
       title: wo.title,
-      priority_score: wo.ai_priority_score,
-      failure_risk: wo.predicted_failure_risk,
+      priority_score: wo.priority_score,
+      failure_risk: wo.failure_risk,
       ml_recommended: wo.ml_recommended,
-      priority_factors: wo.ai_priority_factors,
+      priority_factors: wo.priority_factors,
       status: wo.status
     }))
   };
