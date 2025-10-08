@@ -231,7 +231,7 @@ export const IncidentWorkflowActions = ({ incidentId }: IncidentWorkflowActionsP
         asset_id: incident.asset_id,
         title: woTitle,
         description: woDescription,
-        status: "open" as const,
+        status: "scheduled" as const,
         organization_id: currentOrganization?.id || "",
         incident_report_id: incidentId,
         
