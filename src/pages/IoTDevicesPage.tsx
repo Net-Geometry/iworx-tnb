@@ -17,6 +17,7 @@ import { useIoTDeviceTypes } from "@/hooks/useIoTDeviceTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { IoTDeviceTable } from "@/components/iot-devices/IoTDeviceTable";
 import { IoTWebhookSetup } from "@/components/iot-devices/IoTWebhookSetup";
+import { IoTDeviceEditDialog } from "@/components/iot-devices/IoTDeviceEditDialog";
 import { Badge } from "@/components/ui/badge";
 
 export default function IoTDevicesPage() {
@@ -26,6 +27,7 @@ export default function IoTDevicesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [deviceTypeFilter, setDeviceTypeFilter] = useState<string>("all");
+  const [editingDevice, setEditingDevice] = useState<any>(null);
 
   const { data: devices = [], isLoading } = useIoTDevices(currentOrganization?.id);
   const { data: deviceTypes = [] } = useIoTDeviceTypes(currentOrganization?.id);
@@ -170,10 +172,7 @@ export default function IoTDevicesPage() {
           <IoTDeviceTable 
             devices={filteredDevices} 
             isLoading={isLoading}
-            onEdit={(device) => {
-              // TODO: Implement edit functionality
-              console.log("Edit device:", device);
-            }}
+            onEdit={(device) => setEditingDevice(device)}
           />
         </CardContent>
       </Card>
@@ -182,6 +181,14 @@ export default function IoTDevicesPage() {
       <IoTWebhookSetup
         isOpen={isWebhookGuideOpen}
         onClose={() => setIsWebhookGuideOpen(false)}
+      />
+
+      {/* Device Edit Dialog */}
+      <IoTDeviceEditDialog
+        device={editingDevice}
+        isOpen={!!editingDevice}
+        onClose={() => setEditingDevice(null)}
+        onSuccess={() => setEditingDevice(null)}
       />
     </div>
   );

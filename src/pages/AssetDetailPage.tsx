@@ -1,6 +1,7 @@
 import { AssetBOMTab } from '@/components/bom/AssetBOMTab';
 import { AssetMeterGroupsTab } from '@/components/assets/AssetMeterGroupsTab';
 import { AssetSkillRequirementsTab } from '@/components/assets/AssetSkillRequirementsTab';
+import { AssetIoTDevicesTab } from '@/components/assets/AssetIoTDevicesTab';
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAssets } from '@/hooks/useAssets';
@@ -249,12 +250,13 @@ const AssetDetailPage: React.FC = () => {
 
       {/* Detailed Information Tabs */}
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-9">
+        <TabsList className="grid w-full grid-cols-10">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
           <TabsTrigger value="bom">Bill of Materials</TabsTrigger>
           <TabsTrigger value="meters">Meter Groups</TabsTrigger>
           <TabsTrigger value="skills">Required Skills</TabsTrigger>
+          <TabsTrigger value="iot">IoT Devices</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="financials">Financials</TabsTrigger>
           <TabsTrigger value="location">Location</TabsTrigger>
@@ -464,6 +466,11 @@ const AssetDetailPage: React.FC = () => {
         {/* Skills Tab */}
         <TabsContent value="skills" className="mt-6">
           <AssetSkillRequirementsTab assetId={id!} />
+        </TabsContent>
+
+        {/* IoT Devices Tab */}
+        <TabsContent value="iot" className="space-y-4">
+          <AssetIoTDevicesTab assetId={id!} />
         </TabsContent>
 
         {/* Documents Tab */}

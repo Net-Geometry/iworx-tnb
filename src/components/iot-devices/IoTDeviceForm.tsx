@@ -16,6 +16,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { IoTDeviceTypeSelector } from "./IoTDeviceTypeSelector";
+import { AssetSelector } from "./AssetSelector";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -222,6 +223,27 @@ export function IoTDeviceForm({ isOpen, onClose, onSuccess }: IoTDeviceFormProps
                         organizationId={currentOrganization?.id}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="asset_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Linked Asset (Optional)</FormLabel>
+                    <FormControl>
+                      <AssetSelector
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        organizationId={currentOrganization?.id}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Select the physical asset this device will monitor
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
