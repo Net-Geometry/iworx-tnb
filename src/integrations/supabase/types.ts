@@ -996,6 +996,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          current_organization_id: string | null
           display_name: string | null
           email: string
           id: string
@@ -1004,6 +1005,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          current_organization_id?: string | null
           display_name?: string | null
           email: string
           id: string
@@ -1012,12 +1014,21 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          current_organization_id?: string | null
           display_name?: string | null
           email?: string
           id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_current_organization_id_fkey"
+            columns: ["current_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       purchase_order_items: {
         Row: {

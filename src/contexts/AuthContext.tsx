@@ -8,6 +8,7 @@ interface Profile {
   id: string;
   display_name?: string;
   avatar_url?: string;
+  current_organization_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -132,7 +133,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setHasCrossProjectAccess(hasAccess || false);
       }
 
-      // Set current organization from localStorage or default to first org
+      // Set current organization from profile's current_organization_id if available
+      if (profile?.current_organization_id) {
+        const org = userOrgs?.find(uo => uo.organization?.id === profile.current_organization_id)?.organization;
+        if (org) {
+          setCurrentOrganization(org);
+          localStorage.setItem('currentOrganizationId', org.id);
+          return;
+        }
+      }
+
+      // Fallback to localStorage
       const savedOrgId = localStorage.getItem('currentOrganizationId');
       if (savedOrgId && userOrgs?.some(uo => uo.organization?.id === savedOrgId)) {
         const org = userOrgs.find(uo => uo.organization?.id === savedOrgId)?.organization;
@@ -146,13 +157,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (userOrgs && userOrgs.length > 0 && userOrgs[0].organization) {
         setCurrentOrganization(userOrgs[0].organization);
         localStorage.setItem('currentOrganizationId', userOrgs[0].organization.id);
+        
+        // Persist to database
+        await supabase
+          .from('profiles')
+          .update({ current_organization_id: userOrgs[0].organization.id })
+          .eq('id', userId);
       }
     } catch (error) {
       console.error('Error fetching organizations:', error);
     }
   };
 
-  const switchOrganization = (orgId: string) => {
+  const switchOrganization = async (orgId: string) => {
     if (orgId === 'all' && hasCrossProjectAccess) {
       // Special case for "All Projects" view
       setCurrentOrganization({
@@ -166,6 +183,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         updated_at: new Date().toISOString(),
       });
       localStorage.setItem('currentOrganizationId', 'all');
+      
+      // Persist to database (set to null for "all")
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ current_organization_id: null })
+          .eq('id', user.id);
+      }
       return;
     }
 
@@ -173,6 +198,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (userOrg?.organization) {
       setCurrentOrganization(userOrg.organization);
       localStorage.setItem('currentOrganizationId', orgId);
+      
+      // Persist to database
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ current_organization_id: orgId })
+          .eq('id', user.id);
+      }
     }
   };
 
