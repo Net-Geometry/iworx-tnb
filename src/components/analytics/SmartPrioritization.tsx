@@ -66,7 +66,7 @@ export const SmartPrioritization = () => {
       </div>
 
       {/* Work Orders List */}
-      {aiWorkOrders.length === 0 ? (
+      {!aiWorkOrders || aiWorkOrders.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <Zap className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p>No AI-prioritized work orders available</p>
@@ -83,8 +83,16 @@ export const SmartPrioritization = () => {
                       #{index + 1}
                     </Badge>
                     <span className="font-medium text-foreground">{wo.title}</span>
+                    {wo.ml_recommended && (
+                      <Badge variant="default" className="text-xs bg-primary">
+                        AI Recommended
+                      </Badge>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">{wo.description}</p>
+                  <div className="flex gap-3 mt-2 text-sm text-muted-foreground">
+                    <span>Priority Score: <strong className="text-foreground">{wo.priority_score?.toFixed(0) || 'N/A'}</strong></span>
+                    <span>Failure Risk: <strong className="text-foreground">{wo.failure_risk ? `${wo.failure_risk.toFixed(0)}%` : 'N/A'}</strong></span>
+                  </div>
                 </div>
               </div>
 
@@ -93,8 +101,11 @@ export const SmartPrioritization = () => {
                   <Badge variant="secondary" className="text-xs">
                     {wo.status}
                   </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    {wo.priority}
+                  <Badge 
+                    variant={wo.priority_score >= 80 ? "destructive" : wo.priority_score >= 60 ? "default" : "outline"} 
+                    className="text-xs"
+                  >
+                    {wo.priority_score >= 80 ? "High Priority" : wo.priority_score >= 60 ? "Medium Priority" : "Low Priority"}
                   </Badge>
                 </div>
                 <Link to={`/work-orders/${wo.id}`}>

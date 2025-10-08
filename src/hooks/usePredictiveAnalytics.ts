@@ -18,15 +18,26 @@ export const usePredictiveAnalytics = () => {
   const { predictions, riskStats, isLoading: predictionsLoading } = useMLPredictions();
   const { anomalies, isLoading: anomaliesLoading } = useAnomalyDetections('active');
 
-  // Fetch AI-prioritized work orders (simplified - direct query removed due to type constraints)
+  // Fetch AI-prioritized work orders using the RPC function
   const { data: aiWorkOrders, isLoading: workOrdersLoading } = useQuery({
     queryKey: ['ai-work-orders', currentOrganization?.id],
     queryFn: async () => {
       if (!currentOrganization?.id) return [];
-      // Placeholder - will be populated when work orders are AI-prioritized
-      return [];
+      
+      const { data, error } = await supabase
+        .rpc('get_prioritized_work_orders' as any, {
+          _organization_id: currentOrganization.id,
+          _limit: 10
+        });
+      
+      if (error) {
+        console.error('Error fetching AI work orders:', error);
+        return [];
+      }
+      
+      return data || [];
     },
-    enabled: false, // Disabled until work order types updated
+    enabled: !!currentOrganization?.id,
   });
 
   // Set up real-time subscription for work_orders (AI priority updates)
