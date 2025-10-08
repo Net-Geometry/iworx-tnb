@@ -167,6 +167,53 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_sensor_readings: {
+        Row: {
+          alert_threshold_exceeded: boolean | null
+          asset_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          organization_id: string
+          reading_value: number
+          sensor_type: string
+          timestamp: string
+          unit: string
+        }
+        Insert: {
+          alert_threshold_exceeded?: boolean | null
+          asset_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          organization_id: string
+          reading_value: number
+          sensor_type: string
+          timestamp?: string
+          unit: string
+        }
+        Update: {
+          alert_threshold_exceeded?: boolean | null
+          asset_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          organization_id?: string
+          reading_value?: number
+          sensor_type?: string
+          timestamp?: string
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_sensor_readings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_area: {
         Row: {
           ba_id: number | null
@@ -247,6 +294,50 @@ export type Database = {
           time_period?: string
         }
         Relationships: []
+      }
+      digital_twin_scenarios: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          organization_id: string
+          parameters: Json
+          scenario_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          parameters: Json
+          scenario_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          parameters?: Json
+          scenario_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "digital_twin_scenarios_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       domain_events: {
         Row: {
@@ -1380,6 +1471,50 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scenario_simulation_results: {
+        Row: {
+          baseline_value: number | null
+          calculated_at: string
+          id: string
+          impact_description: string | null
+          metric_name: string
+          percentage_change: number | null
+          scenario_id: string
+          simulated_value: number | null
+          unit: string | null
+        }
+        Insert: {
+          baseline_value?: number | null
+          calculated_at?: string
+          id?: string
+          impact_description?: string | null
+          metric_name: string
+          percentage_change?: number | null
+          scenario_id: string
+          simulated_value?: number | null
+          unit?: string | null
+        }
+        Update: {
+          baseline_value?: number | null
+          calculated_at?: string
+          id?: string
+          impact_description?: string | null
+          metric_name?: string
+          percentage_change?: number | null
+          scenario_id?: string
+          simulated_value?: number | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scenario_simulation_results_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "digital_twin_scenarios"
             referencedColumns: ["id"]
           },
         ]

@@ -84,6 +84,7 @@ import HierarchyVisualizerPage from "./pages/hierarchy/HierarchyVisualizerPage";
 import ProfilePage from "./pages/ProfilePage";
 import HelpSystemDemo from "./pages/demo/HelpSystemDemo";
 import DigitalTwinDemo from "./pages/demo/DigitalTwinDemo";
+import DigitalTwinPage from "./pages/DigitalTwinPage";
 
 const queryClient = new QueryClient();
 
@@ -352,6 +353,13 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <CrossProjectAnalytics />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/digital-twin" element={
+              <AuthGuard>
+                <Layout>
+                  <DigitalTwinPage />
                 </Layout>
               </AuthGuard>
             } />

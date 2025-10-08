@@ -126,23 +126,28 @@ const workMaintenanceModules = [
 ];
 
 // Analytics & Intelligence modules
-const analyticsModules = [
-  {
-    title: "Advanced Analytics & AI",
-    url: "/analytics",
-    icon: Brain,
-  },
-  {
-    title: "Reporting & BI",
-    url: "/reports",
-    icon: BarChart3,
-  },
-  {
-    title: "Spatial Intelligence",
-    url: "/spatial",
-    icon: MapPin,
-  },
-];
+  const analyticsModules = [
+    {
+      title: "Advanced Analytics & AI",
+      url: "/analytics",
+      icon: Brain,
+    },
+    {
+      title: "Digital Twin Visualization",
+      url: "/digital-twin",
+      icon: Layers,
+    },
+    {
+      title: "Reporting & BI",
+      url: "/reports",
+      icon: BarChart3,
+    },
+    {
+      title: "Spatial Intelligence",
+      url: "/spatial",
+      icon: MapPin,
+    },
+  ];
 
 // Integration & Mobility modules
 const integrationMobilityModules = [
