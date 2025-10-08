@@ -18,23 +18,37 @@ export const usePredictiveAnalytics = () => {
   const { predictions, riskStats, isLoading: predictionsLoading } = useMLPredictions();
   const { anomalies, isLoading: anomaliesLoading } = useAnomalyDetections('active');
 
-  // Fetch AI-prioritized work orders via API Gateway
+  // Fetch AI-prioritized work orders via direct HTTP call to work-order-service
   const { data: aiWorkOrders, isLoading: workOrdersLoading } = useQuery({
     queryKey: ['ai-work-orders', currentOrganization?.id],
     queryFn: async () => {
       if (!currentOrganization?.id) return [];
       
-      const { data, error } = await supabase.functions.invoke('work-order-service', {
-        body: {
-          path: '/work-orders/prioritized',
-          method: 'GET'
-        }
-      });
-      
-      if (error) {
-        console.error('Error fetching AI work orders:', error);
+      // Get the current session for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('No active session');
         return [];
       }
+
+      // Call the work-order-service edge function directly
+      const functionUrl = `https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/work-order-service/work-orders/prioritized`;
+      const response = await fetch(functionUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzcXprYWFycGZvd2dtaWpjd2F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMTE2NjEsImV4cCI6MjA3NDY4NzY2MX0.Wmx2DQY5sNMlzMqnkTAftfdkIUFkm_w577fy-4nPXWY',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error fetching AI work orders:', response.status, errorText);
+        return [];
+      }
+
+      const data = await response.json();
 
       // Map work order fields to component expectations
       const mappedData = (data || []).map((wo: any) => ({
