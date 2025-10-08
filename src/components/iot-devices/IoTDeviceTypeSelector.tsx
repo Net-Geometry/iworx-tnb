@@ -32,7 +32,6 @@ export function IoTDeviceTypeSelector({ value, onChange, organizationId }: IoTDe
         <SelectValue placeholder="Select device type (optional)" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="">None</SelectItem>
         {deviceTypes.map((type) => (
           <SelectItem key={type.id} value={type.id}>
             {type.name}
