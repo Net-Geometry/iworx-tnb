@@ -198,6 +198,15 @@ export const DomainEvents = {
   ASSET_HEALTH_DEGRADED: 'ai.health_degraded',
   WORK_ORDER_AI_PRIORITIZED: 'ai.work_order_prioritized',
   FAILURE_RISK_HIGH: 'ai.failure_risk_high',
+
+  // IoT Device Events
+  DEVICE_REGISTERED: 'iot.device_registered',
+  DEVICE_UPDATED: 'iot.device_updated',
+  DEVICE_DELETED: 'iot.device_deleted',
+  DEVICE_DATA_RECEIVED: 'iot.data_received',
+  DEVICE_OFFLINE: 'iot.device_offline',
+  DEVICE_THRESHOLD_EXCEEDED: 'iot.threshold_exceeded',
+  METER_READING_AUTO_CREATED: 'iot.meter_reading_auto_created',
 } as const;
 
 /**
