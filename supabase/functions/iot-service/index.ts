@@ -114,13 +114,26 @@ serve(async (req) => {
         .toUpperCase()
         .replace(/[^A-F0-9]/g, "");
 
-      if (normalizedDevEui.length !== 16) {
-        throw new Error("DevEUI must be exactly 16 hexadecimal characters");
+      if (normalizedDevEui.length < 14 || normalizedDevEui.length > 16) {
+        throw new Error("DevEUI must be 14-16 hexadecimal characters");
+      }
+
+      // Normalize App EUI if provided
+      let normalizedAppEui = body.app_eui;
+      if (normalizedAppEui) {
+        normalizedAppEui = normalizedAppEui
+          .toUpperCase()
+          .replace(/[^A-F0-9]/g, "");
+        
+        if (normalizedAppEui.length < 14 || normalizedAppEui.length > 16) {
+          throw new Error("App EUI must be 14-16 hexadecimal characters");
+        }
       }
 
       const deviceData = {
         ...body,
         dev_eui: normalizedDevEui,
+        app_eui: normalizedAppEui,
         organization_id: organizationId,
         created_by: userId,
       };

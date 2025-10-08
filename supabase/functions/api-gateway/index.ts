@@ -67,6 +67,10 @@ const SERVICE_REGISTRY = {
     url: `${SUPABASE_URL}/functions/v1/digital-twin-service`,
     healthEndpoint: "/health",
   },
+  "iot": {
+    url: `${SUPABASE_URL}/functions/v1/iot-service`,
+    healthEndpoint: "/health",
+  },
 };
 
 /**
