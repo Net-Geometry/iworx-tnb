@@ -44,6 +44,7 @@ import {
   Workflow,
   HelpCircle,
   Rocket,
+  Radio,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -98,6 +99,11 @@ const coreAssetModules = [
     title: "Meter Groups",
     url: "/meter-groups",
     icon: Grid3x3,
+  },
+  {
+    title: "IoT Device Registration",
+    url: "/iot-devices",
+    icon: Radio,
   },
 ];
 

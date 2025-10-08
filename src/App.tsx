@@ -85,6 +85,7 @@ import ProfilePage from "./pages/ProfilePage";
 import HelpSystemDemo from "./pages/demo/HelpSystemDemo";
 import DigitalTwinDemo from "./pages/demo/DigitalTwinDemo";
 import DigitalTwinPage from "./pages/DigitalTwinPage";
+import IoTDevicesPage from "./pages/IoTDevicesPage";
 
 const queryClient = new QueryClient();
 
@@ -171,6 +172,13 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <MeterGroupsPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/iot-devices" element={
+              <AuthGuard>
+                <Layout>
+                  <IoTDevicesPage />
                 </Layout>
               </AuthGuard>
             } />
