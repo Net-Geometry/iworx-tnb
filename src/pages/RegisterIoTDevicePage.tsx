@@ -26,7 +26,7 @@ import { Separator } from "@/components/ui/separator";
 const iotDeviceSchema = z.object({
   device_name: z.string().min(3, "Name must be at least 3 characters").max(100),
   dev_eui: z.string()
-    .regex(/^[0-9A-Fa-f]{16}$/, "DevEUI must be 16 hexadecimal characters")
+    .regex(/^[0-9A-Fa-f]{14,16}$/, "DevEUI must be 14-16 hexadecimal characters")
     .transform(val => val.toUpperCase()),
   device_identifier: z.string().optional(),
   network_provider: z.enum(['ttn', 'chirpstack', 'aws_iot_core']),
@@ -166,9 +166,9 @@ export default function RegisterIoTDevicePage() {
                         />
                       </FormControl>
                       <FormDescription className="flex justify-between items-center">
-                        <span>16 hexadecimal characters (8 bytes)</span>
-                        <span className={field.value.length === 16 ? "text-green-600 font-medium" : "text-muted-foreground"}>
-                          {field.value.length}/16
+                        <span>14-16 hexadecimal characters</span>
+                        <span className={field.value.length >= 14 && field.value.length <= 16 ? "text-green-600 font-medium" : "text-muted-foreground"}>
+                          {field.value.length}/14-16
                         </span>
                       </FormDescription>
                       <FormMessage />
