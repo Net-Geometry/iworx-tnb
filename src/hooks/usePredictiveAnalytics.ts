@@ -18,7 +18,7 @@ export const usePredictiveAnalytics = () => {
   const { predictions, riskStats, isLoading: predictionsLoading } = useMLPredictions();
   const { anomalies, isLoading: anomaliesLoading } = useAnomalyDetections('active');
 
-  // Fetch AI-prioritized work orders via direct HTTP call to work-order-service
+  // Fetch AI-prioritized work orders via API Gateway
   const { data: aiWorkOrders, isLoading: workOrdersLoading } = useQuery({
     queryKey: ['ai-work-orders', currentOrganization?.id],
     queryFn: async () => {
@@ -31,8 +31,8 @@ export const usePredictiveAnalytics = () => {
         return [];
       }
 
-      // Call the work-order-service edge function directly
-      const functionUrl = `https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/work-order-service/work-orders/prioritized`;
+      // Route through API Gateway which handles authentication and forwards to work-order-service
+      const functionUrl = `https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/api-gateway/api/work-orders/prioritized`;
       const response = await fetch(functionUrl, {
         method: 'GET',
         headers: {
