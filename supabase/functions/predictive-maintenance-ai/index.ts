@@ -50,16 +50,42 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Get user's organization
+    // Get user's organization with fallback
     const { data: profile } = await supabase
       .from('profiles')
       .select('current_organization_id')
       .eq('id', user.id)
       .single();
 
-    const organizationId = profile?.current_organization_id;
+    let organizationId = profile?.current_organization_id;
+
+    // Fallback: If null, get first organization and auto-update profile
     if (!organizationId) {
-      throw new Error('No organization found');
+      logWithCorrelation(correlationId, 'predictive-maintenance-ai', 'warn',
+        `User ${user.id} has null current_organization_id, attempting fallback`);
+
+      const { data: userOrg } = await supabase
+        .from('user_organizations')
+        .select('organization_id')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .single();
+      
+      if (userOrg?.organization_id) {
+        organizationId = userOrg.organization_id;
+        
+        // Auto-fix the profile
+        await supabase
+          .from('profiles')
+          .update({ current_organization_id: organizationId })
+          .eq('id', user.id);
+
+        logWithCorrelation(correlationId, 'predictive-maintenance-ai', 'info',
+          `Auto-set current_organization_id to ${organizationId} for user ${user.id}`);
+      } else {
+        throw new Error('No organization found');
+      }
     }
 
     const { messages, action } = await req.json();
