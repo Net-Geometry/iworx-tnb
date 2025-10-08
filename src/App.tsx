@@ -83,6 +83,7 @@ import NodesManagementPage from "./pages/hierarchy/NodesManagementPage";
 import HierarchyVisualizerPage from "./pages/hierarchy/HierarchyVisualizerPage";
 import ProfilePage from "./pages/ProfilePage";
 import HelpSystemDemo from "./pages/demo/HelpSystemDemo";
+import DigitalTwinDemo from "./pages/demo/DigitalTwinDemo";
 
 const queryClient = new QueryClient();
 
@@ -479,13 +480,20 @@ const App = () => (
             } />
 
             {/* Demo Routes - Easy to Remove */}
-            <Route path="/demo/help-system" element={
-              <AuthGuard>
-                <Layout>
-                  <HelpSystemDemo />
-                </Layout>
-              </AuthGuard>
-            } />
+              <Route path="/demo/help-system" element={
+                <AuthGuard>
+                  <Layout>
+                    <HelpSystemDemo />
+                  </Layout>
+                </AuthGuard>
+              } />
+              <Route path="/demo/digital-twin" element={
+                <AuthGuard>
+                  <Layout>
+                    <DigitalTwinDemo />
+                  </Layout>
+                </AuthGuard>
+              } />
 
             {/* System Administration Routes */}
             <Route path="/admin/settings" element={

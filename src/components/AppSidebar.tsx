@@ -202,6 +202,7 @@ const systemAdminModules = [
 // Demo - Easy to Remove
 const demoModules = [
   { title: "Help System Demo", url: "/demo/help-system", icon: Rocket },
+  { title: "Digital Twin Demo", url: "/demo/digital-twin", icon: Layers },
 ];
 
 export function AppSidebar() {
