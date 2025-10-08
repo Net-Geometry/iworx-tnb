@@ -66,14 +66,17 @@ async function getAssets(
   if (error) throw error;
 
   // Transform data to include hierarchy path as location and 3D model fields
-  const transformedAssets = (data || []).map((asset: any) => ({
-    ...asset,
-    location: asset.hierarchy_nodes?.name || "Unassigned",
-    hierarchy_path: asset.hierarchy_nodes?.path || asset.hierarchy_nodes?.name || "Unassigned",
-    model_3d_url: asset.model_3d_url,
-    model_3d_scale: asset.model_3d_scale || { x: 1, y: 1, z: 1 },
-    model_3d_rotation: asset.model_3d_rotation || { x: 0, y: 0, z: 0 },
-  }));
+  const transformedAssets = (data || []).map((asset: any) => {
+    const parsed = parseJsonFields(asset);
+    return {
+      ...parsed,
+      location: asset.hierarchy_nodes?.name || "Unassigned",
+      hierarchy_path: asset.hierarchy_nodes?.path || asset.hierarchy_nodes?.name || "Unassigned",
+      model_3d_url: parsed.model_3d_url,
+      model_3d_scale: parsed.model_3d_scale || { x: 1, y: 1, z: 1 },
+      model_3d_rotation: parsed.model_3d_rotation || { x: 0, y: 0, z: 0 },
+    };
+  });
 
   return transformedAssets;
 }
@@ -104,14 +107,44 @@ async function getAssetById(supabase: any, id: string, organizationId: string, h
 
   if (error) throw error;
 
+  const parsed = parseJsonFields(data);
   return {
-    ...data,
+    ...parsed,
     location: data.hierarchy_nodes?.name || "Unassigned",
     hierarchy_path: data.hierarchy_nodes?.path || data.hierarchy_nodes?.name || "Unassigned",
-    model_3d_url: data.model_3d_url,
-    model_3d_scale: data.model_3d_scale || { x: 1, y: 1, z: 1 },
-    model_3d_rotation: data.model_3d_rotation || { x: 0, y: 0, z: 0 },
+    model_3d_url: parsed.model_3d_url,
+    model_3d_scale: parsed.model_3d_scale || { x: 1, y: 1, z: 1 },
+    model_3d_rotation: parsed.model_3d_rotation || { x: 0, y: 0, z: 0 },
   };
+}
+
+/**
+ * Helper to parse JSON fields from JSONB columns
+ */
+function parseJsonFields(data: any) {
+  const parsed = { ...data };
+  
+  // Parse model_3d_scale if it's a string
+  if (typeof parsed.model_3d_scale === 'string') {
+    try {
+      parsed.model_3d_scale = JSON.parse(parsed.model_3d_scale);
+    } catch (e) {
+      console.error('[Asset Service] Failed to parse model_3d_scale:', e);
+      parsed.model_3d_scale = { x: 1, y: 1, z: 1 };
+    }
+  }
+  
+  // Parse model_3d_rotation if it's a string
+  if (typeof parsed.model_3d_rotation === 'string') {
+    try {
+      parsed.model_3d_rotation = JSON.parse(parsed.model_3d_rotation);
+    } catch (e) {
+      console.error('[Asset Service] Failed to parse model_3d_rotation:', e);
+      parsed.model_3d_rotation = { x: 0, y: 0, z: 0 };
+    }
+  }
+  
+  return parsed;
 }
 
 /**
