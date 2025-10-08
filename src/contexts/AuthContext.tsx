@@ -112,7 +112,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const fetchUserOrganizations = async (userId: string) => {
     try {
-      // Fetch user's organizations
+      // Fetch user's organizations with details
       const { data: userOrgs, error: userOrgsError } = await supabase
         .from('user_organizations')
         .select('*, organization:organizations(*)')
