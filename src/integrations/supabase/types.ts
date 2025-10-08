@@ -2536,13 +2536,19 @@ export type Database = {
           category: string | null
           created_at: string | null
           criticality: string | null
+          current_location: unknown | null
           description: string | null
           health_score: number | null
           hierarchy_node_id: string | null
           id: string | null
+          is_mobile: boolean | null
+          last_location_update: string | null
           last_maintenance_date: string | null
           manufacturer: string | null
           model: string | null
+          model_3d_rotation: Json | null
+          model_3d_scale: Json | null
+          model_3d_url: string | null
           name: string | null
           next_maintenance_date: string | null
           organization_id: string | null
@@ -2563,13 +2569,19 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           criticality?: string | null
+          current_location?: unknown | null
           description?: string | null
           health_score?: number | null
           hierarchy_node_id?: string | null
           id?: string | null
+          is_mobile?: boolean | null
+          last_location_update?: string | null
           last_maintenance_date?: string | null
           manufacturer?: string | null
           model?: string | null
+          model_3d_rotation?: Json | null
+          model_3d_scale?: Json | null
+          model_3d_url?: string | null
           name?: string | null
           next_maintenance_date?: string | null
           organization_id?: string | null
@@ -2590,13 +2602,19 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           criticality?: string | null
+          current_location?: unknown | null
           description?: string | null
           health_score?: number | null
           hierarchy_node_id?: string | null
           id?: string | null
+          is_mobile?: boolean | null
+          last_location_update?: string | null
           last_maintenance_date?: string | null
           manufacturer?: string | null
           model?: string | null
+          model_3d_rotation?: Json | null
+          model_3d_scale?: Json | null
+          model_3d_url?: string | null
           name?: string | null
           next_maintenance_date?: string | null
           organization_id?: string | null
