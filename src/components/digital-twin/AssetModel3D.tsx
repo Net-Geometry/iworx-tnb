@@ -8,6 +8,7 @@ import { Text } from '@react-three/drei';
 import { DemoTransformer3D } from '@/pages/demo/digital-twin/components/models/DemoTransformer3D';
 import { DemoSwitchgear3D } from '@/pages/demo/digital-twin/components/models/DemoSwitchgear3D';
 import { DemoMeterBank3D } from '@/pages/demo/digital-twin/components/models/DemoMeterBank3D';
+import { AssetModel3DLoader } from './AssetModel3DLoader';
 
 interface Asset3D {
   id: string;
@@ -16,6 +17,9 @@ interface Asset3D {
   status: 'operational' | 'maintenance' | 'critical' | 'offline';
   health_score?: number;
   position: [number, number, number];
+  model_3d_url?: string;
+  model_3d_scale?: { x: number; y: number; z: number };
+  model_3d_rotation?: { x: number; y: number; z: number };
 }
 
 interface AssetModel3DProps {
@@ -30,6 +34,22 @@ export function AssetModel3D({ asset, position, isSelected, onClick }: AssetMode
   const status = asset.status === 'operational' && asset.health_score 
     ? asset.health_score < 50 ? 'critical' : asset.health_score < 75 ? 'maintenance' : 'operational'
     : asset.status;
+
+  // If custom 3D model is available, use AssetModel3DLoader
+  if (asset.model_3d_url) {
+    return (
+      <AssetModel3DLoader
+        modelUrl={asset.model_3d_url}
+        position={position}
+        scale={asset.model_3d_scale}
+        rotation={asset.model_3d_rotation}
+        status={status}
+        name={asset.name}
+        isSelected={isSelected}
+        onClick={onClick}
+      />
+    );
+  }
 
   // Render appropriate model based on asset type
   if (asset.type === 'transformer' || asset.type?.toLowerCase().includes('transformer')) {

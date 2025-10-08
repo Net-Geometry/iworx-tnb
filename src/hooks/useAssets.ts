@@ -34,6 +34,10 @@ export interface Asset {
   hierarchy_path?: string;
   location?: string;
   organization_id: string;
+  // 3D Model fields
+  model_3d_url?: string;
+  model_3d_scale?: { x: number; y: number; z: number };
+  model_3d_rotation?: { x: number; y: number; z: number };
 }
 
 export const useAssets = () => {

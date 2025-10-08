@@ -17,6 +17,9 @@ interface Asset3D {
   criticality?: string;
   hierarchy_node_id?: string;
   position: [number, number, number];
+  model_3d_url?: string;
+  model_3d_scale?: { x: number; y: number; z: number };
+  model_3d_rotation?: { x: number; y: number; z: number };
 }
 
 export const useAsset3DPositions = () => {
@@ -58,6 +61,9 @@ export const useAsset3DPositions = () => {
         0,
         (row - gridSize / 2) * spacing,
       ] as [number, number, number],
+      model_3d_url: asset.model_3d_url,
+      model_3d_scale: asset.model_3d_scale || { x: 1, y: 1, z: 1 },
+      model_3d_rotation: asset.model_3d_rotation || { x: 0, y: 0, z: 0 },
     };
   });
 

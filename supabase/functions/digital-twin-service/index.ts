@@ -130,7 +130,7 @@ async function handleSceneData(
     );
   }
 
-  // Fetch assets at this hierarchy level
+  // Fetch assets at this hierarchy level with 3D model data
   const { data: assets, error: assetsError } = await supabase
     .from('assets')
     .select(`
@@ -143,7 +143,10 @@ async function handleSceneData(
       status,
       health_score,
       criticality,
-      hierarchy_node_id
+      hierarchy_node_id,
+      model_3d_url,
+      model_3d_scale,
+      model_3d_rotation
     `)
     .eq('hierarchy_node_id', hierarchyNodeId)
     .eq('organization_id', organizationId)

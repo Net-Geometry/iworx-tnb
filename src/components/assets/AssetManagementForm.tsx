@@ -42,7 +42,15 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
     purchase_cost: '',
     warranty_expiry_date: '',
     asset_image_url: '',
-    qr_code_data: ''
+    qr_code_data: '',
+    // 3D Model fields
+    model_3d_url: '',
+    model_3d_scale_x: '1',
+    model_3d_scale_y: '1',
+    model_3d_scale_z: '1',
+    model_3d_rotation_x: '0',
+    model_3d_rotation_y: '0',
+    model_3d_rotation_z: '0',
   });
 
   const [uploadedDocuments, setUploadedDocuments] = useState<Array<{name: string, url: string}>>([]);
@@ -69,6 +77,9 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
 
   useEffect(() => {
     if (existingAsset && assetId) {
+      const scale = existingAsset.model_3d_scale || { x: 1, y: 1, z: 1 };
+      const rotation = existingAsset.model_3d_rotation || { x: 0, y: 0, z: 0 };
+      
       setFormData({
         name: existingAsset.name,
         asset_number: existingAsset.asset_number || '',
@@ -87,7 +98,14 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
         purchase_cost: existingAsset.purchase_cost?.toString() || '',
         warranty_expiry_date: existingAsset.warranty_expiry_date || '',
         asset_image_url: existingAsset.asset_image_url || '',
-        qr_code_data: existingAsset.qr_code_data || ''
+        qr_code_data: existingAsset.qr_code_data || '',
+        model_3d_url: existingAsset.model_3d_url || '',
+        model_3d_scale_x: scale.x.toString(),
+        model_3d_scale_y: scale.y.toString(),
+        model_3d_scale_z: scale.z.toString(),
+        model_3d_rotation_x: rotation.x.toString(),
+        model_3d_rotation_y: rotation.y.toString(),
+        model_3d_rotation_z: rotation.z.toString(),
       });
     }
   }, [existingAsset, assetId]);
@@ -126,7 +144,7 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
       
       const assetData = {
         ...formData,
-        health_score: existingAsset?.health_score || 100, // Default to 100 for new assets
+        health_score: existingAsset?.health_score || 100,
         hierarchy_node_id: formData.hierarchy_node_id || null,
         asset_number: formData.asset_number || null,
         type: formData.type || null,
@@ -143,7 +161,18 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
         purchase_cost: formData.purchase_cost ? Number(formData.purchase_cost) : null,
         warranty_expiry_date: formData.warranty_expiry_date || null,
         asset_image_url: formData.asset_image_url || null,
-        qr_code_data: formData.qr_code_data || null
+        qr_code_data: formData.qr_code_data || null,
+        model_3d_url: formData.model_3d_url || null,
+        model_3d_scale: formData.model_3d_url ? {
+          x: parseFloat(formData.model_3d_scale_x) || 1,
+          y: parseFloat(formData.model_3d_scale_y) || 1,
+          z: parseFloat(formData.model_3d_scale_z) || 1
+        } : null,
+        model_3d_rotation: formData.model_3d_url ? {
+          x: parseFloat(formData.model_3d_rotation_x) || 0,
+          y: parseFloat(formData.model_3d_rotation_y) || 0,
+          z: parseFloat(formData.model_3d_rotation_z) || 0
+        } : null
       };
 
       if (assetId) {

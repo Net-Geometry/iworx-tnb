@@ -10,6 +10,7 @@ import { Asset } from '@/hooks/useAssets';
 import { FileUpload } from './FileUpload';
 import { QRCodePreview } from './QRCodePreview';
 import { ParentAssetSelect } from './ParentAssetSelect';
+import { Model3DUpload } from './Model3DUpload';
 
 interface AssetFormContentProps {
   formData: {
@@ -31,6 +32,13 @@ interface AssetFormContentProps {
     warranty_expiry_date: string;
     asset_image_url: string;
     qr_code_data: string;
+    model_3d_url: string;
+    model_3d_scale_x: string;
+    model_3d_scale_y: string;
+    model_3d_scale_z: string;
+    model_3d_rotation_x: string;
+    model_3d_rotation_y: string;
+    model_3d_rotation_z: string;
   };
   flatNodes: any[];
   assetId?: string;
@@ -56,11 +64,12 @@ const AssetFormContent: React.FC<AssetFormContentProps> = ({
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
           <TabsTrigger value="technical">Technical</TabsTrigger>
           <TabsTrigger value="financial">Financial</TabsTrigger>
           <TabsTrigger value="media">Media & QR</TabsTrigger>
+          <TabsTrigger value="3d-model">3D Model</TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="space-y-4 mt-6">
@@ -367,6 +376,103 @@ const AssetFormContent: React.FC<AssetFormContentProps> = ({
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="3d-model" className="space-y-4 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>3D Model Upload</CardTitle>
+              <CardDescription>Upload a GLB or GLTF 3D model for visualization</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Model3DUpload
+                assetId={assetId}
+                currentFileUrl={formData.model_3d_url}
+                onFileUploaded={(url) => onFormDataChange('model_3d_url', url)}
+                onFileRemoved={() => onFormDataChange('model_3d_url', '')}
+              />
+
+              <div className="space-y-4">
+                <div>
+                  <Label>Model Scale</Label>
+                  <div className="grid grid-cols-3 gap-4 mt-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="scale_x" className="text-xs text-muted-foreground">X</Label>
+                      <Input
+                        id="scale_x"
+                        type="number"
+                        step="0.1"
+                        value={formData.model_3d_scale_x}
+                        onChange={(e) => onFormDataChange('model_3d_scale_x', e.target.value)}
+                        placeholder="1.0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="scale_y" className="text-xs text-muted-foreground">Y</Label>
+                      <Input
+                        id="scale_y"
+                        type="number"
+                        step="0.1"
+                        value={formData.model_3d_scale_y}
+                        onChange={(e) => onFormDataChange('model_3d_scale_y', e.target.value)}
+                        placeholder="1.0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="scale_z" className="text-xs text-muted-foreground">Z</Label>
+                      <Input
+                        id="scale_z"
+                        type="number"
+                        step="0.1"
+                        value={formData.model_3d_scale_z}
+                        onChange={(e) => onFormDataChange('model_3d_scale_z', e.target.value)}
+                        placeholder="1.0"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Model Rotation (radians)</Label>
+                  <div className="grid grid-cols-3 gap-4 mt-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="rotation_x" className="text-xs text-muted-foreground">X</Label>
+                      <Input
+                        id="rotation_x"
+                        type="number"
+                        step="0.1"
+                        value={formData.model_3d_rotation_x}
+                        onChange={(e) => onFormDataChange('model_3d_rotation_x', e.target.value)}
+                        placeholder="0.0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="rotation_y" className="text-xs text-muted-foreground">Y</Label>
+                      <Input
+                        id="rotation_y"
+                        type="number"
+                        step="0.1"
+                        value={formData.model_3d_rotation_y}
+                        onChange={(e) => onFormDataChange('model_3d_rotation_y', e.target.value)}
+                        placeholder="0.0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="rotation_z" className="text-xs text-muted-foreground">Z</Label>
+                      <Input
+                        id="rotation_z"
+                        type="number"
+                        step="0.1"
+                        value={formData.model_3d_rotation_z}
+                        onChange={(e) => onFormDataChange('model_3d_rotation_z', e.target.value)}
+                        placeholder="0.0"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 

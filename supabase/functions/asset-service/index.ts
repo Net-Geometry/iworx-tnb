@@ -65,11 +65,14 @@ async function getAssets(
 
   if (error) throw error;
 
-  // Transform data to include hierarchy path as location
+  // Transform data to include hierarchy path as location and 3D model fields
   const transformedAssets = (data || []).map((asset: any) => ({
     ...asset,
     location: asset.hierarchy_nodes?.name || "Unassigned",
     hierarchy_path: asset.hierarchy_nodes?.path || asset.hierarchy_nodes?.name || "Unassigned",
+    model_3d_url: asset.model_3d_url,
+    model_3d_scale: asset.model_3d_scale || { x: 1, y: 1, z: 1 },
+    model_3d_rotation: asset.model_3d_rotation || { x: 0, y: 0, z: 0 },
   }));
 
   return transformedAssets;
@@ -105,6 +108,9 @@ async function getAssetById(supabase: any, id: string, organizationId: string, h
     ...data,
     location: data.hierarchy_nodes?.name || "Unassigned",
     hierarchy_path: data.hierarchy_nodes?.path || data.hierarchy_nodes?.name || "Unassigned",
+    model_3d_url: data.model_3d_url,
+    model_3d_scale: data.model_3d_scale || { x: 1, y: 1, z: 1 },
+    model_3d_rotation: data.model_3d_rotation || { x: 0, y: 0, z: 0 },
   };
 }
 
