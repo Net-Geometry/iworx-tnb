@@ -3880,18 +3880,26 @@ export type Database = {
       safety_incidents: {
         Row: {
           asset_id: string | null
+          attachment_metadata: Json | null
+          attachment_urls: string[] | null
+          business_impact_notes: string | null
           corrective_actions: string | null
           cost_estimate: number | null
           created_at: string | null
           created_by: string | null
           description: string | null
+          estimated_labor_cost: number | null
+          estimated_material_cost: number | null
+          estimated_repair_hours: number | null
           id: string | null
+          immediate_actions: string | null
           incident_date: string | null
           incident_number: string | null
           investigation_notes: string | null
           investigator_name: string | null
           location: string | null
           organization_id: string | null
+          priority_assessment: string | null
           regulatory_report_number: string | null
           regulatory_reporting_required: boolean | null
           reporter_email: string | null
@@ -3899,24 +3907,41 @@ export type Database = {
           root_cause: string | null
           severity: Database["public"]["Enums"]["incident_severity"] | null
           status: Database["public"]["Enums"]["incident_status"] | null
+          suggested_job_plan_id: string | null
           title: string | null
           updated_at: string | null
           updated_by: string | null
+          wo_assigned_technician: string | null
+          wo_estimated_cost: number | null
+          wo_estimated_duration_hours: number | null
+          wo_maintenance_type: string | null
+          wo_notes: string | null
+          wo_priority: string | null
+          wo_target_finish_date: string | null
+          wo_target_start_date: string | null
         }
         Insert: {
           asset_id?: string | null
+          attachment_metadata?: Json | null
+          attachment_urls?: string[] | null
+          business_impact_notes?: string | null
           corrective_actions?: string | null
           cost_estimate?: number | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          estimated_labor_cost?: number | null
+          estimated_material_cost?: number | null
+          estimated_repair_hours?: number | null
           id?: string | null
+          immediate_actions?: string | null
           incident_date?: string | null
           incident_number?: string | null
           investigation_notes?: string | null
           investigator_name?: string | null
           location?: string | null
           organization_id?: string | null
+          priority_assessment?: string | null
           regulatory_report_number?: string | null
           regulatory_reporting_required?: boolean | null
           reporter_email?: string | null
@@ -3924,24 +3949,41 @@ export type Database = {
           root_cause?: string | null
           severity?: Database["public"]["Enums"]["incident_severity"] | null
           status?: Database["public"]["Enums"]["incident_status"] | null
+          suggested_job_plan_id?: string | null
           title?: string | null
           updated_at?: string | null
           updated_by?: string | null
+          wo_assigned_technician?: string | null
+          wo_estimated_cost?: number | null
+          wo_estimated_duration_hours?: number | null
+          wo_maintenance_type?: string | null
+          wo_notes?: string | null
+          wo_priority?: string | null
+          wo_target_finish_date?: string | null
+          wo_target_start_date?: string | null
         }
         Update: {
           asset_id?: string | null
+          attachment_metadata?: Json | null
+          attachment_urls?: string[] | null
+          business_impact_notes?: string | null
           corrective_actions?: string | null
           cost_estimate?: number | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          estimated_labor_cost?: number | null
+          estimated_material_cost?: number | null
+          estimated_repair_hours?: number | null
           id?: string | null
+          immediate_actions?: string | null
           incident_date?: string | null
           incident_number?: string | null
           investigation_notes?: string | null
           investigator_name?: string | null
           location?: string | null
           organization_id?: string | null
+          priority_assessment?: string | null
           regulatory_report_number?: string | null
           regulatory_reporting_required?: boolean | null
           reporter_email?: string | null
@@ -3949,9 +3991,18 @@ export type Database = {
           root_cause?: string | null
           severity?: Database["public"]["Enums"]["incident_severity"] | null
           status?: Database["public"]["Enums"]["incident_status"] | null
+          suggested_job_plan_id?: string | null
           title?: string | null
           updated_at?: string | null
           updated_by?: string | null
+          wo_assigned_technician?: string | null
+          wo_estimated_cost?: number | null
+          wo_estimated_duration_hours?: number | null
+          wo_maintenance_type?: string | null
+          wo_notes?: string | null
+          wo_priority?: string | null
+          wo_target_finish_date?: string | null
+          wo_target_start_date?: string | null
         }
         Relationships: []
       }
