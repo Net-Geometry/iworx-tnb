@@ -3904,6 +3904,7 @@ export type Database = {
           regulatory_reporting_required: boolean | null
           reporter_email: string | null
           reporter_name: string | null
+          resolved_at: string | null
           root_cause: string | null
           severity: Database["public"]["Enums"]["incident_severity"] | null
           status: Database["public"]["Enums"]["incident_status"] | null
@@ -3946,6 +3947,7 @@ export type Database = {
           regulatory_reporting_required?: boolean | null
           reporter_email?: string | null
           reporter_name?: string | null
+          resolved_at?: string | null
           root_cause?: string | null
           severity?: Database["public"]["Enums"]["incident_severity"] | null
           status?: Database["public"]["Enums"]["incident_status"] | null
@@ -3988,6 +3990,7 @@ export type Database = {
           regulatory_reporting_required?: boolean | null
           reporter_email?: string | null
           reporter_name?: string | null
+          resolved_at?: string | null
           root_cause?: string | null
           severity?: Database["public"]["Enums"]["incident_severity"] | null
           status?: Database["public"]["Enums"]["incident_status"] | null
