@@ -115,13 +115,32 @@ async function getAssetById(supabase: any, id: string, organizationId: string, h
 }
 
 /**
+ * Helper to process JSON fields for JSONB columns
+ */
+function processJsonFields(data: any) {
+  const processed = { ...data };
+  
+  // Convert JSON objects to strings for JSONB columns
+  if (processed.model_3d_scale && typeof processed.model_3d_scale === 'object') {
+    processed.model_3d_scale = JSON.stringify(processed.model_3d_scale);
+  }
+  
+  if (processed.model_3d_rotation && typeof processed.model_3d_rotation === 'object') {
+    processed.model_3d_rotation = JSON.stringify(processed.model_3d_rotation);
+  }
+  
+  return processed;
+}
+
+/**
  * Create new asset
  */
 async function createAsset(supabase: any, assetData: any, organizationId: string) {
   console.log("[Asset Service] Creating asset");
 
+  const processedData = processJsonFields(assetData);
   const dataWithOrg = {
-    ...assetData,
+    ...processedData,
     organization_id: organizationId,
   };
 
@@ -142,9 +161,11 @@ async function createAsset(supabase: any, assetData: any, organizationId: string
 async function updateAsset(supabase: any, id: string, assetData: any, organizationId: string, hasCrossProjectAccess: boolean) {
   console.log(`[Asset Service] Updating asset ${id}`);
 
+  const processedData = processJsonFields(assetData);
+
   let query = supabase
     .from("assets")
-    .update(assetData)
+    .update(processedData)
     .eq("id", id);
 
   if (!hasCrossProjectAccess && organizationId) {
