@@ -30,10 +30,10 @@ const iotDeviceSchema = z.object({
     .transform(val => val.toUpperCase()),
   device_identifier: z.string().optional(),
   network_provider: z.enum(['ttn', 'chirpstack', 'aws_iot_core']),
-  device_type_id: z.string().uuid().optional(),
-  asset_id: z.string().uuid().optional(),
-  app_key: z.string().regex(/^[0-9A-Fa-f]{32}$/, "App Key must be 32 hex characters").optional().or(z.literal("")),
-  app_eui: z.string().regex(/^[0-9A-Fa-f]{16}$/, "App EUI must be 16 hex characters").optional().or(z.literal("")),
+  device_type_id: z.string().uuid().optional().or(z.literal("")).transform(val => val === "" ? undefined : val),
+  asset_id: z.string().uuid().optional().or(z.literal("")).transform(val => val === "" ? undefined : val),
+  app_key: z.string().regex(/^[0-9A-Fa-f]{32}$/, "App Key must be 32 hex characters").or(z.literal("")).transform(val => val === "" ? undefined : val).optional(),
+  app_eui: z.string().regex(/^[0-9A-Fa-f]{16}$/, "App EUI must be 16 hex characters").or(z.literal("")).transform(val => val === "" ? undefined : val).optional(),
   activation_mode: z.enum(['OTAA', 'ABP']).optional(),
   frequency_plan: z.string().optional(),
 });
@@ -53,8 +53,8 @@ export default function RegisterIoTDevicePage() {
       dev_eui: "",
       device_identifier: "",
       network_provider: "ttn",
-      device_type_id: "",
-      asset_id: "",
+      device_type_id: undefined,
+      asset_id: undefined,
       app_key: "",
       app_eui: "",
       activation_mode: "OTAA",
@@ -165,8 +165,11 @@ export default function RegisterIoTDevicePage() {
                           onChange={(e) => field.onChange(e.target.value.replace(/[^0-9A-Fa-f]/g, ''))}
                         />
                       </FormControl>
-                      <FormDescription>
-                        16 hexadecimal characters (8 bytes)
+                      <FormDescription className="flex justify-between items-center">
+                        <span>16 hexadecimal characters (8 bytes)</span>
+                        <span className={field.value.length === 16 ? "text-green-600 font-medium" : "text-muted-foreground"}>
+                          {field.value.length}/16
+                        </span>
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -260,7 +263,12 @@ export default function RegisterIoTDevicePage() {
                             onChange={(e) => field.onChange(e.target.value.replace(/[^0-9A-Fa-f]/g, ''))}
                           />
                         </FormControl>
-                        <FormDescription>32 hexadecimal characters</FormDescription>
+                        <FormDescription className="flex justify-between items-center">
+                          <span>32 hexadecimal characters</span>
+                          <span className={field.value.length === 32 ? "text-green-600 font-medium" : "text-muted-foreground"}>
+                            {field.value.length}/32
+                          </span>
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -280,6 +288,12 @@ export default function RegisterIoTDevicePage() {
                             onChange={(e) => field.onChange(e.target.value.replace(/[^0-9A-Fa-f]/g, ''))}
                           />
                         </FormControl>
+                        <FormDescription className="flex justify-between items-center">
+                          <span>16 hexadecimal characters (8 bytes)</span>
+                          <span className={field.value.length === 16 ? "text-green-600 font-medium" : "text-muted-foreground"}>
+                            {field.value.length}/16
+                          </span>
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
