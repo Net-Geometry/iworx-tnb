@@ -33,7 +33,7 @@ const iotDeviceSchema = z.object({
   device_type_id: z.string().uuid().optional().or(z.literal("")).transform(val => val === "" ? undefined : val),
   asset_id: z.string().uuid().optional().or(z.literal("")).transform(val => val === "" ? undefined : val),
   app_key: z.string().regex(/^[0-9A-Fa-f]{32}$/, "App Key must be 32 hex characters").or(z.literal("")).transform(val => val === "" ? undefined : val).optional(),
-  app_eui: z.string().regex(/^[0-9A-Fa-f]{16}$/, "App EUI must be 16 hex characters").or(z.literal("")).transform(val => val === "" ? undefined : val).optional(),
+  app_eui: z.string().regex(/^[0-9A-Fa-f]{14,16}$/, "App EUI must be 14-16 hex characters").or(z.literal("")).transform(val => val === "" ? undefined : val).optional(),
   activation_mode: z.enum(['OTAA', 'ABP']).optional(),
   frequency_plan: z.string().optional(),
 });
@@ -289,9 +289,9 @@ export default function RegisterIoTDevicePage() {
                           />
                         </FormControl>
                         <FormDescription className="flex justify-between items-center">
-                          <span>16 hexadecimal characters (8 bytes)</span>
-                          <span className={field.value.length === 16 ? "text-green-600 font-medium" : "text-muted-foreground"}>
-                            {field.value.length}/16
+                          <span>14-16 hexadecimal characters</span>
+                          <span className={field.value.length >= 14 && field.value.length <= 16 ? "text-green-600 font-medium" : "text-muted-foreground"}>
+                            {field.value.length}/14-16
                           </span>
                         </FormDescription>
                         <FormMessage />
