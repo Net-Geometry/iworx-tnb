@@ -6,6 +6,7 @@
  */
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Radio, Plus, Download, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,13 +16,12 @@ import { useIoTDevices } from "@/hooks/useIoTDevices";
 import { useIoTDeviceTypes } from "@/hooks/useIoTDeviceTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { IoTDeviceTable } from "@/components/iot-devices/IoTDeviceTable";
-import { IoTDeviceForm } from "@/components/iot-devices/IoTDeviceForm";
 import { IoTWebhookSetup } from "@/components/iot-devices/IoTWebhookSetup";
 import { Badge } from "@/components/ui/badge";
 
 export default function IoTDevicesPage() {
+  const navigate = useNavigate();
   const { currentOrganization } = useAuth();
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [isWebhookGuideOpen, setIsWebhookGuideOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -75,7 +75,7 @@ export default function IoTDevicesPage() {
             <Download className="h-4 w-4 mr-2" />
             Webhook Setup
           </Button>
-          <Button onClick={() => setIsFormOpen(true)}>
+          <Button onClick={() => navigate("/iot-devices/register")}>
             <Plus className="h-4 w-4 mr-2" />
             Register Device
           </Button>
@@ -178,16 +178,7 @@ export default function IoTDevicesPage() {
         </CardContent>
       </Card>
 
-      {/* Dialogs */}
-      <IoTDeviceForm 
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSuccess={() => {
-          setIsFormOpen(false);
-          setIsWebhookGuideOpen(true);
-        }}
-      />
-
+      {/* Webhook Setup Guide */}
       <IoTWebhookSetup
         isOpen={isWebhookGuideOpen}
         onClose={() => setIsWebhookGuideOpen(false)}

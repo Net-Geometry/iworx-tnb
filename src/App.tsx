@@ -86,6 +86,7 @@ import HelpSystemDemo from "./pages/demo/HelpSystemDemo";
 import DigitalTwinDemo from "./pages/demo/DigitalTwinDemo";
 import DigitalTwinPage from "./pages/DigitalTwinPage";
 import IoTDevicesPage from "./pages/IoTDevicesPage";
+import RegisterIoTDevicePage from "./pages/RegisterIoTDevicePage";
 
 const queryClient = new QueryClient();
 
@@ -175,13 +176,20 @@ const App = () => (
                 </Layout>
               </AuthGuard>
             } />
-            <Route path="/iot-devices" element={
-              <AuthGuard>
-                <Layout>
-                  <IoTDevicesPage />
-                </Layout>
-              </AuthGuard>
-            } />
+          <Route path="/iot-devices/register" element={
+            <AuthGuard>
+              <Layout>
+                <RegisterIoTDevicePage />
+              </Layout>
+            </AuthGuard>
+          } />
+          <Route path="/iot-devices" element={
+            <AuthGuard>
+              <Layout>
+                <IoTDevicesPage />
+              </Layout>
+            </AuthGuard>
+          } />
             <Route path="/routes" element={
               <AuthGuard>
                 <Layout>
