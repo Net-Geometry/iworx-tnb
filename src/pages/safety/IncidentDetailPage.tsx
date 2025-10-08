@@ -807,7 +807,7 @@ const IncidentDetailPage = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="bg-background">
-                              {jobPlans.filter(p => p.status === 'active').map(plan => (
+                              {jobPlans.filter(p => ['active', 'draft'].includes(p.status)).map(plan => (
                                 <SelectItem key={plan.id} value={plan.id}>
                                   {plan.job_plan_number} - {plan.title}
                                 </SelectItem>

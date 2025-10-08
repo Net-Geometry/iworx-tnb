@@ -189,11 +189,13 @@ async function handleIncidents(
     const incidentId = pathParts[1];
     const body = await req.json();
     
-    // Log incident update details
+    // Log incident update details including engineering assessment
     console.log('📝 Updating incident:', {
       incident_id: incidentId,
       asset_id: body.asset_id,
       asset_id_type: typeof body.asset_id,
+      has_engineering_assessment: !!(body.suggested_job_plan_id || body.immediate_actions),
+      suggested_job_plan_id: body.suggested_job_plan_id,
       timestamp: new Date().toISOString()
     });
 
@@ -207,6 +209,28 @@ async function handleIncidents(
       console.log('✅ Valid asset_id:', body.asset_id);
     } else if (body.hasOwnProperty('asset_id')) {
       console.log('ℹ️ Clearing asset assignment');
+    }
+    
+    // Validate suggested_job_plan_id if provided
+    if (body.suggested_job_plan_id && body.suggested_job_plan_id !== null && body.suggested_job_plan_id !== '') {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(body.suggested_job_plan_id)) {
+        console.error('❌ Invalid suggested_job_plan_id UUID format:', body.suggested_job_plan_id);
+        throw new Error(`Invalid suggested_job_plan_id UUID format: ${body.suggested_job_plan_id}`);
+      }
+      console.log('✅ Valid suggested_job_plan_id:', body.suggested_job_plan_id);
+    } else if (body.hasOwnProperty('suggested_job_plan_id')) {
+      console.log('ℹ️ Clearing job plan suggestion');
+    }
+    
+    // Validate priority_assessment if provided
+    if (body.priority_assessment) {
+      const validPriorities = ['can_wait', 'should_schedule', 'urgent', 'critical'];
+      if (!validPriorities.includes(body.priority_assessment)) {
+        console.error('❌ Invalid priority_assessment:', body.priority_assessment);
+        throw new Error(`Invalid priority_assessment. Must be one of: ${validPriorities.join(', ')}`);
+      }
+      console.log('✅ Valid priority_assessment:', body.priority_assessment);
     }
     
     const { data, error } = await supabase
