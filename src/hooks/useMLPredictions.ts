@@ -47,7 +47,7 @@ export const useMLPredictions = (assetId?: string, predictionType?: string) => {
 
       let query = supabase
         .from('ml_predictions')
-        .select('*')
+        .select('*, assets(name, asset_number)')
         .eq('organization_id', currentOrganization.id)
         .order('predicted_at', { ascending: false});
 
