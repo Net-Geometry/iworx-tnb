@@ -247,6 +247,8 @@ Be concise, technical when needed, but always explain implications clearly.`;
 
       let buffer = '';
       let fullResponse = '';
+      let collectedToolCalls: any[] = [];
+      let toolCallResults: any[] = [];
 
       try {
         while (true) {
@@ -292,16 +294,98 @@ Be concise, technical when needed, but always explain implications clearly.`;
                       functionResult = await getWorkOrderPriorities(supabase, organizationId, args.limit || 10);
                     }
 
-                    // Send function result back through stream
-                    const resultMessage = `\n\n[Function ${functionName} executed]\n\n`;
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-                      choices: [{ delta: { content: resultMessage } }]
-                    })}\n\n`));
+                    // Collect the tool call and result for follow-up
+                    collectedToolCalls.push({
+                      id: toolCall.id,
+                      type: 'function',
+                      function: {
+                        name: functionName,
+                        arguments: JSON.stringify(args)
+                      }
+                    });
+
+                    toolCallResults.push({
+                      role: 'tool',
+                      tool_call_id: toolCall.id,
+                      name: functionName,
+                      content: JSON.stringify(functionResult)
+                    });
                   }
                 }
               }
             } catch (e) {
               // Ignore parse errors for incomplete chunks
+            }
+          }
+        }
+
+        // If functions were called, make follow-up request with results
+        if (toolCallResults.length > 0) {
+          logWithCorrelation(correlationId, 'predictive-maintenance-ai', 'info', 
+            `Making follow-up request with ${toolCallResults.length} function results`);
+
+          // Build follow-up messages
+          const followUpMessages = [
+            { role: 'system', content: systemPrompt },
+            ...messages,
+            { 
+              role: 'assistant', 
+              content: fullResponse || null,
+              tool_calls: collectedToolCalls 
+            },
+            ...toolCallResults
+          ];
+
+          // Make follow-up API call
+          const followUpResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash',
+              messages: followUpMessages,
+              stream: true,
+            }),
+          });
+
+          if (!followUpResponse.ok) {
+            logWithCorrelation(correlationId, 'predictive-maintenance-ai', 'error', 
+              `Follow-up AI request failed with status ${followUpResponse.status}`);
+          } else {
+            // Stream the follow-up response
+            const followUpReader = followUpResponse.body?.getReader();
+            if (followUpReader) {
+              let followUpBuffer = '';
+
+              while (true) {
+                const { done, value } = await followUpReader.read();
+                if (done) break;
+
+                followUpBuffer += new TextDecoder().decode(value);
+                const lines = followUpBuffer.split('\n');
+                followUpBuffer = lines.pop() || '';
+
+                for (const line of lines) {
+                  if (!line.trim() || line.startsWith(':')) continue;
+                  if (!line.startsWith('data: ')) continue;
+
+                  const data = line.slice(6).trim();
+                  if (data === '[DONE]') continue;
+
+                  try {
+                    const parsed = JSON.parse(data);
+                    const content = parsed.choices?.[0]?.delta?.content;
+                    if (content) {
+                      fullResponse += content;
+                      controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+                    }
+                  } catch (e) {
+                    // Ignore parse errors
+                  }
+                }
+              }
             }
           }
         }
