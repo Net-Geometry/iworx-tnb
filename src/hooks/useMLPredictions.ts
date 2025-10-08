@@ -1,6 +1,5 @@
 /**
  * Hook: useMLPredictions
- * 
  * Fetches ML predictions for asset health scores and failure probabilities
  */
 
