@@ -24,9 +24,9 @@ export const usePredictiveAnalytics = () => {
     queryFn: async () => {
       if (!currentOrganization?.id) return [];
       
-      const { data, error } = await supabase.functions.invoke('api-gateway', {
+      const { data, error } = await supabase.functions.invoke('work-order-service', {
         body: {
-          path: '/api/work-orders/prioritized',
+          path: '/work-orders/prioritized',
           method: 'GET'
         }
       });
