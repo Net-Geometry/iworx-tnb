@@ -1,3 +1,4 @@
+// App Sidebar Navigation Component
 import {
   Settings,
   Wrench,
