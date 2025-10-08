@@ -7,18 +7,30 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Radio, Plus, Download, RefreshCw } from "lucide-react";
+import { Radio, Plus, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useIoTDevices } from "@/hooks/useIoTDevices";
+import { useIoTDevices, useDeleteIoTDevice } from "@/hooks/useIoTDevices";
 import { useIoTDeviceTypes } from "@/hooks/useIoTDeviceTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { IoTDeviceTable } from "@/components/iot-devices/IoTDeviceTable";
 import { IoTWebhookSetup } from "@/components/iot-devices/IoTWebhookSetup";
 import { IoTDeviceEditDialog } from "@/components/iot-devices/IoTDeviceEditDialog";
+import { IoTDeviceDetailsModal } from "@/components/iot-devices/IoTDeviceDetailsModal";
+import { IoTMeterMappingForm } from "@/components/iot-devices/IoTMeterMappingForm";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function IoTDevicesPage() {
   const navigate = useNavigate();
@@ -28,6 +40,11 @@ export default function IoTDevicesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [deviceTypeFilter, setDeviceTypeFilter] = useState<string>("all");
   const [editingDevice, setEditingDevice] = useState<any>(null);
+  const [viewingDevice, setViewingDevice] = useState<any>(null);
+  const [mappingDevice, setMappingDevice] = useState<any>(null);
+  const [deletingDevice, setDeletingDevice] = useState<any>(null);
+
+  const deleteDevice = useDeleteIoTDevice();
 
   const { data: devices = [], isLoading } = useIoTDevices(currentOrganization?.id);
   const { data: deviceTypes = [] } = useIoTDeviceTypes(currentOrganization?.id);
@@ -58,6 +75,17 @@ export default function IoTDevicesPage() {
     
     return matchesSearch && matchesStatus && matchesType;
   });
+
+  const handleDelete = async () => {
+    if (!deletingDevice) return;
+    
+    try {
+      await deleteDevice.mutateAsync(deletingDevice.id);
+      setDeletingDevice(null);
+    } catch (error) {
+      console.error("Failed to delete device:", error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -173,6 +201,9 @@ export default function IoTDevicesPage() {
             devices={filteredDevices} 
             isLoading={isLoading}
             onEdit={(device) => setEditingDevice(device)}
+            onViewDetails={(device) => setViewingDevice(device)}
+            onConfigureMapping={(device) => setMappingDevice(device)}
+            onDelete={(device) => setDeletingDevice(device)}
           />
         </CardContent>
       </Card>
@@ -190,6 +221,42 @@ export default function IoTDevicesPage() {
         onClose={() => setEditingDevice(null)}
         onSuccess={() => setEditingDevice(null)}
       />
+
+      {/* Device Details Modal */}
+      <IoTDeviceDetailsModal
+        device={viewingDevice}
+        isOpen={!!viewingDevice}
+        onClose={() => setViewingDevice(null)}
+      />
+
+      {/* Meter Mapping Form */}
+      <IoTMeterMappingForm
+        isOpen={!!mappingDevice}
+        onClose={() => setMappingDevice(null)}
+        deviceId={mappingDevice?.id}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingDevice} onOpenChange={() => setDeletingDevice(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete IoT Device</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{deletingDevice?.device_name}</strong>?
+              This action cannot be undone and will remove all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteDevice.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

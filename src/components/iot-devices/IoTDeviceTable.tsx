@@ -32,6 +32,9 @@ interface IoTDeviceTableProps {
   devices: IoTDevice[];
   isLoading?: boolean;
   onEdit?: (device: IoTDevice) => void;
+  onViewDetails?: (device: IoTDevice) => void;
+  onConfigureMapping?: (device: IoTDevice) => void;
+  onDelete?: (device: IoTDevice) => void;
 }
 
 function IoTDeviceStatusBadge({ device }: { device: IoTDevice }) {
@@ -66,7 +69,7 @@ function formatDevEUI(devEui: string): string {
   return devEui.match(/.{1,2}/g)?.join(':') || devEui;
 }
 
-export function IoTDeviceTable({ devices, isLoading, onEdit }: IoTDeviceTableProps) {
+export function IoTDeviceTable({ devices, isLoading, onEdit, onViewDetails, onConfigureMapping, onDelete }: IoTDeviceTableProps) {
   if (isLoading) {
     return <div className="text-center py-8 text-muted-foreground">Loading devices...</div>;
   }
@@ -146,13 +149,20 @@ export function IoTDeviceTable({ devices, isLoading, onEdit }: IoTDeviceTablePro
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>View Details</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onViewDetails?.(device)}>
+                      View Details
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onEdit?.(device)}>
                       Edit Configuration
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Configure Meter Mapping</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onConfigureMapping?.(device)}>
+                      Configure Meter Mapping
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive">
+                    <DropdownMenuItem 
+                      onClick={() => onDelete?.(device)}
+                      className="text-destructive"
+                    >
                       Delete Device
                     </DropdownMenuItem>
                   </DropdownMenuContent>

@@ -15,6 +15,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
+import { useIoTDevices } from "@/hooks/useIoTDevices";
+import { useMeters } from "@/hooks/useMeters";
+import { useCreateIoTMeterMapping } from "@/hooks/useIoTMeterMappings";
+import { useEffect, useState } from "react";
 
 const meterMappingSchema = z.object({
   device_id: z.string().uuid("Invalid device"),
@@ -39,6 +44,13 @@ interface IoTMeterMappingFormProps {
 }
 
 export function IoTMeterMappingForm({ isOpen, onClose, deviceId, meterId }: IoTMeterMappingFormProps) {
+  const { currentOrganization } = useAuth();
+  const { data: devices = [] } = useIoTDevices(currentOrganization?.id);
+  const { meters } = useMeters();
+  const createMapping = useCreateIoTMeterMapping();
+  const [selectedDevice, setSelectedDevice] = useState<any>(null);
+  const [availableMetrics, setAvailableMetrics] = useState<string[]>([]);
+
   const form = useForm<MeterMappingFormData>({
     resolver: zodResolver(meterMappingSchema),
     defaultValues: {
@@ -51,10 +63,44 @@ export function IoTMeterMappingForm({ isOpen, onClose, deviceId, meterId }: IoTM
     },
   });
 
+  // Update selected device and available metrics when device_id changes
+  useEffect(() => {
+    const deviceIdValue = form.watch("device_id");
+    if (deviceIdValue) {
+      const device = devices.find(d => d.id === deviceIdValue);
+      setSelectedDevice(device);
+      
+      // Extract metrics from device type sensor schema
+      if (device?.device_type?.sensor_schema?.measures) {
+        const metrics = Object.keys(device.device_type.sensor_schema.measures);
+        setAvailableMetrics(metrics);
+      } else {
+        setAvailableMetrics([]);
+      }
+    }
+  }, [form.watch("device_id"), devices]);
+
   const onSubmit = async (data: MeterMappingFormData) => {
-    console.log("Meter mapping data:", data);
-    // TODO: Implement meter mapping creation
-    onClose();
+    try {
+      await createMapping.mutateAsync({
+        device_id: data.device_id,
+        meter_id: data.meter_id,
+        metric_mapping: {
+          source_metric: data.source_metric,
+          multiplier: data.multiplier,
+          offset: data.offset,
+          min_value: data.min_value,
+          max_value: data.max_value,
+          warn_min: data.warn_min,
+          warn_max: data.warn_max,
+        },
+        is_active: data.is_active,
+        organization_id: currentOrganization?.id,
+      });
+      onClose();
+    } catch (error) {
+      console.error("Failed to create meter mapping:", error);
+    }
   };
 
   return (
@@ -77,14 +123,18 @@ export function IoTMeterMappingForm({ isOpen, onClose, deviceId, meterId }: IoTM
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>IoT Device *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={!!deviceId}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select device" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {/* TODO: Load devices */}
+                        {devices.map((device) => (
+                          <SelectItem key={device.id} value={device.id}>
+                            {device.device_name} ({device.dev_eui})
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -98,14 +148,18 @@ export function IoTMeterMappingForm({ isOpen, onClose, deviceId, meterId }: IoTM
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Target Meter *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={!!meterId}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select meter" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {/* TODO: Load meters */}
+                        {meters.map((meter) => (
+                          <SelectItem key={meter.id} value={meter.id}>
+                            {meter.meter_number} - {meter.description || meter.meter_type}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -119,16 +173,26 @@ export function IoTMeterMappingForm({ isOpen, onClose, deviceId, meterId }: IoTM
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Source Metric *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDevice}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select metric" />
+                          <SelectValue placeholder={selectedDevice ? "Select metric" : "Select device first"} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {/* TODO: Load from device type sensor schema */}
+                        {availableMetrics.map((metric) => (
+                          <SelectItem key={metric} value={metric}>
+                            {metric}
+                            {selectedDevice?.device_type?.sensor_schema?.measures[metric]?.unit && 
+                              ` (${selectedDevice.device_type.sensor_schema.measures[metric].unit})`
+                            }
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
+                    <FormDescription>
+                      The sensor metric from the IoT device to map to meter readings
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -297,8 +361,8 @@ export function IoTMeterMappingForm({ isOpen, onClose, deviceId, meterId }: IoTM
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit">
-                Save Mapping
+              <Button type="submit" disabled={createMapping.isPending}>
+                {createMapping.isPending ? "Saving..." : "Save Mapping"}
               </Button>
             </DialogFooter>
           </form>
