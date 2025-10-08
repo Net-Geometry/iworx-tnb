@@ -25,6 +25,7 @@ export const usePredictiveAnalytics = () => {
       if (!currentOrganization?.id) return [];
       
       const { data, error } = await supabase
+        .schema('workorder_service' as any)
         .rpc('get_prioritized_work_orders' as any, {
           _organization_id: currentOrganization.id,
           _limit: 10
