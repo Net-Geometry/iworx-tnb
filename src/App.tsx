@@ -15,6 +15,7 @@ import AuthPage from "./pages/AuthPage";
 import AssetsPage from "./pages/AssetsPage";
 import AssetDetailPage from "./pages/AssetDetailPage";
 import CreateAssetPage from "./pages/CreateAssetPage";
+import EditAssetPage from "./pages/EditAssetPage";
 import WorkOrdersPage from "./pages/WorkOrdersPage";
 import WorkOrderDetailPage from "./pages/WorkOrderDetailPage";
 import JobPlansPage from "./pages/JobPlansPage";
@@ -131,6 +132,13 @@ const App = () => (
               <AuthGuard>
                 <Layout>
                   <CreateAssetPage />
+                </Layout>
+              </AuthGuard>
+            } />
+            <Route path="/assets/:id/edit" element={
+              <AuthGuard>
+                <Layout>
+                  <EditAssetPage />
                 </Layout>
               </AuthGuard>
             } />

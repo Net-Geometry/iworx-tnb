@@ -123,7 +123,7 @@ const AssetDetailPage: React.FC = () => {
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => navigate(`/assets/${id}/edit`)}>
             <Edit className="w-4 h-4 mr-2" />
             Edit Asset
           </Button>

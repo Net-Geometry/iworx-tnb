@@ -110,7 +110,9 @@ export const useAssets = () => {
             status: asset.status as Asset['status'],
             criticality: asset.criticality as Asset['criticality'],
             location: nodeData ? nodeData.name : 'Unassigned',
-            hierarchy_path: nodeData ? (nodeData.path || nodeData.name) : 'Unassigned'
+            hierarchy_path: nodeData ? (nodeData.path || nodeData.name) : 'Unassigned',
+            model_3d_scale: asset.model_3d_scale as any,
+            model_3d_rotation: asset.model_3d_rotation as any,
           };
         });
 
