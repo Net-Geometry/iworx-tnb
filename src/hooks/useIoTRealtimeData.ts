@@ -10,22 +10,26 @@ export const useIoTRealtimeData = (deviceId?: string, maxReadings = 100) => {
   useEffect(() => {
     if (!deviceId) return;
 
-    // Fetch initial readings
+    // Fetch initial readings - using 'any' cast temporarily until Supabase types regenerate
     const fetchInitialReadings = async () => {
-      const { data, error } = await supabase
-        .from('iot_data')
-        .select('*')
-        .eq('device_id', deviceId)
-        .order('timestamp', { ascending: false })
-        .limit(maxReadings);
+      try {
+        const { data, error } = await (supabase as any)
+          .from('iot_data')
+          .select('*')
+          .eq('device_id', deviceId)
+          .order('timestamp', { ascending: false })
+          .limit(maxReadings);
 
-      if (error) {
-        console.error('Error fetching initial IoT readings:', error);
-        return;
-      }
+        if (error) {
+          console.error('Error fetching initial IoT readings:', error);
+          return;
+        }
 
-      if (data) {
-        setReadings(data as IoTData[]);
+        if (data) {
+          setReadings(data as IoTData[]);
+        }
+      } catch (err) {
+        console.error('Error in fetchInitialReadings:', err);
       }
     };
 

@@ -569,6 +569,195 @@ export type Database = {
           },
         ]
       }
+      iot_data: {
+        Row: {
+          created_at: string
+          device_id: string
+          id: string
+          lorawan_metadata: Json | null
+          metric_name: string
+          organization_id: string
+          timestamp: string
+          unit: string | null
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          id?: string
+          lorawan_metadata?: Json | null
+          metric_name: string
+          organization_id: string
+          timestamp?: string
+          unit?: string | null
+          value: number
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          id?: string
+          lorawan_metadata?: Json | null
+          metric_name?: string
+          organization_id?: string
+          timestamp?: string
+          unit?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iot_data_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "iot_devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      iot_device_meter_mappings: {
+        Row: {
+          created_at: string
+          device_id: string
+          id: string
+          is_active: boolean
+          meter_id: string
+          metric_mapping: Json
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          id?: string
+          is_active?: boolean
+          meter_id: string
+          metric_mapping?: Json
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          id?: string
+          is_active?: boolean
+          meter_id?: string
+          metric_mapping?: Json
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iot_device_meter_mappings_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "iot_devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      iot_device_types: {
+        Row: {
+          created_at: string
+          created_by: string
+          decoder_config: Json
+          description: string | null
+          id: string
+          is_active: boolean
+          manufacturer: string | null
+          model: string | null
+          name: string
+          organization_id: string
+          sensor_schema: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          decoder_config?: Json
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          manufacturer?: string | null
+          model?: string | null
+          name: string
+          organization_id: string
+          sensor_schema?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          decoder_config?: Json
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          manufacturer?: string | null
+          model?: string | null
+          name?: string
+          organization_id?: string
+          sensor_schema?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      iot_devices: {
+        Row: {
+          asset_id: string | null
+          created_at: string
+          created_by: string
+          dev_eui: string
+          device_identifier: string
+          device_name: string
+          device_type_id: string | null
+          id: string
+          last_seen_at: string | null
+          lorawan_config: Json
+          network_provider: Database["public"]["Enums"]["iot_network_provider"]
+          organization_id: string
+          status: Database["public"]["Enums"]["iot_device_status"]
+          updated_at: string
+        }
+        Insert: {
+          asset_id?: string | null
+          created_at?: string
+          created_by: string
+          dev_eui: string
+          device_identifier: string
+          device_name: string
+          device_type_id?: string | null
+          id?: string
+          last_seen_at?: string | null
+          lorawan_config?: Json
+          network_provider?: Database["public"]["Enums"]["iot_network_provider"]
+          organization_id: string
+          status?: Database["public"]["Enums"]["iot_device_status"]
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string | null
+          created_at?: string
+          created_by?: string
+          dev_eui?: string
+          device_identifier?: string
+          device_name?: string
+          device_type_id?: string | null
+          id?: string
+          last_seen_at?: string | null
+          lorawan_config?: Json
+          network_provider?: Database["public"]["Enums"]["iot_network_provider"]
+          organization_id?: string
+          status?: Database["public"]["Enums"]["iot_device_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iot_devices_device_type_id_fkey"
+            columns: ["device_type_id"]
+            isOneToOne: false
+            referencedRelation: "iot_device_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loto_procedures: {
         Row: {
           approval_required: boolean | null
@@ -6675,6 +6864,8 @@ export type Database = {
       frequency_type: "time_based" | "usage_based" | "condition_based"
       incident_severity: "low" | "medium" | "high" | "critical"
       incident_status: "reported" | "investigating" | "resolved" | "closed"
+      iot_device_status: "active" | "inactive" | "error"
+      iot_network_provider: "ttn" | "chirpstack" | "aws_iot_core"
       job_plan_status: "draft" | "active" | "under_review" | "archived"
       job_type:
         | "preventive"
@@ -6860,6 +7051,8 @@ export const Constants = {
       frequency_type: ["time_based", "usage_based", "condition_based"],
       incident_severity: ["low", "medium", "high", "critical"],
       incident_status: ["reported", "investigating", "resolved", "closed"],
+      iot_device_status: ["active", "inactive", "error"],
+      iot_network_provider: ["ttn", "chirpstack", "aws_iot_core"],
       job_plan_status: ["draft", "active", "under_review", "archived"],
       job_type: [
         "preventive",
