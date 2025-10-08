@@ -142,8 +142,19 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
     try {
       setLoading(true);
       
+      // Exclude individual XYZ fields that don't exist as columns
+      const {
+        model_3d_scale_x,
+        model_3d_scale_y,
+        model_3d_scale_z,
+        model_3d_rotation_x,
+        model_3d_rotation_y,
+        model_3d_rotation_z,
+        ...cleanFormData
+      } = formData;
+      
       const assetData = {
-        ...formData,
+        ...cleanFormData,
         health_score: existingAsset?.health_score || 100,
         hierarchy_node_id: formData.hierarchy_node_id || null,
         asset_number: formData.asset_number || null,
