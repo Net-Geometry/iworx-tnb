@@ -45,9 +45,8 @@ import { WorkOrderSkillMatchingPanel } from '@/components/work-orders/WorkOrderS
 import { useAssetMeterGroups } from '@/hooks/useAssetMeterGroups';
 import { useWorkOrderWorkflowProgress } from '@/hooks/useWorkOrderWorkflowProgress';
 import { WorkflowProgressTracker } from '@/components/workflow/WorkflowProgressTracker';
-import { RoleBasedActionButtons } from '@/components/workflow/RoleBasedActionButtons';
 import { WorkflowHistory } from '@/components/workflow/WorkflowHistory';
-import { ApprovalDialog } from '@/components/workflow/ApprovalDialog';
+import { WorkOrderWorkflowActions } from '@/components/work-orders/WorkOrderWorkflowActions';
 
 import type { Database } from '@/integrations/supabase/types';
 
@@ -81,8 +80,6 @@ const WorkOrderDetailPage: React.FC = () => {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
-  const [approvalAction, setApprovalAction] = useState<"approve" | "reject" | "reassign" | "escalate">("approve");
 
   const workOrder = workOrders.find(wo => wo.id === id);
   
@@ -244,34 +241,6 @@ const WorkOrderDetailPage: React.FC = () => {
     }
   };
 
-  // Handle workflow actions
-  const handleWorkflowApprove = () => {
-    setApprovalAction("approve");
-    setShowApprovalDialog(true);
-  };
-
-  const handleWorkflowReject = () => {
-    setApprovalAction("reject");
-    setShowApprovalDialog(true);
-  };
-
-  const handleWorkflowAssign = () => {
-    setApprovalAction("reassign");
-    setShowApprovalDialog(true);
-  };
-
-  const handleWorkflowTransition = () => {
-    setApprovalAction("approve");
-    setShowApprovalDialog(true);
-  };
-
-  const handleApprovalConfirm = async (comments: string) => {
-    // TODO: Implement workflow transition logic
-    toast({
-      title: "Action Submitted",
-      description: `Workflow action ${approvalAction} has been submitted.`,
-    });
-  };
 
   // Handle edit work order
   const handleEditWorkOrder = async (data: any) => {
@@ -716,19 +685,7 @@ const WorkOrderDetailPage: React.FC = () => {
                       
                       {currentStep && (
                         <div className="border-t pt-6">
-                          <h4 className="font-medium mb-4">Current Step: {currentStep.name}</h4>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            {currentStep.description}
-                          </p>
-                          <RoleBasedActionButtons
-                            currentStep={currentStep}
-                            workflowState={workflowState}
-                            steps={templateSteps}
-                            onApprove={handleWorkflowApprove}
-                            onReject={handleWorkflowReject}
-                            onAssign={handleWorkflowAssign}
-                            onTransition={handleWorkflowTransition}
-                          />
+                          <WorkOrderWorkflowActions workOrderId={id!} />
                         </div>
                       )}
                     </>
@@ -1367,17 +1324,6 @@ const WorkOrderDetailPage: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Approval Dialog */}
-      {showApprovalDialog && currentStep && (
-        <ApprovalDialog
-          open={showApprovalDialog}
-          onOpenChange={setShowApprovalDialog}
-          currentStep={currentStep}
-          nextStep={templateSteps.find(s => s.step_order === currentStep.step_order + 1)}
-          actionType={approvalAction}
-          onConfirm={handleApprovalConfirm}
-        />
-      )}
     </div>
   );
 };
