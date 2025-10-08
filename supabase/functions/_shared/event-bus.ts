@@ -189,6 +189,15 @@ export const DomainEvents = {
   WORKFLOW_TEMPLATE_CREATED: 'workflow.template_created',
   WORKFLOW_TEMPLATE_UPDATED: 'workflow.template_updated',
   WORKFLOW_TEMPLATE_DELETED: 'workflow.template_deleted',
+
+  // AI & Predictive Maintenance Events
+  ANOMALY_DETECTED: 'ai.anomaly_detected',
+  ANOMALY_ACKNOWLEDGED: 'ai.anomaly_acknowledged',
+  ANOMALY_RESOLVED: 'ai.anomaly_resolved',
+  ML_PREDICTION_GENERATED: 'ai.prediction_generated',
+  ASSET_HEALTH_DEGRADED: 'ai.health_degraded',
+  WORK_ORDER_AI_PRIORITIZED: 'ai.work_order_prioritized',
+  FAILURE_RISK_HIGH: 'ai.failure_risk_high',
 } as const;
 
 /**

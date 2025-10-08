@@ -4,9 +4,10 @@
  * Fetches ML predictions for asset health scores and failure probabilities
  */
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 export interface MLPrediction {
   id: string;
@@ -37,6 +38,7 @@ export interface MLPrediction {
 
 export const useMLPredictions = (assetId?: string, predictionType?: string) => {
   const { currentOrganization } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: predictions, isLoading, error } = useQuery({
     queryKey: ['ml-predictions', currentOrganization?.id, assetId, predictionType],
@@ -64,6 +66,31 @@ export const useMLPredictions = (assetId?: string, predictionType?: string) => {
     },
     enabled: !!currentOrganization?.id,
   });
+
+  // Set up real-time subscription for ml_predictions
+  useEffect(() => {
+    if (!currentOrganization?.id) return;
+
+    const channel = supabase
+      .channel('ml-predictions-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ml_predictions',
+          filter: `organization_id=eq.${currentOrganization.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['ml-predictions', currentOrganization.id, assetId, predictionType] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentOrganization?.id, assetId, predictionType, queryClient]);
 
   // Get latest predictions grouped by asset
   const latestPredictionsByAsset = predictions?.reduce((acc, prediction) => {

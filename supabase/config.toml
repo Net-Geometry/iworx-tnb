@@ -47,3 +47,12 @@ verify_jwt = true
 
 [functions.workflow-service]
 verify_jwt = true
+
+[functions.anomaly-detector]
+verify_jwt = false
+
+[functions.ml-predictor]
+verify_jwt = false
+
+[functions.work-order-ai-prioritizer]
+verify_jwt = false

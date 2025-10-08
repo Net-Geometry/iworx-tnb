@@ -7,12 +7,14 @@
 
 import { useMLPredictions } from "./useMLPredictions";
 import { useAnomalyDetections } from "./useAnomalyDetections";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 export const usePredictiveAnalytics = () => {
   const { currentOrganization } = useAuth();
+  const queryClient = useQueryClient();
   const { predictions, riskStats, isLoading: predictionsLoading } = useMLPredictions();
   const { anomalies, isLoading: anomaliesLoading } = useAnomalyDetections('active');
 
@@ -26,6 +28,31 @@ export const usePredictiveAnalytics = () => {
     },
     enabled: false, // Disabled until work order types updated
   });
+
+  // Set up real-time subscription for work_orders (AI priority updates)
+  useEffect(() => {
+    if (!currentOrganization?.id) return;
+
+    const channel = supabase
+      .channel('work-orders-ai-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'workorder_service',
+          table: 'work_orders',
+          filter: `organization_id=eq.${currentOrganization.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['ai-work-orders', currentOrganization.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentOrganization?.id, queryClient]);
 
   // Calculate overall health statistics
   const overallHealth = {
