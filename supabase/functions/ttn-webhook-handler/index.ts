@@ -184,8 +184,9 @@ serve(async (req) => {
     for (const [metricName, value] of Object.entries(decodedData)) {
       const metricConfig = sensorSchema[metricName] || {};
       
-      // Parse value to number if it's a string, skip if not numeric
+      // Parse value to number if it's a string
       let numericValue: number;
+      const extendedMetadata: any = { ...lorawanMetadata };
       
       if (typeof value === 'number') {
         numericValue = value;
@@ -193,13 +194,25 @@ serve(async (req) => {
         // Try to parse string to number
         const parsed = parseFloat(value);
         if (isNaN(parsed)) {
-          console.log(`[TTN Webhook] Skipping non-numeric value for ${metricName}: ${value}`);
-          continue; // Skip this metric
+          // Not a number - store original value in metadata
+          console.log(`[TTN Webhook] Storing non-numeric value for ${metricName} in metadata: ${value}`);
+          extendedMetadata.raw_value = value;
+          extendedMetadata.value_type = 'string';
+          // Use 0 as placeholder for required numeric field
+          numericValue = 0;
+        } else {
+          numericValue = parsed;
         }
-        numericValue = parsed;
+      } else if (typeof value === 'boolean') {
+        // Convert boolean to number (true=1, false=0)
+        numericValue = value ? 1 : 0;
+        extendedMetadata.raw_value = value;
+        extendedMetadata.value_type = 'boolean';
       } else {
-        console.log(`[TTN Webhook] Skipping non-numeric value for ${metricName}: ${value}`);
-        continue; // Skip this metric
+        console.log(`[TTN Webhook] Storing complex value for ${metricName} in metadata: ${JSON.stringify(value)}`);
+        extendedMetadata.raw_value = value;
+        extendedMetadata.value_type = typeof value;
+        numericValue = 0; // Placeholder
       }
       
       iotDataRecords.push({
@@ -208,7 +221,7 @@ serve(async (req) => {
         value: numericValue,
         unit: metricConfig.unit || null,
         timestamp: new Date().toISOString(),
-        lorawan_metadata: lorawanMetadata,
+        lorawan_metadata: extendedMetadata,
         organization_id: device.organization_id,
       });
     }
