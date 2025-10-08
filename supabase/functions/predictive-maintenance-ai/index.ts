@@ -408,7 +408,7 @@ async function analyzeMeterTrends(supabase: any, organizationId: string, assetId
  */
 async function getWorkOrderPriorities(supabase: any, organizationId: string, limit: number) {
   const { data, error } = await supabase
-    .from('work_orders')
+    .from('workorder_service.work_orders')
     .select('*')
     .eq('organization_id', organizationId)
     .not('ai_priority_score', 'is', null)
@@ -472,7 +472,7 @@ async function handleGetAnomalies(supabase: any, organizationId: string, correla
 
 async function handlePrioritizeWorkOrders(supabase: any, organizationId: string, correlationId: string) {
   const { data, error } = await supabase
-    .from('work_orders')
+    .from('workorder_service.work_orders')
     .select('*')
     .eq('organization_id', organizationId)
     .not('ai_priority_score', 'is', null)
