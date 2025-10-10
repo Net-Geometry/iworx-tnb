@@ -13,11 +13,13 @@ import { DigitalTwinCanvas } from '@/components/digital-twin/DigitalTwinCanvas';
 import { AssetInspectorPanel } from '@/components/digital-twin/AssetInspectorPanel';
 import { TimelineScrubber } from '@/components/digital-twin/TimelineScrubber';
 import { ScenarioBuilder } from '@/components/digital-twin/ScenarioBuilder';
+import { HierarchyFilterPanel } from '@/components/digital-twin/HierarchyFilterPanel';
 
 export default function DigitalTwinPage() {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('3d-view');
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const [selectedHierarchyNodeId, setSelectedHierarchyNodeId] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,7 +63,17 @@ export default function DigitalTwinPage() {
           </TabsList>
 
           {/* 3D Visualization Tab */}
-          <TabsContent value="3d-view" className="space-y-0">
+          <TabsContent value="3d-view" className="space-y-6">
+            {/* Hierarchy Filter Panel */}
+            <Card>
+              <CardContent className="p-4">
+                <HierarchyFilterPanel
+                  selectedNodeId={selectedHierarchyNodeId}
+                  onNodeSelect={setSelectedHierarchyNodeId}
+                />
+              </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               {/* Main 3D Canvas */}
               <div className="lg:col-span-3">
@@ -70,6 +82,7 @@ export default function DigitalTwinPage() {
                     <DigitalTwinCanvas
                       onAssetSelect={setSelectedAssetId}
                       selectedAssetId={selectedAssetId}
+                      hierarchyNodeId={selectedHierarchyNodeId}
                     />
                   </CardContent>
                 </Card>

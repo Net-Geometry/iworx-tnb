@@ -12,14 +12,16 @@ interface HierarchySceneProps {
   selectedAssetId?: string | null;
   historicalMode?: boolean;
   historicalTime?: Date;
+  hierarchyNodeId?: string | null;
 }
 
 export function HierarchyScene({
   onAssetSelect,
   selectedAssetId,
   historicalMode = false,
+  hierarchyNodeId,
 }: HierarchySceneProps) {
-  const { assets3D, isLoading } = useAsset3DPositions();
+  const { assets3D, isLoading } = useAsset3DPositions(hierarchyNodeId);
 
   if (isLoading) {
     return null;
