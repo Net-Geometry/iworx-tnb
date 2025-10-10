@@ -86,6 +86,7 @@ import HierarchyVisualizerPage from "./pages/hierarchy/HierarchyVisualizerPage";
 import ProfilePage from "./pages/ProfilePage";
 import HelpSystemDemo from "./pages/demo/HelpSystemDemo";
 import DigitalTwinDemo from "./pages/demo/DigitalTwinDemo";
+import TNBGridDemo from "./pages/demo/TNBGridDemo";
 import DigitalTwinPage from "./pages/DigitalTwinPage";
 import IoTDevicesPage from "./pages/IoTDevicesPage";
 import IoTDeviceDetailPage from "./pages/IoTDeviceDetailPage";
@@ -533,6 +534,11 @@ const App = () => (
                   <Layout>
                     <DigitalTwinDemo />
                   </Layout>
+                </AuthGuard>
+              } />
+              <Route path="/demo/tnb-grid" element={
+                <AuthGuard>
+                  <TNBGridDemo />
                 </AuthGuard>
               } />
 
