@@ -42,6 +42,10 @@ function Model3DContent({
   const size = new Vector3();
   boundingBox.getSize(size);
   
+  // Get center point of the model
+  const center = new Vector3();
+  boundingBox.getCenter(center);
+  
   const modelWidth = size.x || 1;
   const modelHeight = size.y || 1;
   const modelDepth = size.z || 1;
@@ -83,7 +87,7 @@ function Model3DContent({
       <primitive object={clonedScene} />
       
       {/* Status ring indicator */}
-      <mesh ref={ringRef} position={[0, ringYPosition, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh ref={ringRef} position={[center.x, ringYPosition, center.z]} rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[ringRadius, ringTubeSize, 16, 32]} />
         <meshStandardMaterial 
           color={statusColors[status]} 
@@ -96,7 +100,7 @@ function Model3DContent({
       
       {/* Asset name label */}
       <Text
-        position={[0, textYPosition, 0]}
+        position={[center.x, textYPosition, center.z]}
         fontSize={textFontSize}
         color="white"
         anchorX="center"
@@ -108,7 +112,7 @@ function Model3DContent({
       {/* Selection indicator */}
       {isSelected && (
         <Text
-          position={[0, selectionYPosition, 0]}
+          position={[center.x, selectionYPosition, center.z]}
           fontSize={textFontSize * 1.6}
           color="#10b981"
           anchorX="center"
