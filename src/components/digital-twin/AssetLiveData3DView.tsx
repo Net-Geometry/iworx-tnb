@@ -17,16 +17,26 @@ import { useAssetSensorTypes } from '@/hooks/useAssetSensorTypes';
 import { useCurrentUserRoles } from '@/hooks/useCurrentUserRoles';
 import { useGlobalAssetPreferences } from '@/hooks/useGlobalAssetPreferences';
 import { Badge } from '@/components/ui/badge';
-import { Settings2, Wifi, WifiOff } from 'lucide-react';
+import { Settings2, Wifi, WifiOff, Play, Pause, Maximize2, PanelRightOpen, Table2 } from 'lucide-react';
 import { useRealtimeIoTData } from '@/hooks/useRealtimeIoTData';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { LiveDataBottomPanel } from './LiveDataBottomPanel';
+import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface AssetLiveData3DViewProps {
   selectedAssetId?: string | null;
   onAssetChange?: (assetId: string) => void;
 }
+
+type ViewMode = 'full' | 'split' | 'table';
 
 export function AssetLiveData3DView({ 
   selectedAssetId, 
@@ -36,6 +46,8 @@ export function AssetLiveData3DView({
   const [tempSelectedSensorTypes, setTempSelectedSensorTypes] = useState<string[]>([]);
   const [saveAsGlobal, setSaveAsGlobal] = useState(false);
   const [selectedSensorId, setSelectedSensorId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('full');
+  const [isLivePaused, setIsLivePaused] = useState(false);
 
   const { data: sensorTypes = [] } = useAssetSensorTypes(selectedAssetId);
   const { preferences, isLoading, savePreferences, isSaving } = useAssetDisplayPreferences(selectedAssetId);
@@ -79,10 +91,26 @@ export function AssetLiveData3DView({
     setSelectedSensorId(sensorId === selectedSensorId ? null : sensorId);
   };
 
+  const getViewModeIcon = () => {
+    switch (viewMode) {
+      case 'full': return <Maximize2 className="w-4 h-4" />;
+      case 'split': return <PanelRightOpen className="w-4 h-4" />;
+      case 'table': return <Table2 className="w-4 h-4" />;
+    }
+  };
+
+  const getViewModeLabel = () => {
+    switch (viewMode) {
+      case 'full': return 'Full 3D';
+      case 'split': return 'Split View';
+      case 'table': return 'Table Only';
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header with controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex-1 max-w-md">
           <AssetSearchDropdown
             value={selectedAssetId || ""}
@@ -91,58 +119,158 @@ export function AssetLiveData3DView({
         </div>
         
         {selectedAssetId && (
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Live Status Badge */}
+            <div className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm",
+              isConnected 
+                ? "bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-400" 
+                : "bg-muted border-border"
+            )}>
               {isConnected ? (
                 <>
-                  <Wifi className="w-4 h-4 text-green-500" />
-                  <span className="text-muted-foreground">Live</span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="font-medium">LIVE</span>
+                  <Wifi className="w-3.5 h-3.5" />
                 </>
               ) : (
                 <>
-                  <WifiOff className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Offline</span>
+                  <WifiOff className="w-3.5 h-3.5" />
+                  <span>Offline</span>
                 </>
               )}
             </div>
+
+            {/* Pause/Resume Button */}
+            {isConnected && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsLivePaused(!isLivePaused)}
+              >
+                {isLivePaused ? (
+                  <>
+                    <Play className="w-4 h-4 mr-2" />
+                    Resume
+                  </>
+                ) : (
+                  <>
+                    <Pause className="w-4 h-4 mr-2" />
+                    Pause
+                  </>
+                )}
+              </Button>
+            )}
+
+            {/* View Mode Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  {getViewModeIcon()}
+                  <span className="ml-2">{getViewModeLabel()}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setViewMode('full')}>
+                  <Maximize2 className="w-4 h-4 mr-2" />
+                  Full 3D View
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setViewMode('split')}>
+                  <PanelRightOpen className="w-4 h-4 mr-2" />
+                  Split View
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setViewMode('table')}>
+                  <Table2 className="w-4 h-4 mr-2" />
+                  Table Only
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             
+            {/* Preference Source Badge */}
             {preferenceSource === 'user' && (
-              <Badge variant="secondary">Your Settings</Badge>
+              <Badge variant="secondary" className="text-xs">Your Settings</Badge>
             )}
             {preferenceSource === 'global' && (
-              <Badge variant="outline">Global Default</Badge>
+              <Badge variant="outline" className="text-xs">Global Default</Badge>
             )}
             
+            {/* Customize Button */}
             <Button onClick={handleDialogOpen} variant="outline" size="sm">
               <Settings2 className="w-4 h-4 mr-2" />
-              Customize Display
+              Customize
             </Button>
           </div>
         )}
       </div>
 
       {selectedAssetId ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* 3D Canvas - 2/3 width */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardContent className="p-0">
-                <DigitalTwinCanvas
-                  selectedAssetId={selectedAssetId}
-                  showIoTOverlays={true}
-                  selectedSensorTypes={Array.isArray(preferences?.selected_sensor_types) ? preferences.selected_sensor_types : []}
-                  onSensorClick={handleSensorClick}
-                  selectedSensorId={selectedSensorId}
-                />
-              </CardContent>
-            </Card>
-          </div>
+        <>
+          {/* Full 3D View Mode */}
+          {viewMode === 'full' && (
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="p-0">
+                  <DigitalTwinCanvas
+                    selectedAssetId={selectedAssetId}
+                    showIoTOverlays={true}
+                    selectedSensorTypes={Array.isArray(preferences?.selected_sensor_types) ? preferences.selected_sensor_types : []}
+                    onSensorClick={handleSensorClick}
+                    selectedSensorId={selectedSensorId}
+                  />
+                </CardContent>
+              </Card>
 
-          {/* Data Table - 1/3 width */}
-          <div className="lg:col-span-1">
-            <Card className="h-full">
+              {/* Bottom Info Panel */}
+              <LiveDataBottomPanel 
+                assetId={selectedAssetId}
+                sensorTypes={Array.isArray(preferences?.selected_sensor_types) ? preferences.selected_sensor_types : []}
+              />
+            </div>
+          )}
+
+          {/* Split View Mode */}
+          {viewMode === 'split' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* 3D Canvas - 2/3 width */}
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardContent className="p-0">
+                    <DigitalTwinCanvas
+                      selectedAssetId={selectedAssetId}
+                      showIoTOverlays={true}
+                      selectedSensorTypes={Array.isArray(preferences?.selected_sensor_types) ? preferences.selected_sensor_types : []}
+                      onSensorClick={handleSensorClick}
+                      selectedSensorId={selectedSensorId}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Data Table - 1/3 width */}
+              <div className="lg:col-span-1">
+                <Card className="h-full">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Live Sensor Data</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CustomizableAssetDataTable
+                      assetId={selectedAssetId}
+                      selectedSensorTypes={Array.isArray(preferences?.selected_sensor_types) ? preferences.selected_sensor_types : []}
+                      maxReadings={preferences?.max_readings_shown || 50}
+                      onRowClick={handleSensorClick}
+                      selectedSensorId={selectedSensorId}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {/* Table Only View Mode */}
+          {viewMode === 'table' && (
+            <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Live Sensor Data</CardTitle>
+                <CardTitle>Live Sensor Data</CardTitle>
               </CardHeader>
               <CardContent>
                 <CustomizableAssetDataTable
@@ -154,8 +282,8 @@ export function AssetLiveData3DView({
                 />
               </CardContent>
             </Card>
-          </div>
-        </div>
+          )}
+        </>
       ) : (
         <Card>
           <CardContent className="flex items-center justify-center h-[500px]">
