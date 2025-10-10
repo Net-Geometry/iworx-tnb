@@ -46,13 +46,17 @@ function Model3DContent({
   const modelHeight = size.y || 1;
   const modelDepth = size.z || 1;
   
-  // Dynamic dimensions
+  // Get actual min/max Y positions (handles any pivot point)
+  const minY = boundingBox.min.y;
+  const maxY = boundingBox.max.y;
+  
+  // Dynamic dimensions using actual bounding box edges
   const ringRadius = Math.max(modelWidth, modelDepth) * 0.6;
   const ringTubeSize = ringRadius * 0.06;
-  const ringYPosition = -modelHeight / 2 - 0.1;
-  const textYPosition = modelHeight / 2 + 0.5;
+  const ringYPosition = minY - 0.1;  // At actual bottom
+  const textYPosition = maxY + 0.5;   // Above actual top
   const textFontSize = Math.max(0.2, Math.min(0.5, modelWidth * 0.15));
-  const selectionYPosition = modelHeight / 2 + 1.0;
+  const selectionYPosition = maxY + 1.0;  // Above text
   
   // Status colors for ring indicator
   const statusColors = {
