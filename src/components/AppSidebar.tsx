@@ -106,6 +106,11 @@ const coreAssetModules = [
     url: "/iot-devices",
     icon: Radio,
   },
+  {
+    title: "Condition Monitoring",
+    url: "/condition-monitoring",
+    icon: Activity,
+  },
 ];
 
 // Work & Maintenance Operations modules

@@ -308,6 +308,194 @@ export type Database = {
         }
         Relationships: []
       }
+      condition_alarms: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          acknowledged_notes: string | null
+          alarm_type: string
+          asset_id: string | null
+          created_at: string | null
+          device_id: string | null
+          id: string
+          metric_name: string
+          organization_id: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          sensor_context: Json | null
+          status: string | null
+          threshold_id: string | null
+          threshold_value: number
+          triggered_value: number
+          updated_at: string | null
+          work_order_created_at: string | null
+          work_order_id: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          acknowledged_notes?: string | null
+          alarm_type: string
+          asset_id?: string | null
+          created_at?: string | null
+          device_id?: string | null
+          id?: string
+          metric_name: string
+          organization_id: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          sensor_context?: Json | null
+          status?: string | null
+          threshold_id?: string | null
+          threshold_value: number
+          triggered_value: number
+          updated_at?: string | null
+          work_order_created_at?: string | null
+          work_order_id?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          acknowledged_notes?: string | null
+          alarm_type?: string
+          asset_id?: string | null
+          created_at?: string | null
+          device_id?: string | null
+          id?: string
+          metric_name?: string
+          organization_id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          sensor_context?: Json | null
+          status?: string | null
+          threshold_id?: string | null
+          threshold_value?: number
+          triggered_value?: number
+          updated_at?: string | null
+          work_order_created_at?: string | null
+          work_order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "condition_alarms_threshold_id_fkey"
+            columns: ["threshold_id"]
+            isOneToOne: false
+            referencedRelation: "condition_thresholds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      condition_monitoring_history: {
+        Row: {
+          alarm_id: string | null
+          asset_id: string
+          device_id: string | null
+          health_status: string | null
+          id: string
+          metric_name: string
+          organization_id: string
+          recorded_at: string | null
+          threshold_id: string | null
+          unit: string | null
+          value: number
+        }
+        Insert: {
+          alarm_id?: string | null
+          asset_id: string
+          device_id?: string | null
+          health_status?: string | null
+          id?: string
+          metric_name: string
+          organization_id: string
+          recorded_at?: string | null
+          threshold_id?: string | null
+          unit?: string | null
+          value: number
+        }
+        Update: {
+          alarm_id?: string | null
+          asset_id?: string
+          device_id?: string | null
+          health_status?: string | null
+          id?: string
+          metric_name?: string
+          organization_id?: string
+          recorded_at?: string | null
+          threshold_id?: string | null
+          unit?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "condition_monitoring_history_alarm_id_fkey"
+            columns: ["alarm_id"]
+            isOneToOne: false
+            referencedRelation: "condition_alarms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "condition_monitoring_history_threshold_id_fkey"
+            columns: ["threshold_id"]
+            isOneToOne: false
+            referencedRelation: "condition_thresholds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      condition_thresholds: {
+        Row: {
+          asset_id: string | null
+          auto_create_work_order: boolean | null
+          created_at: string | null
+          created_by: string | null
+          critical_max: number | null
+          critical_min: number | null
+          device_id: string | null
+          enabled: boolean | null
+          id: string
+          metric_name: string
+          notification_emails: string[] | null
+          organization_id: string
+          updated_at: string | null
+          warning_max: number | null
+          warning_min: number | null
+        }
+        Insert: {
+          asset_id?: string | null
+          auto_create_work_order?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          critical_max?: number | null
+          critical_min?: number | null
+          device_id?: string | null
+          enabled?: boolean | null
+          id?: string
+          metric_name: string
+          notification_emails?: string[] | null
+          organization_id: string
+          updated_at?: string | null
+          warning_max?: number | null
+          warning_min?: number | null
+        }
+        Update: {
+          asset_id?: string | null
+          auto_create_work_order?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          critical_max?: number | null
+          critical_min?: number | null
+          device_id?: string | null
+          enabled?: boolean | null
+          id?: string
+          metric_name?: string
+          notification_emails?: string[] | null
+          organization_id?: string
+          updated_at?: string | null
+          warning_max?: number | null
+          warning_min?: number | null
+        }
+        Relationships: []
+      }
       cross_vertical_cost_insights: {
         Row: {
           content: string

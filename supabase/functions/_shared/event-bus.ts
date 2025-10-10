@@ -207,6 +207,16 @@ export const DomainEvents = {
   DEVICE_OFFLINE: 'iot.device_offline',
   DEVICE_THRESHOLD_EXCEEDED: 'iot.threshold_exceeded',
   METER_READING_AUTO_CREATED: 'iot.meter_reading_auto_created',
+
+  // Condition Monitoring Events
+  THRESHOLD_EXCEEDED: 'condition.threshold_exceeded',
+  ALARM_TRIGGERED: 'condition.alarm_triggered',
+  ALARM_ACKNOWLEDGED: 'condition.alarm_acknowledged',
+  ALARM_RESOLVED: 'condition.alarm_resolved',
+  CONDITION_CRITICAL: 'condition.critical',
+  CONDITION_WARNING: 'condition.warning',
+  CONDITION_NORMAL: 'condition.normal',
+  CBM_WORK_ORDER_CREATED: 'condition.work_order_created',
 } as const;
 
 /**

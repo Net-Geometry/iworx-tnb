@@ -1443,3 +1443,143 @@ export const workflowApi = {
     },
   },
 };
+
+/**
+ * Condition Monitoring Service API
+ */
+export const conditionMonitoringApi = {
+  async getMonitoredAssets(filters?: { status?: string; asset_type?: string }) {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.asset_type) params.append('asset_type', filters.asset_type);
+    
+    const response = await fetch(
+      `${API_GATEWAY_URL}/api/condition-monitoring/assets${params.toString() ? `?${params}` : ''}`,
+      { headers: await getAuthHeaders() }
+    );
+    if (!response.ok) throw new Error('Failed to fetch monitored assets');
+    return response.json();
+  },
+
+  async getAssetConditionStatus(assetId: string) {
+    const response = await fetch(
+      `${API_GATEWAY_URL}/api/condition-monitoring/assets/${assetId}/status`,
+      { headers: await getAuthHeaders() }
+    );
+    if (!response.ok) throw new Error('Failed to fetch asset condition status');
+    return response.json();
+  },
+
+  async getThresholds(filters?: { asset_id?: string; device_id?: string }) {
+    const params = new URLSearchParams();
+    if (filters?.asset_id) params.append('asset_id', filters.asset_id);
+    if (filters?.device_id) params.append('device_id', filters.device_id);
+    
+    const response = await fetch(
+      `${API_GATEWAY_URL}/api/condition-monitoring/thresholds${params.toString() ? `?${params}` : ''}`,
+      { headers: await getAuthHeaders() }
+    );
+    if (!response.ok) throw new Error('Failed to fetch thresholds');
+    return response.json();
+  },
+
+  async createThreshold(threshold: any) {
+    const response = await fetch(
+      `${API_GATEWAY_URL}/api/condition-monitoring/thresholds`,
+      {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(threshold),
+      }
+    );
+    if (!response.ok) throw new Error('Failed to create threshold');
+    return response.json();
+  },
+
+  async updateThreshold(id: string, updates: any) {
+    const response = await fetch(
+      `${API_GATEWAY_URL}/api/condition-monitoring/thresholds/${id}`,
+      {
+        method: 'PUT',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(updates),
+      }
+    );
+    if (!response.ok) throw new Error('Failed to update threshold');
+    return response.json();
+  },
+
+  async deleteThreshold(id: string) {
+    const response = await fetch(
+      `${API_GATEWAY_URL}/api/condition-monitoring/thresholds/${id}`,
+      {
+        method: 'DELETE',
+        headers: await getAuthHeaders(),
+      }
+    );
+    if (!response.ok) throw new Error('Failed to delete threshold');
+    return response.json();
+  },
+
+  async getAlarms(filters?: { status?: string; alarm_type?: string; asset_id?: string }) {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.alarm_type) params.append('alarm_type', filters.alarm_type);
+    if (filters?.asset_id) params.append('asset_id', filters.asset_id);
+    
+    const response = await fetch(
+      `${API_GATEWAY_URL}/api/condition-monitoring/alarms${params.toString() ? `?${params}` : ''}`,
+      { headers: await getAuthHeaders() }
+    );
+    if (!response.ok) throw new Error('Failed to fetch alarms');
+    return response.json();
+  },
+
+  async acknowledgeAlarm(alarmId: string, notes?: string) {
+    const response = await fetch(
+      `${API_GATEWAY_URL}/api/condition-monitoring/alarms/${alarmId}/acknowledge`,
+      {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ notes }),
+      }
+    );
+    if (!response.ok) throw new Error('Failed to acknowledge alarm');
+    return response.json();
+  },
+
+  async createWorkOrderFromAlarm(alarmId: string, workOrderData?: any) {
+    const response = await fetch(
+      `${API_GATEWAY_URL}/api/condition-monitoring/alarms/${alarmId}/create-work-order`,
+      {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(workOrderData || {}),
+      }
+    );
+    if (!response.ok) throw new Error('Failed to create work order');
+    return response.json();
+  },
+
+  async resolveAlarm(alarmId: string, notes?: string) {
+    const response = await fetch(
+      `${API_GATEWAY_URL}/api/condition-monitoring/alarms/${alarmId}/resolve`,
+      {
+        method: 'POST',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ notes }),
+      }
+    );
+    if (!response.ok) throw new Error('Failed to resolve alarm');
+    return response.json();
+  },
+
+  async getKPIs() {
+    const response = await fetch(
+      `${API_GATEWAY_URL}/api/condition-monitoring/kpis`,
+      { headers: await getAuthHeaders() }
+    );
+    if (!response.ok) throw new Error('Failed to fetch KPIs');
+    return response.json();
+  },
+};
