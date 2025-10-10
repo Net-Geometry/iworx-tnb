@@ -22,19 +22,11 @@ interface Asset3D {
   model_3d_rotation?: { x: number; y: number; z: number };
 }
 
-export const useAsset3DPositions = (hierarchyNodeId?: string | null) => {
+export const useAsset3DPositions = () => {
   const { assets, loading, error } = useAssets();
 
   // Transform assets to 3D positions
-  const assets3D: Asset3D[] = (assets || [])
-    .filter(asset => {
-      // If no filter, show all assets
-      if (!hierarchyNodeId) return true;
-      
-      // Show assets that match the selected hierarchy node
-      return asset.hierarchy_node_id === hierarchyNodeId;
-    })
-    .map((asset, index) => {
+  const assets3D: Asset3D[] = (assets || []).map((asset, index) => {
     // Distribute assets in a grid pattern
     // TODO: Use actual GPS/PostGIS data from asset_location_history
     const gridSize = Math.ceil(Math.sqrt(assets.length));
