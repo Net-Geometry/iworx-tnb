@@ -192,6 +192,13 @@ const App = () => (
               </Layout>
             </AuthGuard>
           } />
+          <Route path="/iot-devices/:deviceId" element={
+            <AuthGuard>
+              <Layout>
+                <IoTDeviceDetailPage />
+              </Layout>
+            </AuthGuard>
+          } />
           <Route path="/iot-devices" element={
             <AuthGuard>
               <Layout>
