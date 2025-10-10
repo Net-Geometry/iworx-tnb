@@ -12,24 +12,25 @@ import { Info } from 'lucide-react';
 
 interface MetricSelectorProps {
   deviceId?: string;
+  assetId?: string;
   value?: string;
   onValueChange: (value: string) => void;
   disabled?: boolean;
 }
 
-export function MetricSelector({ deviceId, value, onValueChange, disabled }: MetricSelectorProps) {
-  const { data: metrics, isLoading } = useDeviceSensorMetrics(deviceId);
+export function MetricSelector({ deviceId, assetId, value, onValueChange, disabled }: MetricSelectorProps) {
+  const { data: metrics, isLoading } = useDeviceSensorMetrics(deviceId, assetId);
 
   if (isLoading) {
     return <Skeleton className="h-10 w-full" />;
   }
 
-  const isDisabled = disabled || !deviceId || !metrics || metrics.length === 0;
+  const isDisabled = disabled || (!deviceId && !assetId) || !metrics || metrics.length === 0;
 
   return (
     <Select value={value} onValueChange={onValueChange} disabled={isDisabled}>
       <SelectTrigger>
-        <SelectValue placeholder={!deviceId ? "Select device first" : "Select a metric"} />
+        <SelectValue placeholder={!deviceId && !assetId ? "Select asset first" : "Select a metric"} />
       </SelectTrigger>
       <SelectContent className="bg-background">
         {metrics && metrics.map((metric) => (

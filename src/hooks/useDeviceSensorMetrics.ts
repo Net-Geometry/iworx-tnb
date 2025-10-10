@@ -5,18 +5,40 @@ import type { SensorMetric } from '@/types/condition-monitoring';
 /**
  * Hook to fetch available sensor metrics from a device's sensor schema
  * Extracts metric information from the device type's sensor_schema
+ * If deviceId is provided, fetches from that device
+ * If only assetId is provided, fetches from first active device on the asset
  */
-export const useDeviceSensorMetrics = (deviceId?: string) => {
+export const useDeviceSensorMetrics = (deviceId?: string, assetId?: string) => {
   return useQuery({
-    queryKey: ['device-sensor-metrics', deviceId],
+    queryKey: ['device-sensor-metrics', deviceId, assetId],
     queryFn: async (): Promise<SensorMetric[]> => {
-      if (!deviceId) return [];
+      let data: any;
+      let error: any;
 
-      const { data, error } = await supabase
-        .from('iot_devices')
-        .select('device_type:iot_device_types(sensor_schema)')
-        .eq('id', deviceId)
-        .single();
+      // Priority 1: If device is specified, use that device
+      if (deviceId) {
+        const result = await supabase
+          .from('iot_devices')
+          .select('device_type:iot_device_types(sensor_schema)')
+          .eq('id', deviceId)
+          .single();
+        data = result.data;
+        error = result.error;
+      } 
+      // Priority 2: If no device but asset is specified, fetch from any device on that asset
+      else if (assetId) {
+        const result = await supabase
+          .from('iot_devices')
+          .select('device_type:iot_device_types(sensor_schema)')
+          .eq('asset_id', assetId)
+          .eq('status', 'active')
+          .limit(1)
+          .maybeSingle();
+        data = result.data;
+        error = result.error;
+      } else {
+        return [];
+      }
 
       if (error) {
         console.error('[useDeviceSensorMetrics] Error:', error);
@@ -40,7 +62,7 @@ export const useDeviceSensorMetrics = (deviceId?: string) => {
 
       return metrics;
     },
-    enabled: !!deviceId,
+    enabled: !!(deviceId || assetId),
     staleTime: 60000, // Cache for 60 seconds (schema changes rarely)
   });
 };

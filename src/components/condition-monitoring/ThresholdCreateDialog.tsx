@@ -202,11 +202,12 @@ export function ThresholdCreateDialog({ open, onOpenChange }: ThresholdCreateDia
                   <FormControl>
                     <MetricSelector
                       deviceId={selectedDevice}
+                      assetId={selectedAsset}
                       value={field.value}
                       onValueChange={field.onChange}
                     />
                   </FormControl>
-                  <FormDescription>Select the sensor metric to monitor</FormDescription>
+                  <FormDescription>Select the sensor metric to monitor from asset's devices</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
