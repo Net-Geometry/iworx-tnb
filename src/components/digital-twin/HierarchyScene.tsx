@@ -19,16 +19,20 @@ export function HierarchyScene({
   selectedAssetId,
   historicalMode = false,
 }: HierarchySceneProps) {
-  const { assets3D, isLoading } = useAsset3DPositions();
+  // Only fetch assets when one is selected
+  const { assets3D, isLoading } = useAsset3DPositions(!!selectedAssetId);
+
+  // Don't load any models until an asset is selected
+  if (!selectedAssetId) {
+    return null;
+  }
 
   if (isLoading) {
     return null;
   }
 
-  // Filter assets: show only selected asset, or all if none selected
-  const displayedAssets = selectedAssetId 
-    ? assets3D.filter(asset => asset.id === selectedAssetId)
-    : assets3D;
+  // Show only the selected asset
+  const displayedAssets = assets3D.filter(asset => asset.id === selectedAssetId);
 
   return (
     <group>

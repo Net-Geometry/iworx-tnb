@@ -22,8 +22,8 @@ interface Asset3D {
   model_3d_rotation?: { x: number; y: number; z: number };
 }
 
-export const useAsset3DPositions = () => {
-  const { assets, loading, error } = useAssets();
+export const useAsset3DPositions = (enabled: boolean = true) => {
+  const { assets, loading, error } = useAssets(enabled);
 
   // Transform assets to 3D positions
   const assets3D: Asset3D[] = (assets || []).map((asset, index) => {

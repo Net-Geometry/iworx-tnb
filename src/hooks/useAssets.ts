@@ -40,7 +40,7 @@ export interface Asset {
   model_3d_rotation?: { x: number; y: number; z: number };
 }
 
-export const useAssets = () => {
+export const useAssets = (enabled: boolean = true) => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -196,10 +196,10 @@ export const useAssets = () => {
   };
 
   useEffect(() => {
-    if (currentOrganization || hasCrossProjectAccess) {
+    if (enabled && (currentOrganization || hasCrossProjectAccess)) {
       fetchAssets();
     }
-  }, [currentOrganization?.id, hasCrossProjectAccess]);
+  }, [enabled, currentOrganization?.id, hasCrossProjectAccess]);
 
   return {
     assets,
