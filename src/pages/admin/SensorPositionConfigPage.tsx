@@ -86,7 +86,7 @@ export default function SensorPositionConfigPage() {
     const sensor = sensorPositions.find((s) => s.id === sensorId);
     if (sensor?.deviceId) {
       updatePosition.mutate(
-        { deviceId: sensor.deviceId, position: { x: 0, y: 0, z: 0 } },
+        { deviceId: sensor.deviceId, position: null },
         {
           onSuccess: () => {
             toast.success("Sensor position removed");

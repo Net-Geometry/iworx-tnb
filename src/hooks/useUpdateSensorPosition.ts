@@ -16,7 +16,7 @@ interface SensorPosition3D {
 
 interface UpdateSensorPositionParams {
   deviceId: string;
-  position: SensorPosition3D;
+  position: SensorPosition3D | null;
 }
 
 export const useUpdateSensorPosition = () => {
