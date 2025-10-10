@@ -91,6 +91,7 @@ import DigitalTwinPage from "./pages/DigitalTwinPage";
 import IoTDevicesPage from "./pages/IoTDevicesPage";
 import IoTDeviceDetailPage from "./pages/IoTDeviceDetailPage";
 import RegisterIoTDevicePage from "./pages/RegisterIoTDevicePage";
+import ConditionMonitoringPage from "./pages/ConditionMonitoringPage";
 
 const queryClient = new QueryClient();
 
@@ -205,6 +206,13 @@ const App = () => (
             <AuthGuard>
               <Layout>
                 <IoTDevicesPage />
+              </Layout>
+            </AuthGuard>
+          } />
+          <Route path="/condition-monitoring" element={
+            <AuthGuard>
+              <Layout>
+                <ConditionMonitoringPage />
               </Layout>
             </AuthGuard>
           } />
