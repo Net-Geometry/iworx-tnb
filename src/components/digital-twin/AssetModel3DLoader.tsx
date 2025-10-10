@@ -55,9 +55,8 @@ function Model3DContent({
   const maxY = boundingBox.max.y;
   
   // Dynamic dimensions using actual bounding box edges
-  const ringRadius = Math.max(modelWidth, modelDepth) * 0.6;
-  const ringTubeSize = ringRadius * 0.06;
-  const ringYPosition = minY - 0.1;  // At actual bottom
+  const projectionRadius = Math.max(modelWidth, modelDepth) * 0.7;
+  const projectionYPosition = minY - 0.05;  // Just below the model
   const textYPosition = maxY + 0.5;   // Above actual top
   const textFontSize = Math.max(0.2, Math.min(0.5, modelWidth * 0.15));
   const selectionYPosition = maxY + 1.0;  // Above text
@@ -70,10 +69,11 @@ function Model3DContent({
     offline: '#6b7280'
   };
 
-  // Animate ring rotation
-  useFrame((state, delta) => {
+  // Animate pulsing effect
+  useFrame((state) => {
     if (ringRef.current) {
-      ringRef.current.rotation.z += delta * 0.5;
+      const pulse = Math.sin(state.clock.elapsedTime * 2) * 0.1 + 0.9;
+      ringRef.current.material.opacity = pulse * 0.4;
     }
   });
 
@@ -86,15 +86,14 @@ function Model3DContent({
     >
       <primitive object={clonedScene} />
       
-      {/* Status ring indicator */}
-      <mesh ref={ringRef} position={[center.x, ringYPosition, center.z]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[ringRadius, ringTubeSize, 16, 32]} />
-        <meshStandardMaterial 
+      {/* Ground projection circle indicator */}
+      <mesh ref={ringRef} position={[center.x, projectionYPosition, center.z]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[projectionRadius, 64]} />
+        <meshBasicMaterial 
           color={statusColors[status]} 
-          emissive={statusColors[status]}
-          emissiveIntensity={0.5}
-          metalness={0.8}
-          roughness={0.2}
+          transparent
+          opacity={0.3}
+          depthWrite={false}
         />
       </mesh>
       
