@@ -61,17 +61,6 @@ export function AssetModel3D({ asset, position, isSelected, onClick }: AssetMode
           name={asset.name}
           onClick={onClick}
         />
-        {isSelected && (
-          <Text
-            position={[position[0], position[1] + 3, position[2]]}
-            fontSize={0.4}
-            color="#10b981"
-            anchorX="center"
-            anchorY="middle"
-          >
-            ▼ SELECTED
-          </Text>
-        )}
       </group>
     );
   }
@@ -85,17 +74,6 @@ export function AssetModel3D({ asset, position, isSelected, onClick }: AssetMode
           name={asset.name}
           onClick={onClick}
         />
-        {isSelected && (
-          <Text
-            position={[position[0], position[1] + 2.5, position[2]]}
-            fontSize={0.4}
-            color="#10b981"
-            anchorX="center"
-            anchorY="middle"
-          >
-            ▼ SELECTED
-          </Text>
-        )}
       </group>
     );
   }
@@ -109,17 +87,6 @@ export function AssetModel3D({ asset, position, isSelected, onClick }: AssetMode
           name={asset.name}
           onClick={onClick}
         />
-        {isSelected && (
-          <Text
-            position={[position[0], position[1] + 2, position[2]]}
-            fontSize={0.4}
-            color="#10b981"
-            anchorX="center"
-            anchorY="middle"
-          >
-            ▼ SELECTED
-          </Text>
-        )}
       </group>
     );
   }
@@ -144,17 +111,6 @@ export function AssetModel3D({ asset, position, isSelected, onClick }: AssetMode
       >
         {asset.name}
       </Text>
-      {isSelected && (
-        <Text
-          position={[0, 2.5, 0]}
-          fontSize={0.4}
-          color="#10b981"
-          anchorX="center"
-          anchorY="middle"
-        >
-          ▼ SELECTED
-        </Text>
-      )}
     </group>
   );
 }

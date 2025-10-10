@@ -107,19 +107,6 @@ function Model3DContent({
       >
         {name}
       </Text>
-
-      {/* Selection indicator */}
-      {isSelected && (
-        <Text
-          position={[center.x, selectionYPosition, center.z]}
-          fontSize={textFontSize * 1.6}
-          color="#10b981"
-          anchorX="center"
-          anchorY="middle"
-        >
-          ▼ SELECTED
-        </Text>
-      )}
     </group>
   );
 }
