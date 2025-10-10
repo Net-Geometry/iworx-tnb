@@ -88,19 +88,32 @@ serve(async (req) => {
     if (path.startsWith("/devices/") && req.method === "GET" && !path.includes("/data") && !path.includes("/health")) {
       const deviceId = path.split("/")[2];
 
-      const { data, error } = await supabase
+      // Fetch device with device_type relationship
+      const { data: device, error } = await supabase
         .from("iot_devices")
         .select(`
           *,
-          device_type:iot_device_types(*),
-          asset:assets(id, name, asset_number)
+          device_type:iot_device_types(*)
         `)
         .eq("id", deviceId)
         .single();
 
       if (error) throw error;
 
-      return new Response(JSON.stringify(data), {
+      // If device has asset_id, fetch asset separately (more resilient to missing FK)
+      if (device?.asset_id) {
+        const { data: asset } = await supabase
+          .from("assets")
+          .select("id, name, asset_number")
+          .eq("id", device.asset_id)
+          .single();
+        
+        if (asset) {
+          device.asset = asset;
+        }
+      }
+
+      return new Response(JSON.stringify(device), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
