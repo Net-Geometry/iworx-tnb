@@ -8,6 +8,7 @@ import React, { Suspense, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { Text } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
+import { Box3, Vector3 } from 'three';
 
 interface AssetModel3DLoaderProps {
   modelUrl: string;
@@ -36,6 +37,23 @@ function Model3DContent({
   // Clone scene to avoid reusing the same geometry
   const clonedScene = scene.clone();
   
+  // Calculate bounding box for dynamic positioning
+  const boundingBox = new Box3().setFromObject(clonedScene);
+  const size = new Vector3();
+  boundingBox.getSize(size);
+  
+  const modelWidth = size.x || 1;
+  const modelHeight = size.y || 1;
+  const modelDepth = size.z || 1;
+  
+  // Dynamic dimensions
+  const ringRadius = Math.max(modelWidth, modelDepth) * 0.6;
+  const ringTubeSize = ringRadius * 0.06;
+  const ringYPosition = -modelHeight / 2 - 0.1;
+  const textYPosition = modelHeight / 2 + 0.5;
+  const textFontSize = Math.max(0.2, Math.min(0.5, modelWidth * 0.15));
+  const selectionYPosition = modelHeight / 2 + 1.0;
+  
   // Status colors for ring indicator
   const statusColors = {
     operational: '#10b981',
@@ -61,8 +79,8 @@ function Model3DContent({
       <primitive object={clonedScene} />
       
       {/* Status ring indicator */}
-      <mesh ref={ringRef} position={[0, -0.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.2, 0.08, 16, 32]} />
+      <mesh ref={ringRef} position={[0, ringYPosition, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[ringRadius, ringTubeSize, 16, 32]} />
         <meshStandardMaterial 
           color={statusColors[status]} 
           emissive={statusColors[status]}
@@ -74,8 +92,8 @@ function Model3DContent({
       
       {/* Asset name label */}
       <Text
-        position={[0, 2, 0]}
-        fontSize={0.25}
+        position={[0, textYPosition, 0]}
+        fontSize={textFontSize}
         color="white"
         anchorX="center"
         anchorY="middle"
@@ -86,8 +104,8 @@ function Model3DContent({
       {/* Selection indicator */}
       {isSelected && (
         <Text
-          position={[0, 2.5, 0]}
-          fontSize={0.4}
+          position={[0, selectionYPosition, 0]}
+          fontSize={textFontSize * 1.6}
           color="#10b981"
           anchorX="center"
           anchorY="middle"
