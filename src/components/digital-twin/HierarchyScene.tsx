@@ -25,9 +25,14 @@ export function HierarchyScene({
     return null;
   }
 
+  // Filter assets: show only selected asset, or all if none selected
+  const displayedAssets = selectedAssetId 
+    ? assets3D.filter(asset => asset.id === selectedAssetId)
+    : assets3D;
+
   return (
     <group>
-      {assets3D.map((asset) => (
+      {displayedAssets.map((asset) => (
         <AssetModel3D
           key={asset.id}
           asset={asset}

@@ -68,9 +68,9 @@ export function AssetSearchDropdown({ value, onValueChange }: AssetSearchDropdow
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <StatusBadge status={selectedAsset.status} size="sm" />
+                    <StatusBadge status={selectedAsset.status} />
                     {selectedAsset.health_score !== undefined && (
-                      <HealthIndicator score={selectedAsset.health_score} size="sm" />
+                      <HealthIndicator score={selectedAsset.health_score} />
                     )}
                   </div>
                 </div>
@@ -146,9 +146,9 @@ export function AssetSearchDropdown({ value, onValueChange }: AssetSearchDropdow
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <StatusBadge status={asset.status} size="sm" />
+                          <StatusBadge status={asset.status} />
                           {asset.health_score !== undefined && (
-                            <HealthIndicator score={asset.health_score} size="sm" />
+                            <HealthIndicator score={asset.health_score} />
                           )}
                           {asset.model_3d_url && (
                             <Badge variant="secondary" className="text-xs">
