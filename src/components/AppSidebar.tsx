@@ -45,6 +45,7 @@ import {
   HelpCircle,
   Rocket,
   Radio,
+  Zap,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -216,6 +217,7 @@ const systemAdminModules = [
 const demoModules = [
   { title: "Help System Demo", url: "/demo/help-system", icon: Rocket },
   { title: "Digital Twin Demo", url: "/demo/digital-twin", icon: Layers },
+  { title: "TNB Grid Demo", url: "/demo/tnb-grid", icon: Zap },
 ];
 
 export function AppSidebar() {
