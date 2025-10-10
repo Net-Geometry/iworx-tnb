@@ -22,11 +22,15 @@ import {
   Users, 
   AlertTriangle,
   Power,
-  Database
+  Database,
+  ChevronLeft
 } from 'lucide-react';
 import { GridVisualization3D } from './tnb-grid/components/GridVisualization3D';
 import { GridInspectorPanel } from './tnb-grid/components/GridInspectorPanel';
+import { GridBreadcrumbs } from './tnb-grid/components/GridBreadcrumbs';
 import { useMockGridData } from './tnb-grid/hooks/useMockGridData';
+import { useGridNavigation } from './tnb-grid/hooks/useGridNavigation';
+import type { NavigationNode } from './tnb-grid/hooks/useGridNavigation';
 import { mockGridZones } from './tnb-grid/mock-data/mockGridData';
 
 export default function TNBGridDemo() {
@@ -36,6 +40,7 @@ export default function TNBGridDemo() {
   const [activeTab, setActiveTab] = useState('grid-viz');
 
   const { substations, powerLines } = useMockGridData();
+  const { navigationStack, currentLevel, isAtRoot, drillDown, navigateUp, navigateToLevel } = useGridNavigation();
 
   const selectedSubstation = substations.find(s => s.id === selectedSubstationId);
   const selectedLine = powerLines.find(l => l.id === selectedLineId);
@@ -53,6 +58,25 @@ export default function TNBGridDemo() {
   const handleClose = () => {
     setSelectedSubstationId(null);
     setSelectedLineId(null);
+  };
+
+  const handleItemClick = (item: any) => {
+    const navNode: NavigationNode = {
+      id: item.id,
+      name: item.name,
+      type: item.type || 'substation',
+      level: currentLevel.level + 1,
+      position: item.position,
+    };
+    
+    drillDown(navNode);
+    
+    if (item.type === 'substation') {
+      setSelectedSubstationId(item.id);
+      setSelectedLineId(null);
+    } else if (item.type === 'equipment') {
+      setSelectedSubstationId(item.id);
+    }
   };
 
   // Calculate statistics
@@ -214,10 +238,27 @@ export default function TNBGridDemo() {
               <div className="lg:col-span-2">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">3D Grid View</CardTitle>
-                    <CardDescription>
-                      Click and drag to rotate • Scroll to zoom • Click equipment for details
-                    </CardDescription>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <CardTitle className="text-lg">3D Grid View</CardTitle>
+                        <CardDescription>
+                          {isAtRoot ? 'Click equipment to drill down' : 'Exploring substation interior'}
+                        </CardDescription>
+                      </div>
+                      
+                      {!isAtRoot && (
+                        <Button variant="outline" onClick={navigateUp} size="sm">
+                          <ChevronLeft className="mr-2 h-4 w-4" />
+                          Back
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {/* Breadcrumb Navigation */}
+                    <GridBreadcrumbs 
+                      navigationStack={navigationStack}
+                      onNavigate={navigateToLevel}
+                    />
                   </CardHeader>
                   <CardContent>
                     <GridVisualization3D
@@ -225,7 +266,9 @@ export default function TNBGridDemo() {
                       selectedLineId={selectedLineId}
                       onSubstationClick={handleSubstationClick}
                       onLineClick={handleLineClick}
-                      showLoadFlow={showLoadFlow}
+                      showLoadFlow={showLoadFlow && isAtRoot}
+                      currentLevel={currentLevel}
+                      onItemClick={handleItemClick}
                     />
                   </CardContent>
                 </Card>

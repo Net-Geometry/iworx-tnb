@@ -4,6 +4,9 @@
  * Simulated electrical grid data for demonstration
  */
 
+import type { SubstationEquipment } from './mockEquipmentData';
+import { klMainIntakeEquipment, petalingJayaEquipment } from './mockEquipmentData';
+
 export interface GridSubstation {
   id: string;
   name: string;
@@ -14,6 +17,7 @@ export interface GridSubstation {
   current_load_mva: number;
   customers_served: number;
   type: 'main_intake' | 'primary_distribution' | 'secondary_distribution';
+  children?: SubstationEquipment[];
 }
 
 export interface GridPowerLine {
@@ -46,6 +50,7 @@ export const mockSubstations: GridSubstation[] = [
     current_load_mva: 1200,
     customers_served: 150000,
     type: 'main_intake',
+    children: klMainIntakeEquipment,
   },
   {
     id: 'sub_002',
@@ -57,6 +62,7 @@ export const mockSubstations: GridSubstation[] = [
     current_load_mva: 650,
     customers_served: 80000,
     type: 'primary_distribution',
+    children: petalingJayaEquipment,
   },
   {
     id: 'sub_003',
