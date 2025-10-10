@@ -36,6 +36,7 @@ export function AssetLiveDataPanel({ assetId, assetName }: AssetLiveDataPanelPro
 
   const { preferences, isLoading: prefsLoading, savePreferences, isSaving } = useAssetDisplayPreferences(assetId);
   const { data: availableSensorTypes = [], isLoading: typesLoading } = useAssetSensorTypes(assetId);
+  const typedSensorTypes = availableSensorTypes as string[];
   const { saveGlobalDefaults, isSaving: isSavingGlobal } = useGlobalAssetPreferences(assetId);
   const { readings: readingsMap, isConnected } = useRealtimeIoTData(assetId ? [assetId] : []);
   const { roles } = useCurrentUserRoles();
@@ -133,7 +134,7 @@ export function AssetLiveDataPanel({ assetId, assetName }: AssetLiveDataPanelPro
                 </div>
               ) : (
                 <AssetMetricSelector
-                  availableSensorTypes={availableSensorTypes}
+                  availableSensorTypes={typedSensorTypes}
                   selectedSensorTypes={tempSelectedSensorTypes}
                   onSelectionChange={setTempSelectedSensorTypes}
                   showSaveAsGlobal={isAdmin}

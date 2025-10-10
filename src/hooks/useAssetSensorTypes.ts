@@ -31,7 +31,8 @@ export const useAssetSensorTypes = (assetId: string | null) => {
       return uniqueTypes;
     },
     enabled: !!assetId,
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache results (formerly cacheTime)
     refetchOnWindowFocus: true, // Refetch when window regains focus
   });
 };

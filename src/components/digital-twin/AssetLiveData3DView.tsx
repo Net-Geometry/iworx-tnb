@@ -56,9 +56,11 @@ export function AssetLiveData3DView({
   const { data: sensorTypesFromSchema = [] } = useDeviceSensorSchema(selectedAssetId);
   
   // Merge sensor types: prefer actual readings but fallback to schema if readings are limited
-  const sensorTypes = sensorTypesFromReadings.length > 0 
-    ? [...new Set([...sensorTypesFromReadings, ...sensorTypesFromSchema])] // Merge both sources
-    : sensorTypesFromSchema;
+  const sensorTypes: string[] = (sensorTypesFromReadings as string[]).length > 0 
+    ? [...new Set([...(sensorTypesFromReadings as string[]), ...(sensorTypesFromSchema as string[])])] // Merge both sources
+    : (sensorTypesFromSchema as string[]);
+
+  console.log('[AssetLiveData3DView] Merged sensorTypes:', sensorTypes);
 
   const { preferences, isLoading, savePreferences, isSaving } = useAssetDisplayPreferences(selectedAssetId);
   const { saveGlobalDefaults } = useGlobalAssetPreferences(selectedAssetId);
@@ -71,8 +73,12 @@ export function AssetLiveData3DView({
   // Force refetch sensor types when asset changes
   useEffect(() => {
     if (selectedAssetId) {
+      console.log('[AssetLiveData3DView] Invalidating and refetching queries for asset:', selectedAssetId);
       queryClient.invalidateQueries({ queryKey: ["asset-sensor-types", selectedAssetId] });
       queryClient.invalidateQueries({ queryKey: ["device-sensor-schema", selectedAssetId] });
+      // Force immediate refetch
+      queryClient.refetchQueries({ queryKey: ["asset-sensor-types", selectedAssetId] });
+      queryClient.refetchQueries({ queryKey: ["device-sensor-schema", selectedAssetId] });
     }
   }, [selectedAssetId, queryClient]);
 
