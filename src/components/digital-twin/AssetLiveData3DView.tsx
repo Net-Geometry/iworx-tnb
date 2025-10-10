@@ -4,7 +4,7 @@
  * Main component for Live IoT Data tab with 3D visualization
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DigitalTwinCanvas } from './DigitalTwinCanvas';
 import { AssetSearchDropdown } from './AssetSearchDropdown';
@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { AssetMetricSelector } from './AssetMetricSelector';
 import { useAssetDisplayPreferences } from '@/hooks/useAssetDisplayPreferences';
 import { useAssetSensorTypes } from '@/hooks/useAssetSensorTypes';
+import { useDeviceSensorSchema } from '@/hooks/useDeviceSensorSchema';
 import { useCurrentUserRoles } from '@/hooks/useCurrentUserRoles';
 import { useGlobalAssetPreferences } from '@/hooks/useGlobalAssetPreferences';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { LiveDataBottomPanel } from './LiveDataBottomPanel';
 import { cn } from '@/lib/utils';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,7 +51,15 @@ export function AssetLiveData3DView({
   const [viewMode, setViewMode] = useState<ViewMode>('full');
   const [isLivePaused, setIsLivePaused] = useState(false);
 
-  const { data: sensorTypes = [] } = useAssetSensorTypes(selectedAssetId);
+  const queryClient = useQueryClient();
+  const { data: sensorTypesFromReadings = [] } = useAssetSensorTypes(selectedAssetId);
+  const { data: sensorTypesFromSchema = [] } = useDeviceSensorSchema(selectedAssetId);
+  
+  // Merge sensor types: prefer actual readings but fallback to schema if readings are limited
+  const sensorTypes = sensorTypesFromReadings.length > 0 
+    ? [...new Set([...sensorTypesFromReadings, ...sensorTypesFromSchema])] // Merge both sources
+    : sensorTypesFromSchema;
+
   const { preferences, isLoading, savePreferences, isSaving } = useAssetDisplayPreferences(selectedAssetId);
   const { saveGlobalDefaults } = useGlobalAssetPreferences(selectedAssetId);
   const { roles } = useCurrentUserRoles();
@@ -57,6 +67,14 @@ export function AssetLiveData3DView({
 
   const isAdmin = roles.some(r => r.role_name === 'admin');
   const preferenceSource = preferences?.user_id ? 'user' : 'global';
+
+  // Force refetch sensor types when asset changes
+  useEffect(() => {
+    if (selectedAssetId) {
+      queryClient.invalidateQueries({ queryKey: ["asset-sensor-types", selectedAssetId] });
+      queryClient.invalidateQueries({ queryKey: ["device-sensor-schema", selectedAssetId] });
+    }
+  }, [selectedAssetId, queryClient]);
 
   const handleDialogOpen = () => {
     const currentPrefs = preferences?.selected_sensor_types;

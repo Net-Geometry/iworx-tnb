@@ -11,18 +11,27 @@ export const useAssetSensorTypes = (assetId: string | null) => {
     queryFn: async () => {
       if (!assetId) return [];
 
+      console.log('[useAssetSensorTypes] Fetching sensor types for asset:', assetId);
+
       const { data, error } = await supabase
         .from("asset_sensor_readings")
         .select("sensor_type")
         .eq("asset_id", assetId)
         .order("sensor_type");
 
-      if (error) throw error;
+      if (error) {
+        console.error('[useAssetSensorTypes] Error:', error);
+        throw error;
+      }
 
       // Get unique sensor types
       const uniqueTypes = [...new Set(data.map(item => item.sensor_type))];
+      console.log('[useAssetSensorTypes] Found sensor types:', uniqueTypes);
+      
       return uniqueTypes;
     },
     enabled: !!assetId,
+    staleTime: 30000, // Cache for 30 seconds
+    refetchOnWindowFocus: true, // Refetch when window regains focus
   });
 };
