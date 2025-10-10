@@ -9,6 +9,7 @@ import { useRealtimeIoTData } from '@/hooks/useRealtimeIoTData';
 import { useAssetSensorPositions } from '@/hooks/useAssetSensorPositions';
 import { InteractiveSensorBadge } from './InteractiveSensorBadge';
 import { SensorPositionMarker } from './SensorPositionMarker';
+import { Box } from '@react-three/drei';
 
 interface IoTDataOverlayProps {
   selectedAssetId?: string | null;
@@ -56,6 +57,11 @@ export function IoTDataOverlay({
 
         return (
           <group key={sensor.id}>
+            {/* DEBUG: Large red cube to confirm sensor position rendering */}
+            <Box position={sensor.position} args={[0.5, 0.5, 0.5]}>
+              <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={1} />
+            </Box>
+
             {/* Sensor position marker - always shown when configured */}
             <SensorPositionMarker
               position={sensor.position}
