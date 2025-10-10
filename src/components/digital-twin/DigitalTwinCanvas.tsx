@@ -71,6 +71,8 @@ export function DigitalTwinCanvas({
           selectedAssetId={selectedAssetId}
           historicalMode={historicalMode}
           historicalTime={historicalTime}
+          editMode={editMode}
+          onPositionClick={onPositionClick}
         />
 
         {/* IoT Data Overlays */}
