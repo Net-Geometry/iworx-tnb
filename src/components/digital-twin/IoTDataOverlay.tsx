@@ -39,11 +39,10 @@ export function IoTDataOverlay({
           : assetReadings.filter(r => r.sensor_type === sensor.sensorType);
 
         const latestReading = sensorReadings[0];
-        
-        if (!latestReading) return null;
+        const hasLiveData = !!latestReading;
 
         // Check if this sensor type is filtered
-        const isFiltered = selectedSensorTypes.length > 0 && 
+        const isFiltered = hasLiveData && selectedSensorTypes.length > 0 && 
                           !selectedSensorTypes.includes(latestReading.sensor_type);
 
         // Badge position slightly above the sensor marker
@@ -53,34 +52,36 @@ export function IoTDataOverlay({
           sensor.position[2],
         ];
 
-        const isSelected = selectedSensorId === (sensor.deviceId || latestReading.id);
+        const isSelected = selectedSensorId === (sensor.deviceId || latestReading?.id);
 
         return (
           <group key={sensor.id}>
-            {/* Sensor position marker */}
+            {/* Sensor position marker - always shown when configured */}
             <SensorPositionMarker
               position={sensor.position}
               color={sensor.color || '#64748b'}
               sensorType={sensor.sensorType}
               isSelected={isSelected}
               isActive={sensor.isActive && !isFiltered}
-              onClick={() => onSensorClick?.(sensor.deviceId || latestReading.id)}
+              onClick={() => onSensorClick?.(sensor.deviceId || latestReading?.id || sensor.id)}
               badgePosition={badgePosition}
             />
 
-            {/* Interactive data badge */}
-            <InteractiveSensorBadge
-              position={badgePosition}
-              sensorType={latestReading.sensor_type}
-              value={latestReading.reading_value}
-              unit={latestReading.unit}
-              label={sensor.label}
-              isAlert={latestReading.alert_threshold_exceeded}
-              isLive={isConnected}
-              isFiltered={isFiltered}
-              onClick={() => onSensorClick?.(sensor.deviceId || latestReading.id)}
-              isSelected={isSelected}
-            />
+            {/* Interactive data badge - only shown when there's live data */}
+            {hasLiveData && (
+              <InteractiveSensorBadge
+                position={badgePosition}
+                sensorType={latestReading.sensor_type}
+                value={latestReading.reading_value}
+                unit={latestReading.unit}
+                label={sensor.label}
+                isAlert={latestReading.alert_threshold_exceeded}
+                isLive={isConnected}
+                isFiltered={isFiltered}
+                onClick={() => onSensorClick?.(sensor.deviceId || latestReading.id)}
+                isSelected={isSelected}
+              />
+            )}
           </group>
         );
       })}
