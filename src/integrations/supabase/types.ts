@@ -131,6 +131,45 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_display_preferences: {
+        Row: {
+          asset_id: string
+          created_at: string
+          id: string
+          is_global_default: boolean
+          max_readings_shown: number
+          organization_id: string
+          refresh_interval_seconds: number
+          selected_sensor_types: Json
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          id?: string
+          is_global_default?: boolean
+          max_readings_shown?: number
+          organization_id: string
+          refresh_interval_seconds?: number
+          selected_sensor_types?: Json
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          id?: string
+          is_global_default?: boolean
+          max_readings_shown?: number
+          organization_id?: string
+          refresh_interval_seconds?: number
+          selected_sensor_types?: Json
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       asset_location_history: {
         Row: {
           asset_id: string

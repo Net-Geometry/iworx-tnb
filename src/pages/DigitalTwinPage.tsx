@@ -14,6 +14,7 @@ import { AssetInspectorPanel } from '@/components/digital-twin/AssetInspectorPan
 import { TimelineScrubber } from '@/components/digital-twin/TimelineScrubber';
 import { ScenarioBuilder } from '@/components/digital-twin/ScenarioBuilder';
 import { AssetSearchDropdown } from '@/components/digital-twin/AssetSearchDropdown';
+import { AssetLiveDataPanel } from '@/components/digital-twin/AssetLiveDataPanel';
 
 export default function DigitalTwinPage() {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
@@ -98,26 +99,9 @@ export default function DigitalTwinPage() {
 
           {/* Live IoT Data Tab */}
           <TabsContent value="live-data">
-            <Card>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
-                    <DigitalTwinCanvas
-                      onAssetSelect={setSelectedAssetId}
-                      selectedAssetId={selectedAssetId}
-                      showIoTOverlays={true}
-                    />
-                  </div>
-                  <div>
-                    <AssetInspectorPanel
-                      assetId={selectedAssetId}
-                      showLiveData={true}
-                      onClose={() => setSelectedAssetId(null)}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AssetLiveDataPanel 
+              assetId={selectedAssetId}
+            />
           </TabsContent>
 
           {/* Time Travel Tab */}
