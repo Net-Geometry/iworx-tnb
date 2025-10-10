@@ -208,6 +208,7 @@ const systemAdminModules = [
   { title: "Workflow Templates", url: "/admin/workflow-templates", icon: Workflow },
   { title: "Verticals", url: "/admin/organizations", icon: Building },
   { title: "Reference Data", url: "/admin/reference-data", icon: Database },
+  { title: "Sensor Configuration", url: "/admin/sensor-position-config", icon: Radio },
   { title: "AI Assistant", url: "/admin/ai-assistant", icon: Brain },
 ];
 

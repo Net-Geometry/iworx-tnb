@@ -18,6 +18,8 @@ interface DigitalTwinCanvasProps {
   selectedSensorTypes?: string[];
   onSensorClick?: (sensorId: string) => void;
   selectedSensorId?: string | null;
+  editMode?: boolean;
+  onPositionClick?: (position: [number, number, number]) => void;
 }
 
 export function DigitalTwinCanvas({
@@ -29,6 +31,8 @@ export function DigitalTwinCanvas({
   selectedSensorTypes,
   onSensorClick,
   selectedSensorId,
+  editMode = false,
+  onPositionClick,
 }: DigitalTwinCanvasProps) {
   return (
     <div className="w-full h-[600px] bg-gradient-to-b from-slate-900 to-slate-800 rounded-lg overflow-hidden">
