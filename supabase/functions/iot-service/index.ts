@@ -85,7 +85,7 @@ serve(async (req) => {
     }
 
     // GET /devices/:id - Get device details
-    if (path.startsWith("/devices/") && req.method === "GET" && !path.includes("/data") && !path.includes("/health")) {
+    if (path.startsWith("/devices/") && req.method === "GET" && !path.includes("/data") && !path.includes("/health") && !path.includes("/metrics") && !path.includes("/display-preferences")) {
       const deviceId = path.split("/")[2];
 
       // Fetch device with device_type relationship
