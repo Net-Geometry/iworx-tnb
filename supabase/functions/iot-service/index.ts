@@ -84,8 +84,59 @@ serve(async (req) => {
       });
     }
 
+    // GET /devices/:id/metrics - Discover available metrics (must come before generic /devices/:id)
+    if (req.method === 'GET' && path.match(/^\/devices\/[^\/]+\/metrics$/)) {
+      const deviceId = path.split('/')[2];
+      console.log(`[IoT Service] Fetching metrics for device: ${deviceId}, org: ${organizationId}`);
+      
+      const { data, error } = await supabase
+        .from('iot_data')
+        .select('metric_name')
+        .eq('device_id', deviceId)
+        .eq('organization_id', organizationId)
+        .limit(1000);
+      
+      if (error) {
+        console.error(`[IoT Service] Error fetching metrics:`, error);
+        throw error;
+      }
+      
+      const uniqueMetrics = [...new Set(data.map(d => d.metric_name))];
+      console.log(`[IoT Service] Found ${uniqueMetrics.length} unique metrics:`, uniqueMetrics);
+      
+      return new Response(JSON.stringify(uniqueMetrics), { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      });
+    }
+
+    // GET /devices/:id/display-preferences (must come before generic /devices/:id)
+    if (req.method === 'GET' && path.match(/^\/devices\/[^\/]+\/display-preferences$/)) {
+      const deviceId = path.split('/')[2];
+      console.log(`[IoT Service] Fetching display preferences for device: ${deviceId}, user: ${userId}`);
+      
+      const { data, error } = await supabase
+        .from('iot_device_display_preferences')
+        .select('*')
+        .eq('device_id', deviceId)
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      const preferences = data || { 
+        selected_metrics: [], 
+        lorawan_fields: ['rssi', 'snr'], 
+        refresh_interval_seconds: 30, 
+        max_readings_shown: 50 
+      };
+      
+      return new Response(JSON.stringify(preferences), { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      });
+    }
+
     // GET /devices/:id - Get device details
-    if (path.startsWith("/devices/") && req.method === "GET" && !path.includes("/data") && !path.includes("/health") && !path.includes("/metrics") && !path.includes("/display-preferences")) {
+    if (path.startsWith("/devices/") && req.method === "GET" && !path.includes("/data") && !path.includes("/health")) {
       const deviceId = path.split("/")[2];
 
       // Fetch device with device_type relationship
@@ -450,23 +501,7 @@ serve(async (req) => {
       });
     }
 
-    // GET /devices/:id/metrics - Discover available metrics
-    if (req.method === 'GET' && path.match(/^\/devices\/[^\/]+\/metrics$/)) {
-      const deviceId = path.split('/')[2];
-      const { data, error } = await supabase.from('iot_data').select('metric_name').eq('device_id', deviceId).eq('organization_id', organizationId).limit(1000);
-      if (error) throw error;
-      const uniqueMetrics = [...new Set(data.map(d => d.metric_name))];
-      return new Response(JSON.stringify(uniqueMetrics), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // GET /devices/:id/display-preferences
-    if (req.method === 'GET' && path.match(/^\/devices\/[^\/]+\/display-preferences$/)) {
-      const deviceId = path.split('/')[2];
-      const { data, error } = await supabase.from('iot_device_display_preferences').select('*').eq('device_id', deviceId).eq('user_id', userId).maybeSingle();
-      if (error) throw error;
-      const preferences = data || { selected_metrics: [], lorawan_fields: ['rssi', 'snr'], refresh_interval_seconds: 30, max_readings_shown: 50 };
-      return new Response(JSON.stringify(preferences), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    // Metrics and display-preferences endpoints moved up to line ~87 for proper precedence
 
     // PUT /devices/:id/display-preferences
     if (req.method === 'PUT' && path.match(/^\/devices\/[^\/]+\/display-preferences$/)) {
