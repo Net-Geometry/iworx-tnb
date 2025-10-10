@@ -804,6 +804,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "iot_devices_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "iot_devices_device_type_id_fkey"
             columns: ["device_type_id"]
             isOneToOne: false
