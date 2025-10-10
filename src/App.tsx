@@ -88,7 +88,6 @@ import DigitalTwinDemo from "./pages/demo/DigitalTwinDemo";
 import DigitalTwinPage from "./pages/DigitalTwinPage";
 import IoTDevicesPage from "./pages/IoTDevicesPage";
 import IoTDeviceDetailPage from "./pages/IoTDeviceDetailPage";
-import IoTDeviceDetailPage from "./pages/IoTDeviceDetailPage";
 import RegisterIoTDevicePage from "./pages/RegisterIoTDevicePage";
 
 const queryClient = new QueryClient();

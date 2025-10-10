@@ -20,8 +20,8 @@ export const IoTDeviceLiveDataTab = ({ deviceId }: IoTDeviceLiveDataTabProps) =>
   // Update temp state when preferences load
   useEffect(() => {
     if (preferences) {
-      setTempSelectedMetrics(Array.isArray(preferences.selected_metrics) ? preferences.selected_metrics : []);
-      setTempSelectedLorawanFields(Array.isArray(preferences.lorawan_fields) ? preferences.lorawan_fields : ['rssi', 'snr']);
+      setTempSelectedMetrics(Array.isArray(preferences.selected_metrics) ? preferences.selected_metrics as string[] : []);
+      setTempSelectedLorawanFields(Array.isArray(preferences.lorawan_fields) ? preferences.lorawan_fields as string[] : ['rssi', 'snr']);
     }
   }, [preferences]);
 
@@ -35,8 +35,8 @@ export const IoTDeviceLiveDataTab = ({ deviceId }: IoTDeviceLiveDataTabProps) =>
     setIsCustomizeOpen(false);
   };
 
-  const displayedMetrics = Array.isArray(preferences?.selected_metrics) ? preferences.selected_metrics : [];
-  const displayedLorawanFields = Array.isArray(preferences?.lorawan_fields) ? preferences.lorawan_fields : ['rssi', 'snr'];
+  const displayedMetrics = Array.isArray(preferences?.selected_metrics) ? preferences.selected_metrics as string[] : [];
+  const displayedLorawanFields = Array.isArray(preferences?.lorawan_fields) ? preferences.lorawan_fields as string[] : ['rssi', 'snr'];
 
   return (
     <div className="space-y-4">

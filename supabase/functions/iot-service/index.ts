@@ -438,7 +438,7 @@ serve(async (req) => {
     }
 
     // GET /devices/:id/metrics - Discover available metrics
-    if (method === 'GET' && path.match(/^\/devices\/[^\/]+\/metrics$/)) {
+    if (req.method === 'GET' && path.match(/^\/devices\/[^\/]+\/metrics$/)) {
       const deviceId = path.split('/')[2];
       const { data, error } = await supabase.from('iot_data').select('metric_name').eq('device_id', deviceId).eq('organization_id', organizationId).limit(1000);
       if (error) throw error;
@@ -447,7 +447,7 @@ serve(async (req) => {
     }
 
     // GET /devices/:id/display-preferences
-    if (method === 'GET' && path.match(/^\/devices\/[^\/]+\/display-preferences$/)) {
+    if (req.method === 'GET' && path.match(/^\/devices\/[^\/]+\/display-preferences$/)) {
       const deviceId = path.split('/')[2];
       const { data, error } = await supabase.from('iot_device_display_preferences').select('*').eq('device_id', deviceId).eq('user_id', userId).maybeSingle();
       if (error) throw error;
@@ -456,7 +456,7 @@ serve(async (req) => {
     }
 
     // PUT /devices/:id/display-preferences
-    if (method === 'PUT' && path.match(/^\/devices\/[^\/]+\/display-preferences$/)) {
+    if (req.method === 'PUT' && path.match(/^\/devices\/[^\/]+\/display-preferences$/)) {
       const deviceId = path.split('/')[2];
       const body = await req.json();
       const { data, error } = await supabase.from('iot_device_display_preferences').upsert({ device_id: deviceId, user_id: userId, organization_id: organizationId, selected_metrics: body.selected_metrics || [], lorawan_fields: body.lorawan_fields || ['rssi', 'snr'], refresh_interval_seconds: body.refresh_interval_seconds || 30, max_readings_shown: body.max_readings_shown || 50 }).select().single();
