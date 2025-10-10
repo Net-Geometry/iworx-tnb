@@ -15,6 +15,9 @@ interface DigitalTwinCanvasProps {
   showIoTOverlays?: boolean;
   historicalMode?: boolean;
   historicalTime?: Date;
+  selectedSensorTypes?: string[];
+  onSensorClick?: (sensorId: string) => void;
+  selectedSensorId?: string | null;
 }
 
 export function DigitalTwinCanvas({
@@ -23,6 +26,9 @@ export function DigitalTwinCanvas({
   showIoTOverlays = false,
   historicalMode = false,
   historicalTime,
+  selectedSensorTypes,
+  onSensorClick,
+  selectedSensorId,
 }: DigitalTwinCanvasProps) {
   return (
     <div className="w-full h-[600px] bg-gradient-to-b from-slate-900 to-slate-800 rounded-lg overflow-hidden">

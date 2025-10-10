@@ -211,6 +211,7 @@ export type Database = {
           alert_threshold_exceeded: boolean | null
           asset_id: string
           created_at: string
+          device_id: string | null
           id: string
           metadata: Json | null
           organization_id: string
@@ -223,6 +224,7 @@ export type Database = {
           alert_threshold_exceeded?: boolean | null
           asset_id: string
           created_at?: string
+          device_id?: string | null
           id?: string
           metadata?: Json | null
           organization_id: string
@@ -235,6 +237,7 @@ export type Database = {
           alert_threshold_exceeded?: boolean | null
           asset_id?: string
           created_at?: string
+          device_id?: string | null
           id?: string
           metadata?: Json | null
           organization_id?: string
@@ -244,6 +247,13 @@ export type Database = {
           unit?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "asset_sensor_readings_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "iot_devices"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "asset_sensor_readings_organization_id_fkey"
             columns: ["organization_id"]
@@ -812,6 +822,7 @@ export type Database = {
           lorawan_config: Json
           network_provider: Database["public"]["Enums"]["iot_network_provider"]
           organization_id: string
+          sensor_position_3d: Json | null
           status: Database["public"]["Enums"]["iot_device_status"]
           updated_at: string
         }
@@ -828,6 +839,7 @@ export type Database = {
           lorawan_config?: Json
           network_provider?: Database["public"]["Enums"]["iot_network_provider"]
           organization_id: string
+          sensor_position_3d?: Json | null
           status?: Database["public"]["Enums"]["iot_device_status"]
           updated_at?: string
         }
@@ -844,6 +856,7 @@ export type Database = {
           lorawan_config?: Json
           network_provider?: Database["public"]["Enums"]["iot_network_provider"]
           organization_id?: string
+          sensor_position_3d?: Json | null
           status?: Database["public"]["Enums"]["iot_device_status"]
           updated_at?: string
         }

@@ -2,39 +2,86 @@
  * IoT Data Overlay Component
  * 
  * Displays live sensor readings as floating labels in 3D space
+ * Enhanced to support multiple positioned sensors per asset
  */
 
 import { useRealtimeIoTData } from '@/hooks/useRealtimeIoTData';
-import { useAsset3DPositions } from '@/hooks/useAsset3DPositions';
-import { LiveDataBadge } from './LiveDataBadge';
+import { useAssetSensorPositions } from '@/hooks/useAssetSensorPositions';
+import { InteractiveSensorBadge } from './InteractiveSensorBadge';
+import { SensorPositionMarker } from './SensorPositionMarker';
 
 interface IoTDataOverlayProps {
   selectedAssetId?: string | null;
+  selectedSensorTypes?: string[];
+  onSensorClick?: (sensorId: string) => void;
+  selectedSensorId?: string | null;
 }
 
-export function IoTDataOverlay({ selectedAssetId }: IoTDataOverlayProps) {
-  const { assets3D } = useAsset3DPositions();
-  const assetIds = assets3D.map(a => a.id);
-  const { readings, isConnected } = useRealtimeIoTData(assetIds);
+export function IoTDataOverlay({ 
+  selectedAssetId,
+  selectedSensorTypes = [],
+  onSensorClick,
+  selectedSensorId,
+}: IoTDataOverlayProps) {
+  const { data: sensorPositions = [], isLoading } = useAssetSensorPositions(selectedAssetId);
+  const { readings, isConnected } = useRealtimeIoTData(selectedAssetId ? [selectedAssetId] : []);
+
+  if (!selectedAssetId || isLoading) return null;
+
+  const assetReadings = readings[selectedAssetId] || [];
 
   return (
     <group>
-      {assets3D.map((asset) => {
-        const assetReadings = readings[asset.id] || [];
-        const latestReading = assetReadings[0];
+      {sensorPositions.map((sensor) => {
+        // Find readings for this sensor
+        const sensorReadings = sensor.deviceId
+          ? assetReadings.filter(r => r.device_id === sensor.deviceId)
+          : assetReadings.filter(r => r.sensor_type === sensor.sensorType);
 
+        const latestReading = sensorReadings[0];
+        
         if (!latestReading) return null;
 
+        // Check if this sensor type is filtered
+        const isFiltered = selectedSensorTypes.length > 0 && 
+                          !selectedSensorTypes.includes(latestReading.sensor_type);
+
+        // Badge position slightly above the sensor marker
+        const badgePosition: [number, number, number] = [
+          sensor.position[0],
+          sensor.position[1] + 0.5,
+          sensor.position[2],
+        ];
+
+        const isSelected = selectedSensorId === (sensor.deviceId || latestReading.id);
+
         return (
-          <LiveDataBadge
-            key={asset.id}
-            position={[asset.position[0], asset.position[1] + 2, asset.position[2]]}
-            sensorType={latestReading.sensor_type}
-            value={latestReading.reading_value}
-            unit={latestReading.unit}
-            isAlert={latestReading.alert_threshold_exceeded}
-            isLive={isConnected}
-          />
+          <group key={sensor.id}>
+            {/* Sensor position marker */}
+            <SensorPositionMarker
+              position={sensor.position}
+              color={sensor.color || '#64748b'}
+              sensorType={sensor.sensorType}
+              isSelected={isSelected}
+              isActive={sensor.isActive && !isFiltered}
+              onClick={() => onSensorClick?.(sensor.deviceId || latestReading.id)}
+              badgePosition={badgePosition}
+            />
+
+            {/* Interactive data badge */}
+            <InteractiveSensorBadge
+              position={badgePosition}
+              sensorType={latestReading.sensor_type}
+              value={latestReading.reading_value}
+              unit={latestReading.unit}
+              label={sensor.label}
+              isAlert={latestReading.alert_threshold_exceeded}
+              isLive={isConnected}
+              isFiltered={isFiltered}
+              onClick={() => onSensorClick?.(sensor.deviceId || latestReading.id)}
+              isSelected={isSelected}
+            />
+          </group>
         );
       })}
     </group>

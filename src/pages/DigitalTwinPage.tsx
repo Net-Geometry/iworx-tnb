@@ -14,7 +14,7 @@ import { AssetInspectorPanel } from '@/components/digital-twin/AssetInspectorPan
 import { TimelineScrubber } from '@/components/digital-twin/TimelineScrubber';
 import { ScenarioBuilder } from '@/components/digital-twin/ScenarioBuilder';
 import { AssetSearchDropdown } from '@/components/digital-twin/AssetSearchDropdown';
-import { AssetLiveDataPanel } from '@/components/digital-twin/AssetLiveDataPanel';
+import { AssetLiveData3DView } from '@/components/digital-twin/AssetLiveData3DView';
 
 export default function DigitalTwinPage() {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
@@ -99,8 +99,9 @@ export default function DigitalTwinPage() {
 
           {/* Live IoT Data Tab */}
           <TabsContent value="live-data">
-            <AssetLiveDataPanel 
-              assetId={selectedAssetId}
+            <AssetLiveData3DView 
+              selectedAssetId={selectedAssetId}
+              onAssetChange={setSelectedAssetId}
             />
           </TabsContent>
 

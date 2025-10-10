@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 export interface IoTReading {
   id: string;
   asset_id: string;
+  device_id?: string;
   sensor_type: string;
   reading_value: number;
   unit: string;

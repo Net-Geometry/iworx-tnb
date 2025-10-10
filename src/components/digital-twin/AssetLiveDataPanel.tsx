@@ -162,12 +162,13 @@ export function AssetLiveDataPanel({ assetId, assetName }: AssetLiveDataPanelPro
           </CardContent>
         </Card>
       ) : (
-        <CustomizableAssetDataTable
-          readings={assetId ? (readingsMap[assetId] || []) : []}
-          selectedSensorTypes={Array.isArray(preferences?.selected_sensor_types) ? preferences.selected_sensor_types : []}
-          maxReadings={preferences?.max_readings_shown || 50}
-          isLoading={false}
-        />
+        assetId && (
+          <CustomizableAssetDataTable
+            assetId={assetId}
+            selectedSensorTypes={Array.isArray(preferences?.selected_sensor_types) ? preferences.selected_sensor_types : []}
+            maxReadings={preferences?.max_readings_shown || 50}
+          />
+        )
       )}
 
       {/* Info Footer */}

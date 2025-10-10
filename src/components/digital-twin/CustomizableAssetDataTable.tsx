@@ -10,23 +10,15 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle } from "lucide-react";
-
-interface AssetSensorReading {
-  id: string;
-  asset_id: string;
-  sensor_type: string;
-  reading_value: number;
-  unit: string;
-  timestamp: string;
-  alert_threshold_exceeded: boolean;
-  metadata?: any;
-}
+import { useRealtimeIoTData } from "@/hooks/useRealtimeIoTData";
+import { Loader2 } from "lucide-react";
 
 interface CustomizableAssetDataTableProps {
-  readings: AssetSensorReading[];
+  assetId: string;
   selectedSensorTypes: string[];
   maxReadings: number;
-  isLoading?: boolean;
+  onRowClick?: (sensorId: string) => void;
+  selectedSensorId?: string | null;
 }
 
 /**
@@ -34,14 +26,18 @@ interface CustomizableAssetDataTableProps {
  * Filters by selected sensor types and respects max readings limit
  */
 export function CustomizableAssetDataTable({
-  readings,
+  assetId,
   selectedSensorTypes,
   maxReadings,
-  isLoading,
+  onRowClick,
+  selectedSensorId,
 }: CustomizableAssetDataTableProps) {
+  const { readings, isConnected } = useRealtimeIoTData([assetId]);
+  const assetReadings = readings[assetId] || [];
+  
   // Filter and limit readings
   const filteredReadings = useMemo(() => {
-    let filtered = readings;
+    let filtered = assetReadings;
 
     // Filter by selected sensor types (empty array means show all)
     if (selectedSensorTypes.length > 0) {
@@ -54,12 +50,12 @@ export function CustomizableAssetDataTable({
     return filtered
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, maxReadings);
-  }, [readings, selectedSensorTypes, maxReadings]);
+  }, [assetReadings, selectedSensorTypes, maxReadings]);
 
-  if (isLoading) {
+  if (!isConnected && assetReadings.length === 0) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="text-sm text-muted-foreground">Loading sensor data...</div>
+        <Loader2 className="w-6 h-6 animate-spin" />
       </div>
     );
   }
@@ -91,7 +87,11 @@ export function CustomizableAssetDataTable({
         </TableHeader>
         <TableBody>
           {filteredReadings.map((reading) => (
-            <TableRow key={reading.id}>
+            <TableRow 
+              key={reading.id}
+              className={reading.id === selectedSensorId ? "bg-muted" : "cursor-pointer hover:bg-muted/50"}
+              onClick={() => onRowClick?.(reading.id)}
+            >
               <TableCell className="font-mono text-xs">
                 {format(new Date(reading.timestamp), "MMM dd, HH:mm:ss")}
               </TableCell>
