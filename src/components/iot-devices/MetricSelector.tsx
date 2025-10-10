@@ -4,8 +4,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, RotateCcw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Search, RotateCcw, Globe, Star } from "lucide-react";
 import { useDeviceMetrics } from "@/hooks/useDeviceMetrics";
+import { useCurrentUserRoles } from "@/hooks/useCurrentUserRoles";
 
 interface MetricSelectorProps {
   deviceId: string;
@@ -14,7 +16,9 @@ interface MetricSelectorProps {
   onMetricsChange: (metrics: string[]) => void;
   onLorawanFieldsChange: (fields: string[]) => void;
   onSave: () => void;
+  onSaveAsGlobal?: () => void;
   isLoading?: boolean;
+  preferenceSource?: 'user' | 'global' | 'device_type' | 'system';
 }
 
 const LORAWAN_FIELDS = [
@@ -32,10 +36,16 @@ export const MetricSelector = ({
   onMetricsChange,
   onLorawanFieldsChange,
   onSave,
-  isLoading
+  onSaveAsGlobal,
+  isLoading,
+  preferenceSource = 'system'
 }: MetricSelectorProps) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [saveAsGlobal, setSaveAsGlobal] = useState(false);
   const { data: availableMetrics = [], isLoading: metricsLoading } = useDeviceMetrics(deviceId);
+  const { roles } = useCurrentUserRoles();
+  
+  const isAdmin = roles.some(role => role.role_name === 'admin' || role.role_name === 'superadmin');
 
   const filteredMetrics = availableMetrics.filter(metric =>
     metric.toLowerCase().includes(searchQuery.toLowerCase())
@@ -71,8 +81,35 @@ export const MetricSelector = ({
     onLorawanFieldsChange(['rssi', 'snr']);
   };
 
+  const handleSaveClick = () => {
+    if (saveAsGlobal && onSaveAsGlobal) {
+      onSaveAsGlobal();
+    } else {
+      onSave();
+    }
+  };
+
+  const getSourceBadge = () => {
+    switch (preferenceSource) {
+      case 'user':
+        return <Badge variant="secondary">Your Preferences</Badge>;
+      case 'global':
+        return <Badge variant="outline"><Globe className="h-3 w-3 mr-1" />Global Default</Badge>;
+      case 'device_type':
+        return <Badge variant="outline"><Star className="h-3 w-3 mr-1" />Device Type Default</Badge>;
+      default:
+        return <Badge variant="outline">System Default</Badge>;
+    }
+  };
+
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          Currently using: {getSourceBadge()}
+        </div>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Sensor Metrics</CardTitle>
@@ -168,6 +205,32 @@ export const MetricSelector = ({
         </CardContent>
       </Card>
 
+      {isAdmin && onSaveAsGlobal && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="pt-6">
+            <div className="flex items-start space-x-2">
+              <Checkbox
+                id="save-as-global"
+                checked={saveAsGlobal}
+                onCheckedChange={(checked) => setSaveAsGlobal(checked as boolean)}
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label
+                  htmlFor="save-as-global"
+                  className="text-sm font-medium cursor-pointer flex items-center gap-2"
+                >
+                  <Globe className="h-4 w-4" />
+                  Save as default for all users
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  When enabled, these preferences will become the default for all users viewing this device
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex justify-between gap-2">
         <Button
           variant="outline"
@@ -178,10 +241,10 @@ export const MetricSelector = ({
           Reset to Defaults
         </Button>
         <Button
-          onClick={onSave}
+          onClick={handleSaveClick}
           disabled={isLoading}
         >
-          {isLoading ? "Saving..." : "Save Preferences"}
+          {isLoading ? "Saving..." : saveAsGlobal ? "Save Global Default" : "Save Preferences"}
         </Button>
       </div>
     </div>

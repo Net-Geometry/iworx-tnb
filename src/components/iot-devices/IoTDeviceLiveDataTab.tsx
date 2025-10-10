@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Settings2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Settings2, Globe, Star } from "lucide-react";
 import { MetricSelector } from "./MetricSelector";
 import { CustomizableIoTDataTable } from "./CustomizableIoTDataTable";
 import { useDeviceDisplayPreferences } from "@/hooks/useDeviceDisplayPreferences";
+import { useGlobalDevicePreferences } from "@/hooks/useGlobalDevicePreferences";
+import { useCurrentUserRoles } from "@/hooks/useCurrentUserRoles";
 
 interface IoTDeviceLiveDataTabProps {
   deviceId: string;
@@ -13,9 +16,13 @@ interface IoTDeviceLiveDataTabProps {
 export const IoTDeviceLiveDataTab = ({ deviceId }: IoTDeviceLiveDataTabProps) => {
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
   const { data: preferences, updatePreferences, isUpdating } = useDeviceDisplayPreferences(deviceId);
+  const { updateGlobalPreferences, isUpdating: isUpdatingGlobal } = useGlobalDevicePreferences(deviceId);
+  const { roles } = useCurrentUserRoles();
 
   const [tempSelectedMetrics, setTempSelectedMetrics] = useState<string[]>([]);
   const [tempSelectedLorawanFields, setTempSelectedLorawanFields] = useState<string[]>(['rssi', 'snr']);
+  
+  const isAdmin = roles.some(role => role.role_name === 'admin' || role.role_name === 'superadmin');
 
   // Update temp state when preferences load
   useEffect(() => {
@@ -35,6 +42,33 @@ export const IoTDeviceLiveDataTab = ({ deviceId }: IoTDeviceLiveDataTabProps) =>
     setIsCustomizeOpen(false);
   };
 
+  const handleSaveAsGlobal = () => {
+    updateGlobalPreferences({
+      selected_metrics: tempSelectedMetrics,
+      lorawan_fields: tempSelectedLorawanFields,
+      refresh_interval_seconds: preferences?.refresh_interval_seconds || 30,
+      max_readings_shown: preferences?.max_readings_shown || 50,
+    });
+    setIsCustomizeOpen(false);
+  };
+
+  const getSourceIndicator = () => {
+    if (!preferences?._source) return null;
+    
+    switch (preferences._source) {
+      case 'user':
+        return null; // No badge for personal preferences
+      case 'global':
+        return <Badge variant="outline" className="ml-2"><Globe className="h-3 w-3 mr-1" />Using Global</Badge>;
+      case 'device_type':
+        return <Badge variant="outline" className="ml-2"><Star className="h-3 w-3 mr-1" />Device Type</Badge>;
+      case 'system':
+        return <Badge variant="secondary" className="ml-2">System Default</Badge>;
+      default:
+        return null;
+    }
+  };
+
   const displayedMetrics = Array.isArray(preferences?.selected_metrics) ? preferences.selected_metrics as string[] : [];
   const displayedLorawanFields = Array.isArray(preferences?.lorawan_fields) ? preferences.lorawan_fields as string[] : ['rssi', 'snr'];
 
@@ -50,9 +84,10 @@ export const IoTDeviceLiveDataTab = ({ deviceId }: IoTDeviceLiveDataTabProps) =>
         
         <Dialog open={isCustomizeOpen} onOpenChange={setIsCustomizeOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline">
-              <Settings2 className="h-4 w-4 mr-2" />
+            <Button variant="outline" className="flex items-center gap-2">
+              <Settings2 className="h-4 w-4" />
               Customize Display
+              {getSourceIndicator()}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -70,7 +105,9 @@ export const IoTDeviceLiveDataTab = ({ deviceId }: IoTDeviceLiveDataTabProps) =>
               onMetricsChange={setTempSelectedMetrics}
               onLorawanFieldsChange={setTempSelectedLorawanFields}
               onSave={handleSave}
-              isLoading={isUpdating}
+              onSaveAsGlobal={isAdmin ? handleSaveAsGlobal : undefined}
+              isLoading={isUpdating || isUpdatingGlobal}
+              preferenceSource={preferences?._source}
             />
           </DialogContent>
         </Dialog>

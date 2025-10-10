@@ -618,37 +618,40 @@ export type Database = {
           created_at: string
           device_id: string
           id: string
+          is_global_default: boolean
           lorawan_fields: Json
           max_readings_shown: number
           organization_id: string
           refresh_interval_seconds: number
           selected_metrics: Json
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           device_id: string
           id?: string
+          is_global_default?: boolean
           lorawan_fields?: Json
           max_readings_shown?: number
           organization_id: string
           refresh_interval_seconds?: number
           selected_metrics?: Json
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           device_id?: string
           id?: string
+          is_global_default?: boolean
           lorawan_fields?: Json
           max_readings_shown?: number
           organization_id?: string
           refresh_interval_seconds?: number
           selected_metrics?: Json
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -713,6 +716,7 @@ export type Database = {
           created_at: string
           created_by: string
           decoder_config: Json
+          default_display_config: Json | null
           description: string | null
           id: string
           is_active: boolean
@@ -727,6 +731,7 @@ export type Database = {
           created_at?: string
           created_by: string
           decoder_config?: Json
+          default_display_config?: Json | null
           description?: string | null
           id?: string
           is_active?: boolean
@@ -741,6 +746,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           decoder_config?: Json
+          default_display_config?: Json | null
           description?: string | null
           id?: string
           is_active?: boolean

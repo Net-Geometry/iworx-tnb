@@ -11,8 +11,10 @@ interface DisplayPreferences {
   lorawan_fields: string[];
   refresh_interval_seconds: number;
   max_readings_shown: number;
+  is_global_default?: boolean;
   created_at?: string;
   updated_at?: string;
+  _source?: 'user' | 'global' | 'device_type' | 'system';
 }
 
 export const useDeviceDisplayPreferences = (deviceId?: string) => {
@@ -24,38 +26,71 @@ export const useDeviceDisplayPreferences = (deviceId?: string) => {
       if (!deviceId) return null;
 
       try {
-        // Try microservice first
-        const { data, error } = await supabase.functions.invoke('api-gateway', {
-          body: {
-            path: `/api/iot/devices/${deviceId}/display-preferences`,
-            method: 'GET'
-          }
-        });
-
-        if (error) throw error;
-        return data as DisplayPreferences;
-      } catch (error) {
-        console.warn('[Display Preferences] Microservice unavailable, falling back to direct query:', error);
-        
-        // Fallback to direct Supabase query
+        // Get current user
         const { data: user } = await supabase.auth.getUser();
         if (!user.user) throw new Error('User not authenticated');
 
-        const { data, error: dbError } = await supabase
+        // Priority 1: Check user's personal preference
+        const { data: userPref } = await supabase
           .from('iot_device_display_preferences')
           .select('*')
           .eq('device_id', deviceId)
           .eq('user_id', user.user.id)
           .maybeSingle();
 
-        if (dbError) throw dbError;
+        if (userPref) {
+          return { ...userPref, _source: 'user' as const };
+        }
 
-        // Return defaults if not configured
-        return data || {
+        // Priority 2: Check global device preference
+        const { data: globalPref } = await supabase
+          .from('iot_device_display_preferences')
+          .select('*')
+          .eq('device_id', deviceId)
+          .is('user_id', null)
+          .eq('is_global_default', true)
+          .maybeSingle();
+
+        if (globalPref) {
+          return { ...globalPref, _source: 'global' as const };
+        }
+
+        // Priority 3: Check device type's default config
+        const { data: device } = await supabase
+          .from('iot_devices')
+          .select('device_type:iot_device_types(default_display_config)')
+          .eq('id', deviceId)
+          .single();
+
+        const deviceTypeConfig = (device as any)?.device_type?.default_display_config;
+        if (deviceTypeConfig && (deviceTypeConfig.preferred_metrics?.length > 0 || deviceTypeConfig.preferred_lorawan_fields?.length > 0)) {
+          return {
+            selected_metrics: deviceTypeConfig.preferred_metrics || [],
+            lorawan_fields: deviceTypeConfig.preferred_lorawan_fields || ['rssi', 'snr'],
+            refresh_interval_seconds: 30,
+            max_readings_shown: 50,
+            _source: 'device_type' as const
+          };
+        }
+
+        // Priority 4: System defaults
+        return {
           selected_metrics: [],
           lorawan_fields: ['rssi', 'snr'],
           refresh_interval_seconds: 30,
-          max_readings_shown: 50
+          max_readings_shown: 50,
+          _source: 'system' as const
+        };
+      } catch (error) {
+        console.error('[Display Preferences] Error fetching preferences:', error);
+        
+        // Return system defaults on error
+        return {
+          selected_metrics: [],
+          lorawan_fields: ['rssi', 'snr'],
+          refresh_interval_seconds: 30,
+          max_readings_shown: 50,
+          _source: 'system' as const
         };
       }
     },
