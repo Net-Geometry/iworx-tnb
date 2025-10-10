@@ -4,9 +4,10 @@
  * Loads and renders GLB/GLTF 3D models from Supabase Storage
  */
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { Text } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
 
 interface AssetModel3DLoaderProps {
   modelUrl: string;
@@ -30,11 +31,12 @@ function Model3DContent({
   onClick 
 }: AssetModel3DLoaderProps) {
   const { scene } = useGLTF(modelUrl);
+  const ringRef = useRef<any>();
   
   // Clone scene to avoid reusing the same geometry
   const clonedScene = scene.clone();
   
-  // Apply status-based color tint
+  // Status colors for ring indicator
   const statusColors = {
     operational: '#10b981',
     maintenance: '#f59e0b',
@@ -42,14 +44,10 @@ function Model3DContent({
     offline: '#6b7280'
   };
 
-  // Apply color tint to materials
-  clonedScene.traverse((child: any) => {
-    if (child.isMesh) {
-      if (child.material) {
-        child.material = child.material.clone();
-        child.material.emissive?.setStyle(statusColors[status]);
-        child.material.emissiveIntensity = 0.2;
-      }
+  // Animate ring rotation
+  useFrame((state, delta) => {
+    if (ringRef.current) {
+      ringRef.current.rotation.z += delta * 0.5;
     }
   });
 
@@ -61,6 +59,18 @@ function Model3DContent({
       onClick={onClick}
     >
       <primitive object={clonedScene} />
+      
+      {/* Status ring indicator */}
+      <mesh ref={ringRef} position={[0, -0.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[1.2, 0.08, 16, 32]} />
+        <meshStandardMaterial 
+          color={statusColors[status]} 
+          emissive={statusColors[status]}
+          emissiveIntensity={0.5}
+          metalness={0.8}
+          roughness={0.2}
+        />
+      </mesh>
       
       {/* Asset name label */}
       <Text
