@@ -8,6 +8,7 @@ import React, { Suspense, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { Text } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
+import type { ThreeEvent } from '@react-three/fiber';
 import { Box3, Vector3 } from 'three';
 
 interface AssetModel3DLoaderProps {
@@ -19,6 +20,8 @@ interface AssetModel3DLoaderProps {
   name: string;
   isSelected: boolean;
   onClick?: () => void;
+  editMode?: boolean;
+  onPositionClick?: (position: [number, number, number]) => void;
 }
 
 function Model3DContent({ 
@@ -29,7 +32,9 @@ function Model3DContent({
   status,
   name,
   isSelected,
-  onClick 
+  onClick,
+  editMode,
+  onPositionClick
 }: AssetModel3DLoaderProps) {
   const { scene } = useGLTF(modelUrl);
   const ringRef = useRef<any>();
@@ -77,14 +82,28 @@ function Model3DContent({
     }
   });
 
+  const handleClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    if (editMode && onPositionClick) {
+      const point = event.point;
+      onPositionClick([point.x, point.y, point.z]);
+    } else if (onClick) {
+      onClick();
+    }
+  };
+
   return (
     <group
       position={position}
       scale={[scale.x, scale.y, scale.z]}
       rotation={[rotation.x, rotation.y, rotation.z]}
-      onClick={onClick}
     >
-      <primitive object={clonedScene} />
+      <primitive 
+        object={clonedScene} 
+        onClick={handleClick}
+        onPointerOver={() => editMode && (document.body.style.cursor = 'crosshair')}
+        onPointerOut={() => (document.body.style.cursor = 'default')}
+      />
       
       {/* Ground projection circle indicator */}
       <mesh ref={ringRef} position={[center.x, projectionYPosition, center.z]} rotation={[-Math.PI / 2, 0, 0]}>

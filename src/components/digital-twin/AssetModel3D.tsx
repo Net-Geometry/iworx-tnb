@@ -5,6 +5,7 @@
  */
 
 import { Text } from '@react-three/drei';
+import type { ThreeEvent } from '@react-three/fiber';
 import { DemoTransformer3D } from '@/pages/demo/digital-twin/components/models/DemoTransformer3D';
 import { DemoSwitchgear3D } from '@/pages/demo/digital-twin/components/models/DemoSwitchgear3D';
 import { DemoMeterBank3D } from '@/pages/demo/digital-twin/components/models/DemoMeterBank3D';
@@ -27,9 +28,11 @@ interface AssetModel3DProps {
   position: [number, number, number];
   isSelected: boolean;
   onClick?: () => void;
+  editMode?: boolean;
+  onPositionClick?: (position: [number, number, number]) => void;
 }
 
-export function AssetModel3D({ asset, position, isSelected, onClick }: AssetModel3DProps) {
+export function AssetModel3D({ asset, position, isSelected, onClick, editMode, onPositionClick }: AssetModel3DProps) {
   // Map health score to status
   const status = asset.status === 'operational' && asset.health_score 
     ? asset.health_score < 50 ? 'critical' : asset.health_score < 75 ? 'maintenance' : 'operational'
@@ -47,6 +50,8 @@ export function AssetModel3D({ asset, position, isSelected, onClick }: AssetMode
         name={asset.name}
         isSelected={isSelected}
         onClick={onClick}
+        editMode={editMode}
+        onPositionClick={onPositionClick}
       />
     );
   }
@@ -60,6 +65,8 @@ export function AssetModel3D({ asset, position, isSelected, onClick }: AssetMode
           status={status}
           name={asset.name}
           onClick={onClick}
+          editMode={editMode}
+          onPositionClick={onPositionClick}
         />
       </group>
     );
@@ -73,6 +80,8 @@ export function AssetModel3D({ asset, position, isSelected, onClick }: AssetMode
           status={status}
           name={asset.name}
           onClick={onClick}
+          editMode={editMode}
+          onPositionClick={onPositionClick}
         />
       </group>
     );
@@ -86,15 +95,32 @@ export function AssetModel3D({ asset, position, isSelected, onClick }: AssetMode
           status={status}
           name={asset.name}
           onClick={onClick}
+          editMode={editMode}
+          onPositionClick={onPositionClick}
         />
       </group>
     );
   }
 
   // Default generic asset (box)
+  const handleClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    if (editMode && onPositionClick) {
+      const point = event.point;
+      onPositionClick([point.x, point.y, point.z]);
+    } else if (onClick) {
+      onClick();
+    }
+  };
+
   return (
-    <group position={position} onClick={onClick}>
-      <mesh castShadow>
+    <group position={position}>
+      <mesh 
+        castShadow
+        onClick={handleClick}
+        onPointerOver={() => editMode && (document.body.style.cursor = 'crosshair')}
+        onPointerOut={() => (document.body.style.cursor = 'default')}
+      >
         <boxGeometry args={[1, 1.5, 1]} />
         <meshStandardMaterial
           color={status === 'operational' ? '#10b981' : status === 'critical' ? '#ef4444' : '#f59e0b'}

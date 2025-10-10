@@ -6,15 +6,18 @@
 import { useRef } from 'react';
 import { Mesh } from 'three';
 import { Text } from '@react-three/drei';
+import type { ThreeEvent } from '@react-three/fiber';
 
 interface DemoSwitchgear3DProps {
   position: [number, number, number];
   status: 'operational' | 'maintenance' | 'critical' | 'offline';
   name: string;
   onClick?: () => void;
+  editMode?: boolean;
+  onPositionClick?: (position: [number, number, number]) => void;
 }
 
-export function DemoSwitchgear3D({ position, status, name, onClick }: DemoSwitchgear3DProps) {
+export function DemoSwitchgear3D({ position, status, name, onClick, editMode, onPositionClick }: DemoSwitchgear3DProps) {
   const meshRef = useRef<Mesh>(null);
 
   const statusColors = {
@@ -26,10 +29,26 @@ export function DemoSwitchgear3D({ position, status, name, onClick }: DemoSwitch
 
   const color = statusColors[status];
 
+  const handleClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    if (editMode && onPositionClick) {
+      const point = event.point;
+      onPositionClick([point.x, point.y, point.z]);
+    } else if (onClick) {
+      onClick();
+    }
+  };
+
   return (
-    <group position={position} onClick={onClick}>
+    <group position={position}>
       {/* Main cabinet body */}
-      <mesh ref={meshRef} castShadow>
+      <mesh 
+        ref={meshRef} 
+        castShadow
+        onClick={handleClick}
+        onPointerOver={() => editMode && (document.body.style.cursor = 'crosshair')}
+        onPointerOut={() => (document.body.style.cursor = 'default')}
+      >
         <boxGeometry args={[2, 3, 1]} />
         <meshStandardMaterial color={color} metalness={0.5} roughness={0.5} />
       </mesh>

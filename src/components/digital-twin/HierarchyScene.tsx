@@ -12,12 +12,16 @@ interface HierarchySceneProps {
   selectedAssetId?: string | null;
   historicalMode?: boolean;
   historicalTime?: Date;
+  editMode?: boolean;
+  onPositionClick?: (position: [number, number, number]) => void;
 }
 
 export function HierarchyScene({
   onAssetSelect,
   selectedAssetId,
   historicalMode = false,
+  editMode = false,
+  onPositionClick,
 }: HierarchySceneProps) {
   // Only fetch assets when one is selected
   const { assets3D, isLoading } = useAsset3DPositions(!!selectedAssetId);
@@ -43,6 +47,8 @@ export function HierarchyScene({
           position={asset.position}
           isSelected={selectedAssetId === asset.id}
           onClick={() => onAssetSelect?.(asset.id)}
+          editMode={editMode}
+          onPositionClick={onPositionClick}
         />
       ))}
     </group>

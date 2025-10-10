@@ -6,15 +6,18 @@
 import { useRef } from 'react';
 import { Mesh } from 'three';
 import { Text } from '@react-three/drei';
+import type { ThreeEvent } from '@react-three/fiber';
 
 interface DemoTransformer3DProps {
   position: [number, number, number];
   status: 'operational' | 'maintenance' | 'critical' | 'offline';
   name: string;
   onClick?: () => void;
+  editMode?: boolean;
+  onPositionClick?: (position: [number, number, number]) => void;
 }
 
-export function DemoTransformer3D({ position, status, name, onClick }: DemoTransformer3DProps) {
+export function DemoTransformer3D({ position, status, name, onClick, editMode, onPositionClick }: DemoTransformer3DProps) {
   const meshRef = useRef<Mesh>(null);
 
   // Status color mapping
@@ -27,10 +30,26 @@ export function DemoTransformer3D({ position, status, name, onClick }: DemoTrans
 
   const color = statusColors[status];
 
+  const handleClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    if (editMode && onPositionClick) {
+      const point = event.point;
+      onPositionClick([point.x, point.y, point.z]);
+    } else if (onClick) {
+      onClick();
+    }
+  };
+
   return (
-    <group position={position} onClick={onClick}>
+    <group position={position}>
       {/* Main transformer body (cylinder) */}
-      <mesh ref={meshRef} castShadow>
+      <mesh 
+        ref={meshRef} 
+        castShadow
+        onClick={handleClick}
+        onPointerOver={() => editMode && (document.body.style.cursor = 'crosshair')}
+        onPointerOut={() => (document.body.style.cursor = 'default')}
+      >
         <cylinderGeometry args={[1.5, 1.5, 3, 32]} />
         <meshStandardMaterial color={color} metalness={0.6} roughness={0.4} />
       </mesh>
