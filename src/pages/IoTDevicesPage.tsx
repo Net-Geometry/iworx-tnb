@@ -18,7 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { IoTDeviceTable } from "@/components/iot-devices/IoTDeviceTable";
 import { IoTWebhookSetup } from "@/components/iot-devices/IoTWebhookSetup";
 import { IoTDeviceEditDialog } from "@/components/iot-devices/IoTDeviceEditDialog";
-import { IoTDeviceDetailsModal } from "@/components/iot-devices/IoTDeviceDetailsModal";
+
 import { IoTMeterMappingForm } from "@/components/iot-devices/IoTMeterMappingForm";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -40,7 +40,6 @@ export default function IoTDevicesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [deviceTypeFilter, setDeviceTypeFilter] = useState<string>("all");
   const [editingDevice, setEditingDevice] = useState<any>(null);
-  const [viewingDevice, setViewingDevice] = useState<any>(null);
   const [mappingDevice, setMappingDevice] = useState<any>(null);
   const [deletingDevice, setDeletingDevice] = useState<any>(null);
 
@@ -201,7 +200,7 @@ export default function IoTDevicesPage() {
             devices={filteredDevices} 
             isLoading={isLoading}
             onEdit={(device) => setEditingDevice(device)}
-            onViewDetails={(device) => setViewingDevice(device)}
+            onViewDetails={(device) => navigate(`/iot-devices/${device.id}`)}
             onConfigureMapping={(device) => setMappingDevice(device)}
             onDelete={(device) => setDeletingDevice(device)}
           />
@@ -222,12 +221,6 @@ export default function IoTDevicesPage() {
         onSuccess={() => setEditingDevice(null)}
       />
 
-      {/* Device Details Modal */}
-      <IoTDeviceDetailsModal
-        device={viewingDevice}
-        isOpen={!!viewingDevice}
-        onClose={() => setViewingDevice(null)}
-      />
 
       {/* Meter Mapping Form */}
       <IoTMeterMappingForm

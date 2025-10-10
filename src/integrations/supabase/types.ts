@@ -613,6 +613,60 @@ export type Database = {
           },
         ]
       }
+      iot_device_display_preferences: {
+        Row: {
+          created_at: string
+          device_id: string
+          id: string
+          lorawan_fields: Json
+          max_readings_shown: number
+          organization_id: string
+          refresh_interval_seconds: number
+          selected_metrics: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          id?: string
+          lorawan_fields?: Json
+          max_readings_shown?: number
+          organization_id: string
+          refresh_interval_seconds?: number
+          selected_metrics?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          id?: string
+          lorawan_fields?: Json
+          max_readings_shown?: number
+          organization_id?: string
+          refresh_interval_seconds?: number
+          selected_metrics?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iot_device_display_preferences_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "iot_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "iot_device_display_preferences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       iot_device_meter_mappings: {
         Row: {
           created_at: string
