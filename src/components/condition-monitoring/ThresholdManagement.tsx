@@ -1,13 +1,16 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useConditionThresholds, useDeleteThreshold } from '@/hooks/useConditionMonitoring';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Mail, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { ThresholdCreateDialog } from './ThresholdCreateDialog';
 
 export function ThresholdManagement() {
   const { data: thresholds, isLoading } = useConditionThresholds();
   const deleteMutation = useDeleteThreshold();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   if (isLoading) {
     return <Skeleton className="h-64" />;
@@ -25,11 +28,16 @@ export function ThresholdManagement() {
         <p className="text-sm text-muted-foreground">
           {thresholds?.length || 0} threshold(s) configured
         </p>
-        <Button size="sm">
+        <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="w-4 h-4 mr-1" />
-          Add Threshold
+          Create Threshold
         </Button>
       </div>
+
+      <ThresholdCreateDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+      />
 
       {!thresholds || thresholds.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
@@ -43,17 +51,30 @@ export function ThresholdManagement() {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <span className="font-semibold">{threshold.metric_name}</span>
                       {threshold.enabled ? (
                         <Badge variant="secondary">Active</Badge>
                       ) : (
                         <Badge variant="outline">Disabled</Badge>
                       )}
+                      {threshold.auto_create_work_order && (
+                        <Badge variant="default" className="gap-1">
+                          <Zap className="w-3 h-3" />
+                          Auto-WO
+                        </Badge>
+                      )}
+                      {threshold.notification_emails && threshold.notification_emails.length > 0 && (
+                        <Badge variant="outline" className="gap-1">
+                          <Mail className="w-3 h-3" />
+                          {threshold.notification_emails.length} email{threshold.notification_emails.length > 1 ? 's' : ''}
+                        </Badge>
+                      )}
                     </div>
                     
                     <p className="text-sm text-muted-foreground mb-2">
                       Asset: {threshold.assets?.name || 'All assets'}
+                      {threshold.iot_devices?.device_name && ` → Device: ${threshold.iot_devices.device_name}`}
                     </p>
                     
                     <div className="text-sm space-y-1">
