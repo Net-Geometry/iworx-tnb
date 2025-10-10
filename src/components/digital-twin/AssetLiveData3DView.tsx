@@ -223,7 +223,11 @@ export function AssetLiveData3DView({
               {/* Bottom Info Panel */}
               <LiveDataBottomPanel 
                 assetId={selectedAssetId}
-                sensorTypes={Array.isArray(preferences?.selected_sensor_types) ? preferences.selected_sensor_types : []}
+                sensorTypes={
+                  Array.isArray(preferences?.selected_sensor_types) && preferences.selected_sensor_types.length > 0
+                    ? preferences.selected_sensor_types 
+                    : sensorTypes  // Show all available sensor types when none selected
+                }
               />
             </div>
           )}
