@@ -1,18 +1,4 @@
-# Welcome to your Lovable project
-
-## Project info
-
-**URL**: https://lovable.dev/projects/46489b91-c462-437b-9a39-72c948ef0b60
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/46489b91-c462-437b-9a39-72c948ef0b60) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
+# Welcome to IWorx Project
 
 **Use your preferred IDE**
 
