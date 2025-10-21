@@ -51,6 +51,8 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
     model_3d_rotation_x: '0',
     model_3d_rotation_y: '0',
     model_3d_rotation_z: '0',
+    // Public access control
+    allow_public_access: true,
   });
 
   const [uploadedDocuments, setUploadedDocuments] = useState<Array<{name: string, url: string}>>([]);
@@ -106,6 +108,7 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
         model_3d_rotation_x: rotation.x.toString(),
         model_3d_rotation_y: rotation.y.toString(),
         model_3d_rotation_z: rotation.z.toString(),
+        allow_public_access: (existingAsset as any).allow_public_access !== false,
       });
     }
   }, [existingAsset, assetId]);

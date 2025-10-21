@@ -6,11 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { Asset } from '@/hooks/useAssets';
 import { FileUpload } from './FileUpload';
 import { QRCodePreview } from './QRCodePreview';
 import { ParentAssetSelect } from './ParentAssetSelect';
 import { Model3DUpload } from './Model3DUpload';
+import { Globe, Lock } from 'lucide-react';
 
 interface AssetFormContentProps {
   formData: {
@@ -39,6 +41,7 @@ interface AssetFormContentProps {
     model_3d_rotation_x: string;
     model_3d_rotation_y: string;
     model_3d_rotation_z: string;
+    allow_public_access?: boolean;
   };
   flatNodes: any[];
   assetId?: string;
@@ -369,10 +372,39 @@ const AssetFormContent: React.FC<AssetFormContentProps> = ({
                 <CardTitle>QR Code Preview</CardTitle>
                 <CardDescription>Auto-generated QR code for asset identification</CardDescription>
               </CardHeader>
-              <CardContent className="flex justify-center">
+              <CardContent className="flex flex-col items-center space-y-6">
                 {formData.qr_code_data && (
                   <QRCodePreview data={formData.qr_code_data} size={200} />
                 )}
+                
+                {/* Public Access Control */}
+                <div className="w-full max-w-md p-4 border border-border rounded-lg bg-muted/30">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        {formData.allow_public_access === false ? (
+                          <Lock className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Globe className="h-4 w-4 text-primary" />
+                        )}
+                        <Label htmlFor="allow_public_access" className="font-medium">
+                          Public QR Access
+                        </Label>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {formData.allow_public_access === false 
+                          ? 'QR code requires login to view asset details'
+                          : 'Anyone with the QR code can view basic asset information without login'
+                        }
+                      </p>
+                    </div>
+                    <Switch
+                      id="allow_public_access"
+                      checked={formData.allow_public_access !== false}
+                      onCheckedChange={(checked) => onFormDataChange('allow_public_access', checked)}
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>

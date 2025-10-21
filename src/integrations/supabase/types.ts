@@ -2865,6 +2865,7 @@ export type Database = {
       }
       assets: {
         Row: {
+          allow_public_access: boolean | null
           asset_image_url: string | null
           asset_number: string | null
           category: string | null
@@ -2898,6 +2899,7 @@ export type Database = {
           warranty_expiry_date: string | null
         }
         Insert: {
+          allow_public_access?: boolean | null
           asset_image_url?: string | null
           asset_number?: string | null
           category?: string | null
@@ -2931,6 +2933,7 @@ export type Database = {
           warranty_expiry_date?: string | null
         }
         Update: {
+          allow_public_access?: boolean | null
           asset_image_url?: string | null
           asset_number?: string | null
           category?: string | null
