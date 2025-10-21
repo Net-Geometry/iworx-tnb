@@ -11,9 +11,14 @@ export const QRCodePreview: React.FC<QRCodePreviewProps> = ({ data, size = 128 }
 
   useEffect(() => {
     if (canvasRef.current && data) {
-      QRCode.toCanvas(canvasRef.current, data, {
+      // Generate QR code with the public URL
+      // If data is already a URL, use it; otherwise it might be legacy data
+      const qrData = data.startsWith('http') ? data : data;
+      
+      QRCode.toCanvas(canvasRef.current, qrData, {
         width: size,
         margin: 2,
+        errorCorrectionLevel: 'M',
       }, (error) => {
         if (error) console.error('QR Code generation error:', error);
       });

@@ -1617,6 +1617,33 @@ export type Database = {
           },
         ]
       }
+      public_asset_access_log: {
+        Row: {
+          accessed_at: string | null
+          asset_id: string | null
+          id: string
+          ip_address: string | null
+          referer: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          accessed_at?: string | null
+          asset_id?: string | null
+          id?: string
+          ip_address?: string | null
+          referer?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          accessed_at?: string | null
+          asset_id?: string | null
+          id?: string
+          ip_address?: string | null
+          referer?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       purchase_order_items: {
         Row: {
           created_at: string
@@ -5731,6 +5758,25 @@ export type Database = {
         Args: { "": number }
         Returns: string
       }
+      get_public_asset_info: {
+        Args: { p_asset_id: string }
+        Returns: {
+          allow_public_access: boolean
+          asset_image_url: string
+          asset_number: string
+          category: string
+          id: string
+          location: string
+          manufacturer: string
+          model: string
+          name: string
+          organization_id: string
+          qr_code_data: string
+          serial_number: string
+          status: string
+          type: string
+        }[]
+      }
       get_recommended_technicians: {
         Args: { _organization_id: string; _work_order_id: string }
         Returns: {
@@ -5838,7 +5884,7 @@ export type Database = {
       }
       l2_normalize: {
         Args: { "": string } | { "": unknown } | { "": unknown }
-        Returns: string
+        Returns: unknown
       }
       longtransactionsenabled: {
         Args: Record<PropertyKey, never>

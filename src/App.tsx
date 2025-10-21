@@ -92,6 +92,7 @@ import IoTDevicesPage from "./pages/IoTDevicesPage";
 import IoTDeviceDetailPage from "./pages/IoTDeviceDetailPage";
 import RegisterIoTDevicePage from "./pages/RegisterIoTDevicePage";
 import ConditionMonitoringPage from "./pages/ConditionMonitoringPage";
+import PublicAssetView from "./pages/PublicAssetView";
 
 const queryClient = new QueryClient();
 
@@ -103,7 +104,13 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            {/* Public Routes - No authentication required */}
+            <Route path="/public/asset/:id" element={<PublicAssetView />} />
+            
+            {/* Authentication Route */}
             <Route path="/auth" element={<AuthPage />} />
+            
+            {/* Protected Routes - Authentication required */}
             <Route path="/" element={
               <AuthGuard>
                 <Layout>

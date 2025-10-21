@@ -110,15 +110,13 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
     }
   }, [existingAsset, assetId]);
 
-  // Generate QR code data when asset name or number changes - optimized with debouncing effect
+  // Generate QR code data with public URL when asset is created
   useEffect(() => {
     if (formData.name && !assetId) {
       const timeout = setTimeout(() => {
-        const qrData = JSON.stringify({
-          name: formData.name,
-          tag: formData.asset_number,
-          id: 'will-be-generated'
-        });
+        // For new assets, generate URL-based QR code that will be updated with actual ID after creation
+        // This will be updated to full URL after asset creation
+        const qrData = `pending-creation:${formData.name}-${formData.asset_number}`;
         setFormData(prev => ({ ...prev, qr_code_data: qrData }));
       }, 300); // Debounce to prevent excessive updates
 
@@ -187,9 +185,16 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
       };
 
       if (assetId) {
+        // Update existing asset
+        // If QR code data doesn't start with http, regenerate with public URL
+        if (assetData.qr_code_data && !assetData.qr_code_data.startsWith('http')) {
+          assetData.qr_code_data = `${window.location.origin}/public/asset/${assetId}`;
+        }
         await updateAsset(assetId, assetData);
       } else {
-        await addAsset(assetData);
+        // Create new asset - the addAsset hook will handle QR code URL generation
+        const newAsset = await addAsset(assetData);
+        // Note: QR code URL will be updated via edge function after creation
       }
       
       onClose();

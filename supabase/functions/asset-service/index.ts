@@ -185,6 +185,24 @@ async function createAsset(supabase: any, assetData: any, organizationId: string
 
   if (error) throw error;
 
+  // Generate public URL for QR code if not already set or if it's pending
+  if (data.id && (!data.qr_code_data || data.qr_code_data.startsWith('pending-creation'))) {
+    const publicUrl = `https://jsqzkaarpfowgmijcwaw.supabase.co/public/asset/${data.id}`;
+    
+    // Update the asset with the public QR code URL
+    const { error: updateError } = await supabase
+      .from("assets")
+      .update({ qr_code_data: publicUrl })
+      .eq("id", data.id);
+    
+    if (updateError) {
+      console.error('[Asset Service] Failed to update QR code URL:', updateError);
+    } else {
+      data.qr_code_data = publicUrl;
+      console.log('[Asset Service] Generated public QR code URL:', publicUrl);
+    }
+  }
+
   return data;
 }
 
@@ -195,6 +213,12 @@ async function updateAsset(supabase: any, id: string, assetData: any, organizati
   console.log(`[Asset Service] Updating asset ${id}`);
 
   const processedData = processJsonFields(assetData);
+
+  // Ensure QR code data uses public URL format if being updated
+  if (processedData.qr_code_data && !processedData.qr_code_data.startsWith('http')) {
+    processedData.qr_code_data = `https://jsqzkaarpfowgmijcwaw.supabase.co/public/asset/${id}`;
+    console.log('[Asset Service] Updated QR code to use public URL format');
+  }
 
   let query = supabase
     .from("assets")
