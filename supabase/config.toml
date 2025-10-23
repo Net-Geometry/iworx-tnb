@@ -1,5 +1,8 @@
 project_id = "jsqzkaarpfowgmijcwaw"
 
+[functions.iot-webhook-test]
+verify_jwt = false
+
 [functions.predictive-maintenance-ai]
 verify_jwt = true
 
