@@ -139,33 +139,67 @@ serve(async (req) => {
         });
       }
 
-      // Generate work order number
-      const { count } = await supabase.from("work_orders")
-        .select("*", { count: "exact", head: true })
-        .eq("organization_id", organizationId);
-      
-      const workOrderNumber = `WO-${String((count || 0) + 1).padStart(6, '0')}`;
+      // Check for existing work order for this schedule and due date
+      const { data: existingWO } = await supabase
+        .from("work_orders")
+        .select("id, title")
+        .eq("pm_schedule_id", scheduleId)
+        .eq("scheduled_date", schedule.next_due_date)
+        .maybeSingle();
+
+      if (existingWO) {
+        console.warn('[PM-Schedules] Work order already exists:', { scheduleId, workOrderId: existingWO.id });
+        return new Response(JSON.stringify({ 
+          error: "Work order already exists for this schedule and date",
+          workOrderId: existingWO.id 
+        }), {
+          status: 409,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
 
       // Create work order
       const { data: workOrder, error: woError } = await supabase
         .from("work_orders")
         .insert({
-          work_order_number: workOrderNumber,
-          title: `PM: ${schedule.name}`,
-          description: schedule.description,
+          title: schedule.title || schedule.schedule_number,
+          description: schedule.description || `Generated from PM schedule ${schedule.schedule_number}`,
           asset_id: schedule.asset_id,
           job_plan_id: schedule.job_plan_id,
           priority: schedule.priority || "medium",
-          status: "open",
-          work_type: "preventive",
+          status: "scheduled",
+          maintenance_type: "preventive",
           estimated_duration_hours: schedule.estimated_duration_hours,
+          scheduled_date: schedule.next_due_date,
+          pm_schedule_id: scheduleId,
+          generation_type: "manual",
           organization_id: organizationId,
           created_by: userId
         })
         .select()
         .single();
 
-      if (woError) throw woError;
+      if (woError) {
+        console.error('[PM-Schedules] Error creating work order:', {
+          error: woError,
+          scheduleId,
+          schedule: {
+            title: schedule.title,
+            schedule_number: schedule.schedule_number,
+            asset_id: schedule.asset_id,
+            job_plan_id: schedule.job_plan_id
+          },
+          correlationId
+        });
+        
+        return new Response(JSON.stringify({ 
+          error: 'Failed to create work order', 
+          details: woError.message 
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
 
       // Record in history
       await supabase.from("pm_service.schedule_history").insert({
