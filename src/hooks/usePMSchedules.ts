@@ -503,68 +503,20 @@ export const usePausePMSchedule = () => {
  */
 export const useGenerateWorkOrder = () => {
   const queryClient = useQueryClient();
-  const { currentOrganization, user } = useAuth();
+  const { currentOrganization } = useAuth();
 
   return useMutation({
     mutationFn: async (scheduleId: string) => {
-      // First, fetch the full PM schedule details
-      const { data: schedule, error: scheduleError } = await supabase
-        .from("pm_schedules")
-        .select(`
-          *,
-          asset:assets(id, name, asset_number),
-          job_plan:job_plans(id, title, job_plan_number, description, estimated_duration_hours)
-        `)
-        .eq("id", scheduleId)
-        .single();
-
-      if (scheduleError) throw scheduleError;
-      if (!schedule) throw new Error("PM schedule not found");
-
-      // Check if work order already exists for this schedule and due date
-      const { data: existingWO } = await supabase
-        .from("work_orders")
-        .select("id, title")
-        .eq("pm_schedule_id", scheduleId)
-        .eq("scheduled_date", schedule.next_due_date)
-        .maybeSingle();
-
-      if (existingWO) {
-        throw new Error(`Work order already exists for this schedule`);
-      }
-
-      // Calculate total planned cost from PM schedule
-      const plannedCost = (schedule.estimated_material_cost || 0) + (schedule.estimated_labor_cost || 0);
-
-      // Create work order from PM schedule
-      const { data: workOrder, error: woError } = await supabase
-        .from("work_orders")
-        .insert([{
-          title: schedule.title,
-          description: schedule.description || `Generated from PM schedule ${schedule.schedule_number}`,
-          asset_id: schedule.asset_id,
-          maintenance_type: "preventive",
-          priority: schedule.priority || "medium",
-          scheduled_date: schedule.next_due_date,
-          estimated_duration_hours: schedule.estimated_duration_hours,
-          assigned_technician: schedule.assigned_to,
-          status: "scheduled",
-          pm_schedule_id: scheduleId,
-          generation_type: "manual",
-          organization_id: currentOrganization?.id,
-          estimated_cost: plannedCost,
-          work_order_type: "pm",
-          location_node_id: schedule.location_node_id, // Pass location for notification routing
-        }])
-        .select()
-        .single();
-
-      if (woError) throw woError;
-      return workOrder;
+      // Use microservice API through centralized client
+      // The microservice handles all logic: fetching schedule, checking duplicates,
+      // creating work order, updating history, and calculating next due date
+      const currentDate = new Date().toISOString();
+      return await pmSchedulesApi.generateWorkOrder(scheduleId, currentDate);
     },
     onSuccess: (workOrder) => {
       queryClient.invalidateQueries({ queryKey: ["work_orders"] });
       queryClient.invalidateQueries({ queryKey: ["pm_schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["pm-schedules"] });
       toast.success(`Work order "${workOrder.title}" created successfully`);
     },
     onError: (error: Error) => {
