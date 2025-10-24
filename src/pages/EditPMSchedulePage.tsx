@@ -80,6 +80,10 @@ const pmScheduleSchema = z.object({
   safety_precaution_ids: z.array(z.string()).optional(),
   estimated_material_cost: z.coerce.number().optional(),
   estimated_labor_cost: z.coerce.number().optional(),
+  planned_quantities: z.array(z.object({
+    bomItemId: z.string(),
+    quantity: z.number()
+  })).optional(),
 });
 
 type PMScheduleFormValues = z.infer<typeof pmScheduleSchema>;
@@ -120,6 +124,7 @@ const EditPMSchedulePage = () => {
       auto_generate_wo: true,
       notification_enabled: true,
       safety_precaution_ids: [],
+      planned_quantities: [],
     },
   });
 
@@ -146,6 +151,7 @@ const EditPMSchedulePage = () => {
         auto_generate_wo: schedule.auto_generate_wo ?? true,
         notification_enabled: schedule.notification_enabled ?? true,
         safety_precaution_ids: schedule.safety_precaution_ids || [],
+        planned_quantities: (schedule.planned_quantities || []) as Array<{ bomItemId: string; quantity: number }>,
       });
     }
   }, [schedule, form]);
@@ -175,11 +181,16 @@ const EditPMSchedulePage = () => {
         start_date: format(values.start_date, 'yyyy-MM-dd'),
         next_due_date: format(nextDueDate, 'yyyy-MM-dd'),
         lead_time_days: values.lead_time_days,
+        assigned_person_id: values.assigned_person_id,
         priority: values.priority,
         estimated_duration_hours: values.estimated_duration_hours,
         auto_generate_wo: values.auto_generate_wo,
         notification_enabled: values.notification_enabled,
         safety_precaution_ids: values.safety_precaution_ids || [],
+        planned_quantities: (values.planned_quantities || []).filter(
+          (pq): pq is { bomItemId: string; quantity: number } => 
+            !!pq.bomItemId && typeof pq.quantity === 'number'
+        ),
         organization_id: currentOrganization!.id,
       };
 
@@ -329,7 +340,7 @@ const EditPMSchedulePage = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Priority</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select priority" />
@@ -364,7 +375,7 @@ const EditPMSchedulePage = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Frequency Type</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue />
@@ -408,7 +419,7 @@ const EditPMSchedulePage = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Frequency Unit</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select unit" />
@@ -529,7 +540,7 @@ const EditPMSchedulePage = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Asset</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select asset" />
@@ -554,7 +565,7 @@ const EditPMSchedulePage = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Job Plan (Optional)</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select job plan" />
@@ -628,7 +639,7 @@ const EditPMSchedulePage = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Assigned Person (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select person" />
@@ -714,6 +725,13 @@ const EditPMSchedulePage = () => {
                 assetId={form.watch("asset_id")}
                 assignedPersonIds={form.watch("assigned_person_id") ? [form.watch("assigned_person_id")] : []}
                 estimatedDurationHours={form.watch("estimated_duration_hours") || 0}
+                plannedQuantities={(form.watch("planned_quantities") || []).filter(
+                  (pq): pq is { bomItemId: string; quantity: number } => 
+                    !!pq?.bomItemId && typeof pq?.quantity === 'number'
+                )}
+                onQuantitiesChange={(quantities) => {
+                  form.setValue("planned_quantities", quantities);
+                }}
                 onCostUpdate={(costs) => {
                   form.setValue("estimated_material_cost", costs.materialCost);
                   form.setValue("estimated_labor_cost", costs.laborCost);

@@ -23,6 +23,7 @@ export interface PMSchedule {
   lead_time_days: number;
   assigned_to?: string;
   assigned_team_id?: string;
+  assigned_person_id?: string;
   priority: string;
   estimated_duration_hours?: number;
   estimated_material_cost?: number;
@@ -33,6 +34,7 @@ export interface PMSchedule {
   auto_generate_wo: boolean;
   notification_enabled: boolean;
   safety_precaution_ids?: string[] | null;
+  planned_quantities?: Array<{ bomItemId: string; quantity: number }>;
   organization_id: string;
   created_at: string;
   updated_at: string;
@@ -70,11 +72,13 @@ export interface PMScheduleInsert {
   lead_time_days?: number;
   assigned_to?: string;
   assigned_team_id?: string;
+  assigned_person_id?: string;
   priority?: string;
   estimated_duration_hours?: number;
   auto_generate_wo?: boolean;
   notification_enabled?: boolean;
   safety_precaution_ids?: string[];
+  planned_quantities?: Array<{ bomItemId: string; quantity: number }>;
   organization_id: string;
 }
 

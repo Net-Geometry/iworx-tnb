@@ -17,16 +17,26 @@ import { useState } from "react";
 
 interface PMScheduleBOMViewProps {
   assetId?: string;
+  plannedQuantities?: Array<{ bomItemId: string; quantity: number }>;
+  onQuantitiesChange?: (quantities: Array<{ bomItemId: string; quantity: number }>) => void;
   onMaterialsChange?: (materials: Array<{ bomItemId: string; quantity: number; estimatedCost: number }>) => void;
 }
 
-export const PMScheduleBOMView = ({ assetId, onMaterialsChange }: PMScheduleBOMViewProps) => {
+export const PMScheduleBOMView = ({ 
+  assetId, 
+  plannedQuantities = [],
+  onQuantitiesChange,
+  onMaterialsChange 
+}: PMScheduleBOMViewProps) => {
   const { assetBOMs, loading: bomsLoading } = useAssetBOMs(assetId);
   const primaryBOM = assetBOMs?.find(ab => ab.is_primary)?.bom || assetBOMs?.[0]?.bom;
   const { items: bomItems, loading: itemsLoading } = useBOMItems(primaryBOM?.id);
   const { data: inventoryItems = [] } = useInventoryItems();
   
-  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const quantities = plannedQuantities.reduce((acc, item) => {
+    acc[item.bomItemId] = item.quantity;
+    return acc;
+  }, {} as Record<string, number>);
 
   // Calculate total estimated cost
   const calculateTotalCost = () => {
@@ -40,14 +50,25 @@ export const PMScheduleBOMView = ({ assetId, onMaterialsChange }: PMScheduleBOMV
   // Handle quantity change
   const handleQuantityChange = (itemId: string, value: string) => {
     const quantity = parseFloat(value) || 0;
-    setQuantities(prev => ({ ...prev, [itemId]: quantity }));
     
-    // Notify parent of changes
-    if (onMaterialsChange) {
+    const updatedQuantities = [...plannedQuantities];
+    const existingIndex = updatedQuantities.findIndex(q => q.bomItemId === itemId);
+    
+    if (existingIndex >= 0) {
+      updatedQuantities[existingIndex] = { bomItemId: itemId, quantity };
+    } else {
+      updatedQuantities.push({ bomItemId: itemId, quantity });
+    }
+    
+    if (onQuantitiesChange) {
+      onQuantitiesChange(updatedQuantities);
+    }
+    
+    if (onMaterialsChange && bomItems) {
       const materials = bomItems.map(item => ({
         bomItemId: item.id,
-        quantity: quantities[item.id] || item.quantity,
-        estimatedCost: (quantities[item.id] || item.quantity) * (item.cost_per_unit || 0)
+        quantity: updatedQuantities.find(q => q.bomItemId === item.id)?.quantity || item.quantity,
+        estimatedCost: (updatedQuantities.find(q => q.bomItemId === item.id)?.quantity || item.quantity) * (item.cost_per_unit || 0)
       }));
       onMaterialsChange(materials);
     }

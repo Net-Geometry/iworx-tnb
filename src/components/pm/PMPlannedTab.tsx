@@ -13,6 +13,8 @@ interface PMPlannedTabProps {
   assetId?: string;
   assignedPersonIds?: string[];
   estimatedDurationHours?: number;
+  plannedQuantities?: Array<{ bomItemId: string; quantity: number }>;
+  onQuantitiesChange?: (quantities: Array<{ bomItemId: string; quantity: number }>) => void;
   onCostUpdate?: (costs: { materialCost: number; laborCost: number; totalCost: number }) => void;
 }
 
@@ -20,6 +22,8 @@ export const PMPlannedTab = ({
   assetId, 
   assignedPersonIds, 
   estimatedDurationHours,
+  plannedQuantities,
+  onQuantitiesChange,
   onCostUpdate 
 }: PMPlannedTabProps) => {
   const [materialCost, setMaterialCost] = useState(0);
@@ -50,6 +54,8 @@ export const PMPlannedTab = ({
       {/* Materials & BOM Section */}
       <PMScheduleBOMView 
         assetId={assetId}
+        plannedQuantities={plannedQuantities}
+        onQuantitiesChange={onQuantitiesChange}
         onMaterialsChange={handleMaterialsChange}
       />
 
