@@ -185,12 +185,12 @@ serve(async (req) => {
           priority: schedule.priority || "medium",
           status: "scheduled",
           maintenance_type: "preventive",
+          work_order_type: "pm",
           estimated_duration_hours: schedule.estimated_duration_hours,
           scheduled_date: schedule.next_due_date,
           pm_schedule_id: scheduleId,
           generation_type: "manual",
-          organization_id: organizationId,
-          created_by: userId
+          organization_id: organizationId
         })
         .select()
         .single();
