@@ -58,15 +58,19 @@ serve(async (req) => {
     const url = new URL(req.url);
     let pathname = url.pathname;
 
-    // Strip function name from path if present
-    if (pathname.startsWith('/pm-schedules-service')) {
-      pathname = pathname.replace('/pm-schedules-service', '');
-    }
+    console.log(`[PM-Schedules] Raw pathname: ${pathname}`);
 
+    // Strip function name from path if present (handle multiple formats)
+    pathname = pathname
+      .replace(/^\/pm-schedules-service/, '')  // Remove function name prefix
+      .replace(/^\/+/, '/');                    // Remove duplicate slashes
+    
     // Ensure we have a clean path
     if (!pathname || pathname === '/') {
       pathname = '/';
     }
+
+    console.log(`[PM-Schedules] Cleaned pathname: ${pathname}`);
 
     const pathParts = pathname.split("/").filter(Boolean);
     const method = req.method;
