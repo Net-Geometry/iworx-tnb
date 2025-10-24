@@ -56,10 +56,22 @@ serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const pathParts = url.pathname.split("/").filter(Boolean);
+    let pathname = url.pathname;
+
+    // Strip function name from path if present
+    if (pathname.startsWith('/pm-schedules-service')) {
+      pathname = pathname.replace('/pm-schedules-service', '');
+    }
+
+    // Ensure we have a clean path
+    if (!pathname || pathname === '/') {
+      pathname = '/';
+    }
+
+    const pathParts = pathname.split("/").filter(Boolean);
     const method = req.method;
 
-    console.log(`[PM-Schedules] ${method} ${url.pathname}`, { userId, organizationId, correlationId });
+    console.log(`[PM-Schedules] ${method} ${pathname}`, { userId, organizationId, correlationId });
 
     // Route: GET /stats
     if (method === "GET" && pathParts[0] === "stats") {
