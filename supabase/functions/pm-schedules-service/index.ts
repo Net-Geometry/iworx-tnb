@@ -86,11 +86,11 @@ serve(async (req) => {
       startOfMonth.setDate(1);
 
       const [active, overdue, dueThisWeek, completedThisMonth] = await Promise.all([
-        supabase.from("pm_schedules").select("id", { count: "exact", head: true })
+        supabase.from("pm_service.schedules").select("id", { count: "exact", head: true })
           .eq("organization_id", organizationId).eq("is_active", true),
-        supabase.from("pm_schedules").select("id", { count: "exact", head: true })
+        supabase.from("pm_service.schedules").select("id", { count: "exact", head: true })
           .eq("organization_id", organizationId).eq("is_active", true).lt("next_due_date", now),
-        supabase.from("pm_schedules").select("id", { count: "exact", head: true })
+        supabase.from("pm_service.schedules").select("id", { count: "exact", head: true })
           .eq("organization_id", organizationId).eq("is_active", true)
           .gte("next_due_date", startOfWeek.toISOString()).lte("next_due_date", now),
         supabase.from("pm_schedule_history").select("id", { count: "exact", head: true })
@@ -109,7 +109,7 @@ serve(async (req) => {
     if (method === "GET" && pathParts[0] === "by-asset" && pathParts[1]) {
       const assetId = pathParts[1];
       const { data, error } = await supabase
-        .from("pm_schedules")
+        .from("pm_service.schedules")
         .select("*")
         .eq("organization_id", organizationId)
         .eq("asset_id", assetId);
@@ -142,7 +142,7 @@ serve(async (req) => {
       const scheduleId = pathParts[0];
 
       const { data: schedule } = await supabase
-        .from("pm_schedules")
+        .from("pm_service.schedules")
         .select("*")
         .eq("id", scheduleId)
         .eq("organization_id", organizationId)
@@ -233,7 +233,7 @@ serve(async (req) => {
         schedule.frequency_value
       );
 
-      await supabase.from("pm_schedules")
+      await supabase.from("pm_service.schedules")
         .update({ 
           next_due_date: nextDueDate.toISOString().split('T')[0],
           last_completed_date: new Date().toISOString().split('T')[0]
@@ -259,7 +259,7 @@ serve(async (req) => {
       const { is_active } = body;
 
       const { data, error } = await supabase
-        .from("pm_schedules")
+        .from("pm_service.schedules")
         .update({ is_active, updated_at: new Date().toISOString() })
         .eq("id", scheduleId)
         .eq("organization_id", organizationId)
@@ -519,7 +519,7 @@ serve(async (req) => {
     if (method === "GET" && pathParts.length === 0) {
       // GET / - List all schedules
       const { data, error } = await supabase
-        .from("pm_schedules")
+        .from("pm_service.schedules")
         .select("*")
         .eq("organization_id", organizationId)
         .order("created_at", { ascending: false });
@@ -551,7 +551,7 @@ serve(async (req) => {
       // GET /:id - Get single schedule
       const scheduleId = pathParts[0];
       const { data: schedule, error } = await supabase
-        .from("pm_schedules")
+        .from("pm_service.schedules")
         .select("*")
         .eq("id", scheduleId)
         .eq("organization_id", organizationId)
@@ -585,14 +585,14 @@ serve(async (req) => {
       const body = await req.json();
 
       // Generate schedule number
-      const { count } = await supabase.from("pm_schedules")
+      const { count } = await supabase.from("pm_service.schedules")
         .select("*", { count: "exact", head: true })
         .eq("organization_id", organizationId);
 
       const scheduleNumber = `PM-${String((count || 0) + 1).padStart(6, '0')}`;
 
       const { data, error } = await supabase
-        .from("pm_schedules")
+        .from("pm_service.schedules")
         .insert({
           ...body,
           schedule_number: scheduleNumber,
@@ -622,7 +622,7 @@ serve(async (req) => {
       const body = await req.json();
 
       const { data, error } = await supabase
-        .from("pm_schedules")
+        .from("pm_service.schedules")
         .update({ ...body, updated_by: userId })
         .eq("id", scheduleId)
         .eq("organization_id", organizationId)
@@ -647,7 +647,7 @@ serve(async (req) => {
       const scheduleId = pathParts[0];
 
       const { error } = await supabase
-        .from("pm_schedules")
+        .from("pm_service.schedules")
         .delete()
         .eq("id", scheduleId)
         .eq("organization_id", organizationId);
