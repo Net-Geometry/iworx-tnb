@@ -93,6 +93,8 @@ import IoTDeviceDetailPage from "./pages/IoTDeviceDetailPage";
 import RegisterIoTDevicePage from "./pages/RegisterIoTDevicePage";
 import ConditionMonitoringPage from "./pages/ConditionMonitoringPage";
 import PublicAssetView from "./pages/PublicAssetView";
+import AssetScannerPOC from "./pages/poc/AssetScannerPOC";
+import POCAssetView from "./pages/poc/POCAssetView";
 
 const queryClient = new QueryClient();
 
@@ -106,6 +108,10 @@ const App = () => (
           <Routes>
             {/* Public Routes - No authentication required */}
             <Route path="/public/asset/:id" element={<PublicAssetView />} />
+            
+            {/* POC Routes - Proof of Concept Demo */}
+            <Route path="/poc/scanner" element={<AssetScannerPOC />} />
+            <Route path="/poc/asset/:id" element={<POCAssetView />} />
             
             {/* Authentication Route */}
             <Route path="/auth" element={<AuthPage />} />
