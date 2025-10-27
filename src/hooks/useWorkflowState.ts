@@ -85,14 +85,19 @@ export const useWorkOrderWorkflow = (workOrderId: string | undefined) => {
     }) => {
       if (!workOrderId) throw new Error("Work order ID is required");
 
-      // Get the step's work_order_status to update work order
+      // Get the step's work_order_status and sla_hours to update work order
       const { data: stepData, error: stepError } = await supabase
         .from("workflow_template_steps")
-        .select("work_order_status")
+        .select("work_order_status, sla_hours")
         .eq("id", stepId)
         .single();
 
       if (stepError) throw stepError;
+
+      // Calculate SLA due date if sla_hours is configured
+      const slaDueAt = stepData?.sla_hours
+        ? new Date(Date.now() + stepData.sla_hours * 60 * 60 * 1000).toISOString()
+        : null;
 
       // Update or create workflow state
       const { error: stateError } = await supabase
@@ -102,6 +107,7 @@ export const useWorkOrderWorkflow = (workOrderId: string | undefined) => {
           current_step_id: stepId,
           assigned_to_user_id: assignedToUserId || null,
           step_started_at: new Date().toISOString(),
+          sla_due_at: slaDueAt,
         });
 
       if (stateError) throw stateError;
@@ -217,14 +223,19 @@ export const useIncidentWorkflow = (incidentId: string | undefined) => {
     }) => {
       if (!incidentId) throw new Error("Incident ID is required");
 
-      // Get the step's incident_status to update incident
+      // Get the step's incident_status and sla_hours to update incident
       const { data: stepData, error: stepError } = await supabase
         .from("workflow_template_steps")
-        .select("incident_status")
+        .select("incident_status, sla_hours")
         .eq("id", stepId)
         .single();
 
       if (stepError) throw stepError;
+
+      // Calculate SLA due date if sla_hours is configured
+      const slaDueAt = stepData?.sla_hours
+        ? new Date(Date.now() + stepData.sla_hours * 60 * 60 * 1000).toISOString()
+        : null;
 
       // Update or create workflow state
       const { error: stateError } = await supabase
@@ -234,6 +245,7 @@ export const useIncidentWorkflow = (incidentId: string | undefined) => {
           current_step_id: stepId,
           assigned_to_user_id: assignedToUserId || null,
           step_started_at: new Date().toISOString(),
+          sla_due_at: slaDueAt,
         }, {
           onConflict: 'incident_id'
         });
