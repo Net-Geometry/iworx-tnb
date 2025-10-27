@@ -175,7 +175,7 @@ const AIAssistantMockup = () => {
             </div>
             <p className="text-xs text-muted-foreground mt-2">
               <Badge variant="secondary" className="text-xs mr-2">Demo</Badge>
-              This is a mockup. Real implementation would use Lovable AI.
+              This is a mockup. Real implementation would use AI integration.
             </p>
           </div>
         </div>
