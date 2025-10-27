@@ -1,8 +1,8 @@
-# Welcome to IWorx Project
+# Welcome to iWorx Project
 
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+If you want to work locally using your own IDE, you can clone this repo and push changes.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -48,12 +48,10 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/46489b91-c462-437b-9a39-72c948ef0b60) and click on Share -> Publish.
+You can deploy this project using various hosting platforms such as:
+- Vercel
+- Netlify
+- AWS Amplify
+- GitHub Pages
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Simply build the project with `npm run build` and deploy the `dist` folder.
