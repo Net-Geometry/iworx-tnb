@@ -65,7 +65,7 @@ const CreateAssetPage = () => {
       </div>
 
       {/* Asset Form */}
-      <div className="max-w-4xl">
+      <div className="max-w-6xl w-full">
         <div className="bg-card rounded-lg border border-border/50 p-6">
           <AssetManagementForm onClose={handleClose} mode="page" />
         </div>
