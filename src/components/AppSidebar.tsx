@@ -223,7 +223,7 @@ const systemAdminModules = [
 const demoModules = [
   { title: "Help System Demo", url: "/demo/help-system", icon: Rocket },
   { title: "Digital Twin Demo", url: "/demo/digital-twin", icon: Layers },
-  { title: "TNB Grid Demo", url: "/demo/tnb-grid", icon: Zap },
+  { title: "Grid Demo", url: "/demo/tnb-grid", icon: Zap },
 ];
 
 export function AppSidebar() {

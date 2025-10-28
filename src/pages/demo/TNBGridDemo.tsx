@@ -1,5 +1,5 @@
 /**
- * TNB Grid Demo Page
+ * Grid Demo Page
  * 
  * Demonstration of electrical grid digital twin visualization
  */
@@ -93,7 +93,7 @@ export default function TNBGridDemo() {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold">TNB Grid Digital Twin</h1>
+              <h1 className="text-3xl font-bold">Grid Digital Twin</h1>
               <Badge variant="secondary">Demo</Badge>
             </div>
             <p className="text-muted-foreground mt-1">
@@ -106,7 +106,7 @@ export default function TNBGridDemo() {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            This is a demonstration page showing TNB's electrical grid digital twin capabilities.
+            This is a demonstration page showing electrical grid digital twin capabilities.
             All data is simulated for demonstration purposes. Click on substations or power lines to view details.
           </AlertDescription>
         </Alert>
@@ -289,7 +289,7 @@ export default function TNBGridDemo() {
               <CardHeader>
                 <CardTitle>Key Features Demonstrated</CardTitle>
                 <CardDescription>
-                  This demo showcases the core capabilities of TNB's grid digital twin
+                  This demo showcases the core capabilities of the grid digital twin
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -430,7 +430,7 @@ interface GridPowerLine {
                     Production Integration Path
                   </h3>
                   <p className="text-sm text-muted-foreground mb-2">
-                    To move from demo to production with real TNB data:
+                    To move from demo to production with real data:
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                     <li>Create <code className="text-xs bg-muted px-1 py-0.5 rounded">grid_connections</code> and <code className="text-xs bg-muted px-1 py-0.5 rounded">grid_zones</code> database tables</li>
