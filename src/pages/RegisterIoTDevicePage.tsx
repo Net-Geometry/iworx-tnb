@@ -22,6 +22,18 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Copy } from "lucide-react";
+import { useEffect } from "react";
+
+/**
+ * Generate a unique DevEUI for webhook-based devices
+ * Format: WH + 12 hex chars (timestamp-based + random)
+ */
+function generateWebhookDevEUI(): string {
+  const timestamp = Date.now().toString(16).slice(-8).toUpperCase();
+  const random = Math.random().toString(16).slice(2, 10).toUpperCase();
+  return `WH${timestamp}${random}`.padEnd(16, '0').slice(0, 16);
+}
 
 const iotDeviceSchema = z.object({
   device_name: z.string().min(3, "Name must be at least 3 characters").max(100),
@@ -29,7 +41,7 @@ const iotDeviceSchema = z.object({
     .regex(/^[0-9A-Fa-f]{14,16}$/, "DevEUI must be 14-16 hexadecimal characters")
     .transform(val => val.toUpperCase()),
   device_identifier: z.string().optional(),
-  network_provider: z.enum(['ttn', 'chirpstack', 'aws_iot_core']),
+  network_provider: z.enum(['ttn', 'chirpstack', 'aws_iot_core', 'direct_webhook']),
   device_type_id: z.string().uuid().optional().or(z.literal("")).transform(val => val === "" ? undefined : val),
   asset_id: z.string().uuid().optional().or(z.literal("")).transform(val => val === "" ? undefined : val),
   app_key: z.string().regex(/^[0-9A-Fa-f]{32}$/, "App Key must be 32 hex characters").or(z.literal("")).transform(val => val === "" ? undefined : val).optional(),
@@ -61,6 +73,16 @@ export default function RegisterIoTDevicePage() {
       frequency_plan: "EU868",
     },
   });
+
+  const networkProvider = form.watch("network_provider");
+  const isWebhookDevice = networkProvider === "direct_webhook";
+
+  // Auto-generate DevEUI for webhook devices
+  useEffect(() => {
+    if (isWebhookDevice && !form.getValues("dev_eui")) {
+      form.setValue("dev_eui", generateWebhookDevEUI());
+    }
+  }, [isWebhookDevice, form]);
 
   const onSubmit = async (data: IoTDeviceFormData) => {
     if (!currentOrganization?.id || !user?.id) {
@@ -158,18 +180,37 @@ export default function RegisterIoTDevicePage() {
                     <FormItem>
                       <FormLabel>DevEUI *</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="0123456789ABCDEF" 
-                          maxLength={16}
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value.replace(/[^0-9A-Fa-f]/g, ''))}
-                        />
+                        <div className="flex gap-2">
+                          <Input 
+                            placeholder="0123456789ABCDEF" 
+                            maxLength={16}
+                            {...field}
+                            readOnly={isWebhookDevice}
+                            className={isWebhookDevice ? "bg-muted" : ""}
+                            onChange={(e) => field.onChange(e.target.value.replace(/[^0-9A-Fa-f]/g, ''))}
+                          />
+                          {isWebhookDevice && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                navigator.clipboard.writeText(field.value);
+                                toast.success("DevEUI copied to clipboard");
+                              }}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </FormControl>
                       <FormDescription className="flex justify-between items-center">
-                        <span>14-16 hexadecimal characters</span>
-                        <span className={field.value.length >= 14 && field.value.length <= 16 ? "text-green-600 font-medium" : "text-muted-foreground"}>
-                          {field.value.length}/14-16
-                        </span>
+                        <span>{isWebhookDevice ? "Auto-generated identifier" : "14-16 hexadecimal characters"}</span>
+                        {!isWebhookDevice && (
+                          <span className={field.value.length >= 14 && field.value.length <= 16 ? "text-green-600 font-medium" : "text-muted-foreground"}>
+                            {field.value.length}/14-16
+                          </span>
+                        )}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -203,7 +244,16 @@ export default function RegisterIoTDevicePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Network Provider *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          // Auto-generate DevEUI when switching to webhook
+                          if (value === "direct_webhook") {
+                            form.setValue("dev_eui", generateWebhookDevEUI());
+                          }
+                        }} 
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select network provider" />
@@ -213,12 +263,43 @@ export default function RegisterIoTDevicePage() {
                           <SelectItem value="ttn">The Things Network (TTN)</SelectItem>
                           <SelectItem value="chirpstack">ChirpStack</SelectItem>
                           <SelectItem value="aws_iot_core">AWS IoT Core</SelectItem>
+                          <SelectItem value="direct_webhook">Direct Webhook Push</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
+                {isWebhookDevice && (
+                  <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
+                    <h4 className="text-sm font-semibold">Webhook Configuration</h4>
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        Configure your device to send data to this endpoint:
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 text-xs bg-background px-3 py-2 rounded border">
+                          https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/iot-webhook-test
+                        </code>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            navigator.clipboard.writeText("https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/iot-webhook-test");
+                            toast.success("Webhook URL copied");
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Use the DevEUI above as the device identifier when sending data.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <FormField
                   control={form.control}
@@ -239,9 +320,10 @@ export default function RegisterIoTDevicePage() {
                 />
               </div>
 
-              <Separator />
+              {!isWebhookDevice && <Separator />}
 
-              {/* Advanced LoRaWAN Settings */}
+              {/* Advanced LoRaWAN Settings - Only for non-webhook devices */}
+              {!isWebhookDevice && (
               <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
                 <CollapsibleTrigger className="flex items-center gap-2 text-sm font-semibold hover:text-primary">
                   <ChevronDown className={`h-4 w-4 transition-transform ${isAdvancedOpen ? 'rotate-180' : ''}`} />
@@ -348,6 +430,7 @@ export default function RegisterIoTDevicePage() {
                   />
                 </CollapsibleContent>
               </Collapsible>
+              )}
 
               <div className="flex gap-3 justify-end pt-4">
                 <Button type="button" variant="outline" onClick={() => navigate("/iot-devices")}>
