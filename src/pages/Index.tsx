@@ -126,7 +126,7 @@ const Index = () => {
               </h1>
               <p className="text-xl text-muted-foreground mb-6 max-w-3xl">
                 Comprehensive enterprise asset management solution with microservices architecture, 
-                designed specifically for utility organizations like TNB. Supporting multiple verticals under one unified system.
+                designed specifically for utility organizations. Supporting multiple verticals under one unified system.
               </p>
               <div className="flex flex-wrap gap-3">
                 <span className="px-4 py-2 bg-primary/15 text-primary text-sm rounded-full font-medium">Microservices Architecture</span>
