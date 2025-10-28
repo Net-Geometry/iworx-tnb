@@ -28,7 +28,7 @@ import { Copy } from "lucide-react";
 function generateWebhookDevEUI(): string {
   const timestamp = Date.now().toString(16).slice(-8).toUpperCase();
   const random = Math.random().toString(16).slice(2, 10).toUpperCase();
-  return `WH${timestamp}${random}`.padEnd(16, '0').slice(0, 16);
+  return `FE${timestamp}${random}`.padEnd(16, '0').slice(0, 16);
 }
 
 const iotDeviceSchema = z.object({

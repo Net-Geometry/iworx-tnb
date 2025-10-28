@@ -27,12 +27,13 @@ import { useEffect } from "react";
 
 /**
  * Generate a unique DevEUI for webhook-based devices
- * Format: WH + 12 hex chars (timestamp-based + random)
+ * Format: FE + 14 hex chars (timestamp-based + random)
+ * FE prefix = Valid hexadecimal, indicates webhook/federated device
  */
 function generateWebhookDevEUI(): string {
   const timestamp = Date.now().toString(16).slice(-8).toUpperCase();
   const random = Math.random().toString(16).slice(2, 10).toUpperCase();
-  return `WH${timestamp}${random}`.padEnd(16, '0').slice(0, 16);
+  return `FE${timestamp}${random}`.padEnd(16, '0').slice(0, 16);
 }
 
 const iotDeviceSchema = z.object({
