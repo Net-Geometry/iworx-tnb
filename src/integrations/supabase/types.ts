@@ -1065,36 +1065,6 @@ export type Database = {
           },
         ]
       }
-      iot_webhook_test_data: {
-        Row: {
-          created_at: string | null
-          device_identifier: string | null
-          id: string
-          notes: string | null
-          processed: boolean | null
-          raw_payload: Json
-          received_at: string
-        }
-        Insert: {
-          created_at?: string | null
-          device_identifier?: string | null
-          id?: string
-          notes?: string | null
-          processed?: boolean | null
-          raw_payload: Json
-          received_at?: string
-        }
-        Update: {
-          created_at?: string | null
-          device_identifier?: string | null
-          id?: string
-          notes?: string | null
-          processed?: boolean | null
-          raw_payload?: Json
-          received_at?: string
-        }
-        Relationships: []
-      }
       loto_procedures: {
         Row: {
           approval_required: boolean | null
@@ -1646,33 +1616,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      public_asset_access_log: {
-        Row: {
-          accessed_at: string | null
-          asset_id: string | null
-          id: string
-          ip_address: string | null
-          referer: string | null
-          user_agent: string | null
-        }
-        Insert: {
-          accessed_at?: string | null
-          asset_id?: string | null
-          id?: string
-          ip_address?: string | null
-          referer?: string | null
-          user_agent?: string | null
-        }
-        Update: {
-          accessed_at?: string | null
-          asset_id?: string | null
-          id?: string
-          ip_address?: string | null
-          referer?: string | null
-          user_agent?: string | null
-        }
-        Relationships: []
       }
       purchase_order_items: {
         Row: {
@@ -2895,7 +2838,6 @@ export type Database = {
       }
       assets: {
         Row: {
-          allow_public_access: boolean | null
           asset_image_url: string | null
           asset_number: string | null
           category: string | null
@@ -2929,7 +2871,6 @@ export type Database = {
           warranty_expiry_date: string | null
         }
         Insert: {
-          allow_public_access?: boolean | null
           asset_image_url?: string | null
           asset_number?: string | null
           category?: string | null
@@ -2963,7 +2904,6 @@ export type Database = {
           warranty_expiry_date?: string | null
         }
         Update: {
-          allow_public_access?: boolean | null
           asset_image_url?: string | null
           asset_number?: string | null
           category?: string | null
@@ -5593,25 +5533,6 @@ export type Database = {
         Returns: boolean
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
-      get_public_asset_info: {
-        Args: { p_asset_id: string }
-        Returns: {
-          allow_public_access: boolean
-          asset_image_url: string
-          asset_number: string
-          category: string
-          id: string
-          location: string
-          manufacturer: string
-          model: string
-          name: string
-          organization_id: string
-          qr_code_data: string
-          serial_number: string
-          status: string
-          type: string
-        }[]
-      }
       get_recommended_technicians: {
         Args: { _organization_id: string; _work_order_id: string }
         Returns: {
@@ -5790,7 +5711,6 @@ export type Database = {
               maxdecimaldigits?: number
               nprefix?: string
               options?: number
-              version: number
             }
             Returns: string
           }
@@ -5801,6 +5721,7 @@ export type Database = {
               maxdecimaldigits?: number
               nprefix?: string
               options?: number
+              version: number
             }
             Returns: string
           }
@@ -5991,16 +5912,16 @@ export type Database = {
         Returns: unknown
       }
       st_generatepoints:
-        | { Args: { area: unknown; npoints: number }; Returns: unknown }
         | {
             Args: { area: unknown; npoints: number; seed: number }
             Returns: unknown
           }
+        | { Args: { area: unknown; npoints: number }; Returns: unknown }
       st_geogfromtext: { Args: { "": string }; Returns: unknown }
       st_geographyfromtext: { Args: { "": string }; Returns: unknown }
       st_geohash:
-        | { Args: { geom: unknown; maxchars?: number }; Returns: string }
         | { Args: { geog: unknown; maxchars?: number }; Returns: string }
+        | { Args: { geom: unknown; maxchars?: number }; Returns: string }
       st_geomcollfromtext: { Args: { "": string }; Returns: unknown }
       st_geometricmedian: {
         Args: {
@@ -6263,11 +6184,11 @@ export type Database = {
           }
       st_triangulatepolygon: { Args: { g1: unknown }; Returns: unknown }
       st_union:
-        | { Args: { geom1: unknown; geom2: unknown }; Returns: unknown }
         | {
             Args: { geom1: unknown; geom2: unknown; gridsize: number }
             Returns: unknown
           }
+        | { Args: { geom1: unknown; geom2: unknown }; Returns: unknown }
       st_voronoilines: {
         Args: { extend_to?: unknown; g1: unknown; tolerance?: number }
         Returns: unknown
@@ -6307,11 +6228,7 @@ export type Database = {
       incident_severity: "low" | "medium" | "high" | "critical"
       incident_status: "reported" | "investigating" | "resolved" | "closed"
       iot_device_status: "active" | "inactive" | "error"
-      iot_network_provider:
-        | "ttn"
-        | "chirpstack"
-        | "aws_iot_core"
-        | "direct_webhook"
+      iot_network_provider: "ttn" | "chirpstack" | "aws_iot_core"
       job_plan_status: "draft" | "active" | "under_review" | "archived"
       job_type:
         | "preventive"
@@ -6498,12 +6415,7 @@ export const Constants = {
       incident_severity: ["low", "medium", "high", "critical"],
       incident_status: ["reported", "investigating", "resolved", "closed"],
       iot_device_status: ["active", "inactive", "error"],
-      iot_network_provider: [
-        "ttn",
-        "chirpstack",
-        "aws_iot_core",
-        "direct_webhook",
-      ],
+      iot_network_provider: ["ttn", "chirpstack", "aws_iot_core"],
       job_plan_status: ["draft", "active", "under_review", "archived"],
       job_type: [
         "preventive",
