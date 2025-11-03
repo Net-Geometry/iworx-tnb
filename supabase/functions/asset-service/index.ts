@@ -10,7 +10,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.78.0";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -338,8 +338,10 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase client
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    // Create Supabase client with service role for assets_service schema
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      db: { schema: 'assets_service' }
+    });
 
     // Check cross-project access
     const hasCrossProjectAccess = await checkCrossProjectAccess(supabase, userId);
