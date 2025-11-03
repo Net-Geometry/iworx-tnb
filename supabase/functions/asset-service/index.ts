@@ -34,14 +34,7 @@ async function getAssets(
 
   let query = supabase
     .from("assets")
-    .select(`
-      *,
-      hierarchy_nodes!hierarchy_node_id (
-        id,
-        name,
-        path
-      )
-    `);
+    .select("*");
 
   // Apply organization filter unless user has cross-project access
   if (!hasCrossProjectAccess && organizationId) {
@@ -65,18 +58,36 @@ async function getAssets(
 
   if (error) throw error;
 
-  // Transform data to include hierarchy path as location and 3D model fields
-  const transformedAssets = (data || []).map((asset: any) => {
+  // Transform data and fetch hierarchy info separately if needed
+  const transformedAssets = await Promise.all((data || []).map(async (asset: any) => {
     const parsed = parseJsonFields(asset);
+    
+    // Fetch hierarchy node if exists
+    let hierarchyName = "Unassigned";
+    let hierarchyPath = "Unassigned";
+    
+    if (asset.hierarchy_node_id) {
+      const { data: hierarchyNode } = await supabase
+        .from("hierarchy_nodes")
+        .select("id, name, path")
+        .eq("id", asset.hierarchy_node_id)
+        .single();
+      
+      if (hierarchyNode) {
+        hierarchyName = hierarchyNode.name || "Unassigned";
+        hierarchyPath = hierarchyNode.path || hierarchyNode.name || "Unassigned";
+      }
+    }
+    
     return {
       ...parsed,
-      location: asset.hierarchy_nodes?.name || "Unassigned",
-      hierarchy_path: asset.hierarchy_nodes?.path || asset.hierarchy_nodes?.name || "Unassigned",
+      location: hierarchyName,
+      hierarchy_path: hierarchyPath,
       model_3d_url: parsed.model_3d_url,
       model_3d_scale: parsed.model_3d_scale || { x: 1, y: 1, z: 1 },
       model_3d_rotation: parsed.model_3d_rotation || { x: 0, y: 0, z: 0 },
     };
-  });
+  }));
 
   return transformedAssets;
 }
@@ -89,14 +100,7 @@ async function getAssetById(supabase: any, id: string, organizationId: string, h
 
   let query = supabase
     .from("assets")
-    .select(`
-      *,
-      hierarchy_nodes!hierarchy_node_id (
-        id,
-        name,
-        path
-      )
-    `)
+    .select("*")
     .eq("id", id);
 
   if (!hasCrossProjectAccess && organizationId) {
@@ -108,10 +112,28 @@ async function getAssetById(supabase: any, id: string, organizationId: string, h
   if (error) throw error;
 
   const parsed = parseJsonFields(data);
+  
+  // Fetch hierarchy node if exists
+  let hierarchyName = "Unassigned";
+  let hierarchyPath = "Unassigned";
+  
+  if (data.hierarchy_node_id) {
+    const { data: hierarchyNode } = await supabase
+      .from("hierarchy_nodes")
+      .select("id, name, path")
+      .eq("id", data.hierarchy_node_id)
+      .single();
+    
+    if (hierarchyNode) {
+      hierarchyName = hierarchyNode.name || "Unassigned";
+      hierarchyPath = hierarchyNode.path || hierarchyNode.name || "Unassigned";
+    }
+  }
+  
   return {
     ...parsed,
-    location: data.hierarchy_nodes?.name || "Unassigned",
-    hierarchy_path: data.hierarchy_nodes?.path || data.hierarchy_nodes?.name || "Unassigned",
+    location: hierarchyName,
+    hierarchy_path: hierarchyPath,
     model_3d_url: parsed.model_3d_url,
     model_3d_scale: parsed.model_3d_scale || { x: 1, y: 1, z: 1 },
     model_3d_rotation: parsed.model_3d_rotation || { x: 0, y: 0, z: 0 },
@@ -266,24 +288,26 @@ async function getAssetHierarchy(supabase: any, assetId: string) {
 
   const { data: asset, error } = await supabase
     .from("assets")
-    .select(`
-      *,
-      hierarchy_nodes!hierarchy_node_id (
-        id,
-        name,
-        path,
-        parent_id,
-        hierarchy_level_id
-      )
-    `)
+    .select("*")
     .eq("id", assetId)
     .single();
 
   if (error) throw error;
+  
+  // Fetch hierarchy info separately
+  let hierarchyNode = null;
+  if (asset.hierarchy_node_id) {
+    const { data } = await supabase
+      .from("hierarchy_nodes")
+      .select("id, name, path, parent_id, hierarchy_level_id")
+      .eq("id", asset.hierarchy_node_id)
+      .single();
+    hierarchyNode = data;
+  }
 
   return {
     asset,
-    hierarchy: asset.hierarchy_nodes,
+    hierarchy: hierarchyNode,
   };
 }
 
