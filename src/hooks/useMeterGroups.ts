@@ -195,6 +195,7 @@ export const useMeterGroups = () => {
   };
 
   useEffect(() => {
+    // Fetch meter groups when user is authenticated and has organization access
     if (currentOrganization || hasCrossProjectAccess) {
       fetchMeterGroups();
     }
