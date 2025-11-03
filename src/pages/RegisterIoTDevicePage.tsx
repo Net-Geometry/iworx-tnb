@@ -100,20 +100,22 @@ export default function RegisterIoTDevicePage() {
       if (data.activation_mode) lorawanConfig.activation_mode = data.activation_mode;
       if (data.frequency_plan) lorawanConfig.frequency_plan = data.frequency_plan;
 
+      const insertData = {
+        device_name: data.device_name,
+        dev_eui: data.dev_eui,
+        device_identifier: data.device_identifier || '',
+        network_provider: data.network_provider as 'ttn' | 'chirpstack' | 'aws_iot_core',
+        device_type_id: data.device_type_id || null,
+        asset_id: data.asset_id || null,
+        lorawan_config: Object.keys(lorawanConfig).length > 0 ? lorawanConfig : null,
+        organization_id: currentOrganization.id,
+        created_by: user.id,
+        status: 'active' as const,
+      };
+
       const { data: device, error } = await supabase
         .from('iot_devices')
-        .insert({
-          device_name: data.device_name,
-          dev_eui: data.dev_eui,
-          device_identifier: data.device_identifier || null,
-          network_provider: data.network_provider,
-          device_type_id: data.device_type_id || null,
-          asset_id: data.asset_id || null,
-          lorawan_config: Object.keys(lorawanConfig).length > 0 ? lorawanConfig : null,
-          organization_id: currentOrganization.id,
-          created_by: user.id,
-          status: 'active',
-        })
+        .insert(insertData)
         .select()
         .single();
 

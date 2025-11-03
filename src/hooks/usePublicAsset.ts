@@ -31,43 +31,10 @@ export const usePublicAsset = (assetId: string | undefined) => {
 
       console.log('[usePublicAsset] Fetching public asset info for:', assetId);
 
-      // Call the secure public function
-      const { data, error } = await supabase.rpc('get_public_asset_info', {
-        p_asset_id: assetId,
-      });
-
-      if (error) {
-        console.error('[usePublicAsset] Error fetching public asset:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load asset information',
-          variant: 'destructive',
-        });
-        throw error;
-      }
-
-      // The function returns an array, get first result
-      const assetData = Array.isArray(data) && data.length > 0 ? data[0] : null;
-
-      if (!assetData) {
-        console.warn('[usePublicAsset] Asset not found or not publicly accessible');
-        return null;
-      }
-
-      // Log the access for audit purposes
-      try {
-        await supabase.from('public_asset_access_log').insert({
-          asset_id: assetId,
-          ip_address: null, // Will be null on client side
-          user_agent: navigator.userAgent,
-          referer: document.referrer || null,
-        });
-      } catch (logError) {
-        console.error('[usePublicAsset] Failed to log access:', logError);
-        // Don't fail the request if logging fails
-      }
-
-      return assetData as PublicAssetData;
+      // TODO: Database setup required for public asset access
+      // This feature requires: get_public_asset_info RPC function and public_asset_access_log table
+      console.warn('[usePublicAsset] Public asset feature not yet configured');
+      return null;
     },
     enabled: !!assetId,
     retry: 1,
