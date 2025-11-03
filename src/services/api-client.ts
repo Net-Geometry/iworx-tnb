@@ -8,7 +8,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 // API Gateway base URL
-const API_GATEWAY_URL = "https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/api-gateway";
+const API_GATEWAY_URL = "https://hpxbcaynhelqktyeoqal.supabase.co/functions/v1/api-gateway";
 
 /**
  * Get authentication headers for API requests
