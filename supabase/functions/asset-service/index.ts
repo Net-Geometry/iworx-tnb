@@ -338,10 +338,8 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase client with service role for assets_service schema
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      db: { schema: 'assets_service' }
-    });
+    // Create Supabase client with service role (bypasses RLS)
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Check cross-project access
     const hasCrossProjectAccess = await checkCrossProjectAccess(supabase, userId);
