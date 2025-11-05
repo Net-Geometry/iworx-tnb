@@ -102,12 +102,12 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
         asset_image_url: existingAsset.asset_image_url || '',
         qr_code_data: existingAsset.qr_code_data || '',
         model_3d_url: existingAsset.model_3d_url || '',
-        model_3d_scale_x: scale.x.toString(),
-        model_3d_scale_y: scale.y.toString(),
-        model_3d_scale_z: scale.z.toString(),
-        model_3d_rotation_x: rotation.x.toString(),
-        model_3d_rotation_y: rotation.y.toString(),
-        model_3d_rotation_z: rotation.z.toString(),
+        model_3d_scale_x: (scale?.x ?? 1).toString(),
+        model_3d_scale_y: (scale?.y ?? 1).toString(),
+        model_3d_scale_z: (scale?.z ?? 1).toString(),
+        model_3d_rotation_x: (rotation?.x ?? 0).toString(),
+        model_3d_rotation_y: (rotation?.y ?? 0).toString(),
+        model_3d_rotation_z: (rotation?.z ?? 0).toString(),
         allow_public_access: (existingAsset as any).allow_public_access !== false,
       });
     }
