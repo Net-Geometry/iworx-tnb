@@ -33,7 +33,8 @@ async function getAssets(
   console.log("[Asset Service] Fetching assets");
 
   let query = supabase
-    .from("assets_service.assets")
+    .schema("assets_service")
+    .from("assets")
     .select("*");
 
   // Apply organization filter unless user has cross-project access
@@ -68,7 +69,8 @@ async function getAssets(
     
     if (asset.hierarchy_node_id) {
       const { data: hierarchyNode } = await supabase
-        .from("assets_service.hierarchy_nodes")
+        .schema("assets_service")
+        .from("hierarchy_nodes")
         .select("id, name, path")
         .eq("id", asset.hierarchy_node_id)
         .single();
@@ -99,7 +101,8 @@ async function getAssetById(supabase: any, id: string, organizationId: string, h
   console.log(`[Asset Service] Fetching asset ${id}`);
 
   let query = supabase
-    .from("assets_service.assets")
+    .schema("assets_service")
+    .from("assets")
     .select("*")
     .eq("id", id);
 
@@ -119,7 +122,8 @@ async function getAssetById(supabase: any, id: string, organizationId: string, h
   
   if (data.hierarchy_node_id) {
     const { data: hierarchyNode } = await supabase
-      .from("assets_service.hierarchy_nodes")
+      .schema("assets_service")
+      .from("hierarchy_nodes")
       .select("id, name, path")
       .eq("id", data.hierarchy_node_id)
       .single();
@@ -200,7 +204,8 @@ async function createAsset(supabase: any, assetData: any, organizationId: string
   };
 
   const { data, error } = await supabase
-    .from("assets_service.assets")
+    .schema("assets_service")
+    .from("assets")
     .insert([dataWithOrg])
     .select()
     .single();
@@ -213,7 +218,8 @@ async function createAsset(supabase: any, assetData: any, organizationId: string
     
     // Update the asset with the public QR code URL
     const { error: updateError } = await supabase
-      .from("assets_service.assets")
+      .schema("assets_service")
+      .from("assets")
       .update({ qr_code_data: publicUrl })
       .eq("id", data.id);
     
@@ -243,7 +249,8 @@ async function updateAsset(supabase: any, id: string, assetData: any, organizati
   }
 
   let query = supabase
-    .from("assets_service.assets")
+    .schema("assets_service")
+    .from("assets")
     .update(processedData)
     .eq("id", id);
 
@@ -265,7 +272,8 @@ async function deleteAsset(supabase: any, id: string, organizationId: string, ha
   console.log(`[Asset Service] Deleting asset ${id}`);
 
   let query = supabase
-    .from("assets_service.assets")
+    .schema("assets_service")
+    .from("assets")
     .delete()
     .eq("id", id);
 
@@ -287,7 +295,8 @@ async function getAssetHierarchy(supabase: any, assetId: string) {
   console.log(`[Asset Service] Fetching hierarchy for asset ${assetId}`);
 
   const { data: asset, error } = await supabase
-    .from("assets_service.assets")
+    .schema("assets_service")
+    .from("assets")
     .select("*")
     .eq("id", assetId)
     .single();
@@ -298,7 +307,8 @@ async function getAssetHierarchy(supabase: any, assetId: string) {
   let hierarchyNode = null;
   if (asset.hierarchy_node_id) {
     const { data } = await supabase
-      .from("assets_service.hierarchy_nodes")
+      .schema("assets_service")
+      .from("hierarchy_nodes")
       .select("id, name, path, parent_id, hierarchy_level_id")
       .eq("id", asset.hierarchy_node_id)
       .single();
