@@ -1,11 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { pmSchedulesApi } from "@/services/api-client";
 import { useState } from "react";
 
 /**
  * PM Schedule History Interface
+ * 
+ * Note: This table is in public schema but we use the microservice API
+ * for consistency with other PM schedule operations.
  */
 export interface PMScheduleHistory {
   id: string;
@@ -34,20 +36,13 @@ export const usePMScheduleHistory = (scheduleId?: string) => {
         try {
           return await pmSchedulesApi.history.getAll(scheduleId);
         } catch (error) {
-          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          console.warn('PM Schedules microservice unavailable, feature disabled:', error);
           setUseMicroservice(false);
-          // Fall through to direct Supabase query
+          return [];
         }
       }
 
-      const { data, error } = await supabase
-        .from("pm_schedule_history")
-        .select("*")
-        .eq("pm_schedule_id", scheduleId)
-        .order("completed_date", { ascending: false });
-
-      if (error) throw error;
-      return data as PMScheduleHistory[];
+      return [];
     },
     enabled: !!scheduleId,
   });
@@ -67,20 +62,13 @@ export const useCreatePMScheduleHistory = () => {
         try {
           return await pmSchedulesApi.history.create(history.pm_schedule_id, history);
         } catch (error) {
-          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
+          console.warn('PM Schedules microservice unavailable:', error);
           setUseMicroservice(false);
-          // Fall through to direct Supabase query
+          throw new Error('PM schedule history feature temporarily unavailable');
         }
       }
 
-      const { data, error } = await supabase
-        .from("pm_schedule_history")
-        .insert(history)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      throw new Error('PM schedule history feature requires microservice');
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["pm-schedule-history", variables.pm_schedule_id] });

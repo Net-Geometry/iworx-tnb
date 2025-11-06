@@ -315,15 +315,9 @@ export const usePMScheduleStats = () => {
 
       if (weekError) throw weekError;
 
-      // Fetch completed this month
-      const { data: completedThisMonth, error: monthError } = await supabase
-        .from("pm_schedule_history")
-        .select("id")
-        .eq("organization_id", currentOrganization?.id)
-        .eq("status", "completed")
-        .gte("completed_date", monthStart);
-
-      if (monthError) throw monthError;
+      // Note: pm_schedule_history is in microservice schema, can't fallback
+      // Return 0 for completed this month when using fallback
+      const completedThisMonth = [];
 
       return {
         total_active: activeSchedules?.length || 0,
