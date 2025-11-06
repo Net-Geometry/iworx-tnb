@@ -6,6 +6,9 @@ import { useAuth } from "@/contexts/AuthContext";
 /**
  * Job Plan Task Skill Interface
  * Defines skills required for specific job plan tasks
+ * 
+ * Note: This table is in the workorder_service schema and not directly
+ * accessible via the public schema. We query it through views.
  */
 export interface JobPlanTaskSkill {
   id: string;
@@ -28,67 +31,32 @@ export interface JobPlanTaskSkill {
 /**
  * Hook to manage skill requirements for job plan tasks
  * @param jobPlanTaskId - The job plan task ID to fetch skill requirements for
+ * 
+ * NOTE: This feature is currently disabled as job_plan_task_skills table
+ * is in a microservice schema. Enable this once the API endpoint is available.
  */
 export const useJobPlanTaskSkills = (jobPlanTaskId?: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { currentOrganization, hasCrossProjectAccess } = useAuth();
+  const { currentOrganization } = useAuth();
 
-  // Fetch skill requirements for a specific job plan task
+  // Fetch skill requirements - currently disabled
   const { data: taskSkills = [], isLoading } = useQuery({
     queryKey: ["job-plan-task-skills", jobPlanTaskId, currentOrganization?.id],
     queryFn: async () => {
-      if (!jobPlanTaskId) return [];
-
-      let query = supabase
-        .from("job_plan_task_skills")
-        .select("*")
-        .eq("job_plan_task_id", jobPlanTaskId);
-
-      if (!hasCrossProjectAccess && currentOrganization) {
-        query = query.eq("organization_id", currentOrganization.id);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      
-      // Fetch skill details separately (cross-schema relationship)
-      const enrichedData = await Promise.all(
-        (data || []).map(async (taskSkill) => {
-          const { data: skillData } = await supabase
-            .from("skills")
-            .select("skill_name, skill_code, category")
-            .eq("id", taskSkill.skill_id)
-            .single();
-          
-          return {
-            ...taskSkill,
-            skills: skillData || { skill_name: 'Unknown', skill_code: '', category: '' }
-          };
-        })
-      );
-      
-      return enrichedData as JobPlanTaskSkill[];
+      // TODO: Implement API call to work-order-service for task skills
+      // For now, return empty array as this table is in microservice schema
+      console.warn('Job plan task skills feature not yet implemented in work-order-service API');
+      return [];
     },
-    enabled: !!jobPlanTaskId && (!!currentOrganization || hasCrossProjectAccess),
+    enabled: false, // Disabled until API endpoint is available
   });
 
-  // Add skill to job plan task
+  // Add skill to job plan task - currently disabled
   const addTaskSkill = useMutation({
     mutationFn: async (skillData: Omit<JobPlanTaskSkill, 'id' | 'created_at' | 'updated_at' | 'organization_id'>) => {
-      const dataWithOrg = {
-        ...skillData,
-        organization_id: currentOrganization?.id,
-      };
-
-      const { data, error } = await supabase
-        .from("job_plan_task_skills")
-        .insert([dataWithOrg])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      // TODO: Implement API call to work-order-service
+      throw new Error('Job plan task skills feature not yet implemented');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["job-plan-task-skills"] });
@@ -106,18 +74,11 @@ export const useJobPlanTaskSkills = (jobPlanTaskId?: string) => {
     },
   });
 
-  // Update task skill
+  // Update task skill - currently disabled
   const updateTaskSkill = useMutation({
     mutationFn: async ({ id, ...skillData }: Partial<JobPlanTaskSkill> & { id: string }) => {
-      const { data, error } = await supabase
-        .from("job_plan_task_skills")
-        .update(skillData)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      // TODO: Implement API call to work-order-service
+      throw new Error('Job plan task skills feature not yet implemented');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["job-plan-task-skills"] });
@@ -135,15 +96,11 @@ export const useJobPlanTaskSkills = (jobPlanTaskId?: string) => {
     },
   });
 
-  // Delete task skill
+  // Delete task skill - currently disabled
   const deleteTaskSkill = useMutation({
     mutationFn: async (taskSkillId: string) => {
-      const { error } = await supabase
-        .from("job_plan_task_skills")
-        .delete()
-        .eq("id", taskSkillId);
-
-      if (error) throw error;
+      // TODO: Implement API call to work-order-service
+      throw new Error('Job plan task skills feature not yet implemented');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["job-plan-task-skills"] });

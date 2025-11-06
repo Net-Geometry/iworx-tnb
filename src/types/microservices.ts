@@ -58,3 +58,63 @@ export interface JobPlan {
 
 export type JobPlanInsert = Omit<JobPlan, 'id' | 'created_at' | 'updated_at'>;
 export type JobPlanUpdate = Partial<JobPlanInsert>;
+
+// Job Plan Task Skills Types (in workorder_service schema)
+export interface JobPlanTaskSkill {
+  id: string;
+  job_plan_task_id: string;
+  skill_id: string;
+  proficiency_level_required: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  estimated_time_minutes?: number;
+  is_critical: boolean;
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type JobPlanTaskSkillInsert = Omit<JobPlanTaskSkill, 'id' | 'created_at' | 'updated_at'>;
+export type JobPlanTaskSkillUpdate = Partial<JobPlanTaskSkillInsert>;
+
+// PM Schedule Types (in workorder_service schema)
+export interface PMSchedule {
+  id: string;
+  schedule_number: string;
+  title: string;
+  description?: string;
+  asset_id?: string;
+  job_plan_id?: string;
+  frequency_type: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
+  frequency_value: number;
+  start_date: string;
+  next_due_date?: string;
+  last_completed_date?: string;
+  is_active: boolean;
+  priority?: string;
+  estimated_duration_hours?: number;
+  assigned_to?: string;
+  status: 'active' | 'paused' | 'completed' | 'cancelled';
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  updated_by?: string;
+}
+
+export type PMScheduleInsert = Omit<PMSchedule, 'id' | 'created_at' | 'updated_at' | 'organization_id'>;
+export type PMScheduleUpdate = Partial<PMScheduleInsert>;
+
+// PM Schedule Assignments Types
+export interface PMScheduleAssignment {
+  id: string;
+  pm_schedule_id: string;
+  assigned_person_id: string;
+  assignment_role: 'primary' | 'assigned';
+  assigned_by?: string;
+  assigned_at: string;
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type PMScheduleAssignmentInsert = Omit<PMScheduleAssignment, 'id' | 'created_at' | 'updated_at' | 'organization_id'>;
+export type PMScheduleAssignmentUpdate = Partial<PMScheduleAssignmentInsert>;
