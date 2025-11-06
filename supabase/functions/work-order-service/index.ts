@@ -234,7 +234,7 @@ Deno.serve(async (req) => {
 
     // GET /job-plans - List all job plans
     if (method === 'GET' && pathParts[0] === 'job-plans' && pathParts.length === 1) {
-      let query = supabase.from('workorder_service.job_plans').select('*');
+      let query = supabase.from('job_plans').select('*');
 
       if (!hasCrossProjectAccess && organizationId) {
         query = query.eq('organization_id', organizationId);
@@ -252,7 +252,7 @@ Deno.serve(async (req) => {
 
     // GET /job-plans/stats - Get job plan statistics
     if (method === 'GET' && pathParts[0] === 'job-plans' && pathParts[1] === 'stats' && pathParts.length === 2) {
-      let query = supabase.from('workorder_service.job_plans').select('*');
+      let query = supabase.from('job_plans').select('*');
 
       if (!hasCrossProjectAccess && organizationId) {
         query = query.eq('organization_id', organizationId);
@@ -288,12 +288,12 @@ Deno.serve(async (req) => {
       const jobPlanId = pathParts[1];
 
       let query = supabase
-        .from('workorder_service.job_plans')
+        .from('job_plans')
         .select(`
           *,
-          tasks:workorder_service.job_plan_tasks(*),
-          parts:workorder_service.job_plan_parts(*),
-          tools:workorder_service.job_plan_tools(*)
+          tasks:job_plan_tasks(*),
+          parts:job_plan_parts(*),
+          tools:job_plan_tools(*)
         `)
         .eq('id', jobPlanId);
 
@@ -320,7 +320,7 @@ Deno.serve(async (req) => {
       }
 
       const { data, error } = await supabase
-        .from('workorder_service.job_plans')
+        .from('job_plans')
         .insert([jobPlan])
         .select()
         .single();
@@ -341,7 +341,7 @@ Deno.serve(async (req) => {
       const updates = await req.json();
 
       let query = supabase
-        .from('workorder_service.job_plans')
+        .from('job_plans')
         .update(updates)
         .eq('id', jobPlanId);
 
@@ -366,7 +366,7 @@ Deno.serve(async (req) => {
       const jobPlanId = pathParts[1];
 
       let query = supabase
-        .from('workorder_service.job_plans')
+        .from('job_plans')
         .delete()
         .eq('id', jobPlanId);
 
@@ -395,7 +395,7 @@ Deno.serve(async (req) => {
       }
 
       const { data, error } = await supabase
-        .from('workorder_service.job_plan_tasks')
+        .from('job_plan_tasks')
         .insert([task])
         .select()
         .single();
@@ -416,7 +416,7 @@ Deno.serve(async (req) => {
       const updates = await req.json();
 
       const { data, error } = await supabase
-        .from('workorder_service.job_plan_tasks')
+        .from('job_plan_tasks')
         .update(updates)
         .eq('id', taskId)
         .select()
@@ -437,7 +437,7 @@ Deno.serve(async (req) => {
       const taskId = pathParts[2];
 
       const { error } = await supabase
-        .from('workorder_service.job_plan_tasks')
+        .from('job_plan_tasks')
         .delete()
         .eq('id', taskId);
 
@@ -460,7 +460,7 @@ Deno.serve(async (req) => {
       }
 
       const { data, error } = await supabase
-        .from('workorder_service.job_plan_parts')
+        .from('job_plan_parts')
         .insert([part])
         .select()
         .single();
@@ -481,7 +481,7 @@ Deno.serve(async (req) => {
       const updates = await req.json();
 
       const { data, error } = await supabase
-        .from('workorder_service.job_plan_parts')
+        .from('job_plan_parts')
         .update(updates)
         .eq('id', partId)
         .select()
@@ -502,7 +502,7 @@ Deno.serve(async (req) => {
       const partId = pathParts[2];
 
       const { error } = await supabase
-        .from('workorder_service.job_plan_parts')
+        .from('job_plan_parts')
         .delete()
         .eq('id', partId);
 
@@ -525,7 +525,7 @@ Deno.serve(async (req) => {
       }
 
       const { data, error } = await supabase
-        .from('workorder_service.job_plan_tools')
+        .from('job_plan_tools')
         .insert([tool])
         .select()
         .single();
@@ -546,7 +546,7 @@ Deno.serve(async (req) => {
       const updates = await req.json();
 
       const { data, error } = await supabase
-        .from('workorder_service.job_plan_tools')
+        .from('job_plan_tools')
         .update(updates)
         .eq('id', toolId)
         .select()
@@ -567,7 +567,7 @@ Deno.serve(async (req) => {
       const toolId = pathParts[2];
 
       const { error } = await supabase
-        .from('workorder_service.job_plan_tools')
+        .from('job_plan_tools')
         .delete()
         .eq('id', toolId);
 
@@ -594,11 +594,11 @@ Deno.serve(async (req) => {
       startOfMonth.setDate(1);
 
       const [active, overdue, dueThisWeek, completedThisMonth] = await Promise.all([
-        supabase.schema('workorder_service').from('pm_schedules').select('id', { count: 'exact', head: true })
+        supabase.from('pm_schedules').select('id', { count: 'exact', head: true })
           .eq('organization_id', organizationId).eq('is_active', true),
-        supabase.schema('workorder_service').from('pm_schedules').select('id', { count: 'exact', head: true })
+        supabase.from('pm_schedules').select('id', { count: 'exact', head: true })
           .eq('organization_id', organizationId).eq('is_active', true).lt('next_due_date', now),
-        supabase.schema('workorder_service').from('pm_schedules').select('id', { count: 'exact', head: true })
+        supabase.from('pm_schedules').select('id', { count: 'exact', head: true })
           .eq('organization_id', organizationId).eq('is_active', true)
           .gte('next_due_date', startOfWeek.toISOString()).lte('next_due_date', now),
         supabase.from('pm_schedule_history').select('id', { count: 'exact', head: true })
@@ -617,7 +617,6 @@ Deno.serve(async (req) => {
     if (method === 'GET' && pathParts[0] === 'pm-schedules' && pathParts[1] === 'by-asset' && pathParts[2]) {
       const assetId = pathParts[2];
       const { data, error } = await supabase
-        .schema('workorder_service')
         .from('pm_schedules')
         .select('*')
         .eq('organization_id', organizationId)
@@ -651,7 +650,6 @@ Deno.serve(async (req) => {
       const scheduleId = pathParts[1];
 
       const { data: schedule } = await supabase
-        .schema('workorder_service')
         .from('pm_schedules')
         .select('*')
         .eq('id', scheduleId)
@@ -718,7 +716,7 @@ Deno.serve(async (req) => {
       // Update schedule next due date
       const nextDueDate = calculateNextDueDate(new Date(), schedule.frequency_type, schedule.frequency_value);
 
-      await supabase.schema('workorder_service').from('pm_schedules')
+      await supabase.from('pm_schedules')
         .update({ 
           next_due_date: nextDueDate.toISOString().split('T')[0],
           last_completed_date: new Date().toISOString().split('T')[0]
@@ -738,7 +736,6 @@ Deno.serve(async (req) => {
       const { is_active } = body;
 
       const { data, error } = await supabase
-        .schema('workorder_service')
         .from('pm_schedules')
         .update({ is_active, updated_at: new Date().toISOString() })
         .eq('id', scheduleId)
@@ -982,7 +979,6 @@ Deno.serve(async (req) => {
     // GET /pm-schedules - List all schedules
     if (method === 'GET' && pathParts[0] === 'pm-schedules' && pathParts.length === 1) {
       const { data, error } = await supabase
-        .schema('workorder_service')
         .from('pm_schedules')
         .select('*')
         .eq('organization_id', organizationId)
@@ -1016,7 +1012,6 @@ Deno.serve(async (req) => {
         !['stats', 'by-asset'].includes(pathParts[1])) {
       const scheduleId = pathParts[1];
       const { data: schedule, error } = await supabase
-        .schema('workorder_service')
         .from('pm_schedules')
         .select('*')
         .eq('id', scheduleId)
@@ -1051,14 +1046,13 @@ Deno.serve(async (req) => {
       const body = await req.json();
 
       // Generate schedule number
-      const { count } = await supabase.schema('workorder_service').from('pm_schedules')
+      const { count } = await supabase.from('pm_schedules')
         .select('*', { count: 'exact', head: true })
         .eq('organization_id', organizationId);
 
       const scheduleNumber = `PM-${String((count || 0) + 1).padStart(6, '0')}`;
 
       const { data, error } = await supabase
-        .schema('workorder_service')
         .from('pm_schedules')
         .insert({
           ...body,
@@ -1083,7 +1077,6 @@ Deno.serve(async (req) => {
       const body = await req.json();
 
       const { data, error } = await supabase
-        .schema('workorder_service')
         .from('pm_schedules')
         .update({ ...body, updated_by: userId })
         .eq('id', scheduleId)
@@ -1103,7 +1096,6 @@ Deno.serve(async (req) => {
       const scheduleId = pathParts[1];
 
       const { error } = await supabase
-        .schema('workorder_service')
         .from('pm_schedules')
         .delete()
         .eq('id', scheduleId)
