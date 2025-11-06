@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { pmSchedulesApi } from "@/services/api-client";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
 /**
@@ -43,13 +45,29 @@ export const usePMScheduleMaterials = (pmScheduleId?: string) => {
         try {
           return await pmSchedulesApi.materials.getAll(pmScheduleId);
         } catch (error) {
-          console.warn('PM Schedules microservice unavailable, feature disabled:', error);
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
           setUseMicroservice(false);
-          return [];
         }
       }
 
-      return [];
+      // Fallback: Direct Supabase query
+      const { data, error } = await supabase
+        .from("pm_schedule_materials")
+        .select(`
+          *,
+          bom_items(
+            item_name,
+            item_number,
+            unit,
+            cost_per_unit,
+            inventory_item_id
+          )
+        `)
+        .eq("pm_schedule_id", pmScheduleId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!pmScheduleId,
   });
@@ -59,6 +77,7 @@ export const usePMScheduleMaterials = (pmScheduleId?: string) => {
 export const useCreatePMScheduleMaterial = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currentOrganization } = useAuth();
   const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
@@ -67,13 +86,27 @@ export const useCreatePMScheduleMaterial = () => {
         try {
           return await pmSchedulesApi.materials.create(material.pm_schedule_id, material);
         } catch (error) {
-          console.warn('PM Schedules microservice unavailable:', error);
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
           setUseMicroservice(false);
-          throw new Error('PM schedule materials feature temporarily unavailable');
         }
       }
 
-      throw new Error('PM schedule materials feature requires microservice');
+      // Fallback: Direct Supabase insert
+      const { data, error } = await supabase
+        .from("pm_schedule_materials")
+        .insert({
+          pm_schedule_id: material.pm_schedule_id,
+          bom_item_id: material.bom_item_id,
+          planned_quantity: material.planned_quantity,
+          estimated_unit_cost: material.estimated_unit_cost,
+          notes: material.notes,
+          organization_id: currentOrganization?.id || material.organization_id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["pm-schedule-materials", variables.pm_schedule_id] });
@@ -104,13 +137,21 @@ export const useUpdatePMScheduleMaterial = () => {
         try {
           return await pmSchedulesApi.materials.update(id, updates);
         } catch (error) {
-          console.warn('PM Schedules microservice unavailable:', error);
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
           setUseMicroservice(false);
-          throw new Error('PM schedule materials feature temporarily unavailable');
         }
       }
 
-      throw new Error('PM schedule materials feature requires microservice');
+      // Fallback: Direct Supabase update
+      const { data, error } = await supabase
+        .from("pm_schedule_materials")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["pm-schedule-materials", variables.pmScheduleId] });
@@ -142,13 +183,19 @@ export const useDeletePMScheduleMaterial = () => {
           await pmSchedulesApi.materials.delete(id);
           return { pmScheduleId };
         } catch (error) {
-          console.warn('PM Schedules microservice unavailable:', error);
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
           setUseMicroservice(false);
-          throw new Error('PM schedule materials feature temporarily unavailable');
         }
       }
 
-      throw new Error('PM schedule materials feature requires microservice');
+      // Fallback: Direct Supabase delete
+      const { error } = await supabase
+        .from("pm_schedule_materials")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      return { pmScheduleId };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["pm-schedule-materials", data.pmScheduleId] });

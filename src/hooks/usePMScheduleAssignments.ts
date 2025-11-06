@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { pmSchedulesApi } from "@/services/api-client";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
 /**
@@ -43,15 +45,27 @@ export const usePMScheduleAssignments = (scheduleId?: string) => {
         try {
           return await pmSchedulesApi.assignments.getAll(scheduleId);
         } catch (error) {
-          console.warn('PM Schedules microservice unavailable, feature disabled:', error);
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
           setUseMicroservice(false);
-          // Return empty array - table is in microservice schema
-          return [];
         }
       }
 
-      // No fallback - table is in microservice schema
-      return [];
+      // Fallback: Direct Supabase query
+      const { data, error } = await supabase
+        .from("pm_schedule_assignments")
+        .select(`
+          *,
+          person:people(
+            first_name,
+            last_name,
+            email
+          )
+        `)
+        .eq("pm_schedule_id", scheduleId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!scheduleId,
   });
@@ -63,21 +77,34 @@ export const usePMScheduleAssignments = (scheduleId?: string) => {
 export const useCreatePMScheduleAssignment = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currentOrganization } = useAuth();
   const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
-    mutationFn: async (assignment: Omit<PMScheduleAssignment, "id" | "created_at" | "updated_at" | "organization_id">) => {
+    mutationFn: async (assignment: Omit<PMScheduleAssignment, "id" | "created_at" | "updated_at" | "person">) => {
       if (useMicroservice) {
         try {
           return await pmSchedulesApi.assignments.create(assignment.pm_schedule_id, assignment);
         } catch (error) {
-          console.warn('PM Schedules microservice unavailable:', error);
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
           setUseMicroservice(false);
-          throw new Error('PM schedule assignments feature temporarily unavailable');
         }
       }
-      
-      throw new Error('PM schedule assignments feature requires microservice');
+
+      // Fallback: Direct Supabase insert
+      const { data, error } = await supabase
+        .from("pm_schedule_assignments")
+        .insert({
+          pm_schedule_id: assignment.pm_schedule_id,
+          assigned_person_id: assignment.assigned_person_id,
+          assignment_role: assignment.assignment_role,
+          organization_id: currentOrganization?.id || assignment.organization_id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["pm-schedule-assignments", variables.pm_schedule_id] });
@@ -105,24 +132,31 @@ export const useDeletePMScheduleAssignment = () => {
   const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
-    mutationFn: async ({ assignmentId, scheduleId }: { assignmentId: string; scheduleId: string }) => {
+    mutationFn: async ({ id, pmScheduleId }: { id: string; pmScheduleId: string }) => {
       if (useMicroservice) {
         try {
-          return await pmSchedulesApi.assignments.delete(assignmentId);
+          await pmSchedulesApi.assignments.delete(id);
+          return { pmScheduleId };
         } catch (error) {
-          console.warn('PM Schedules microservice unavailable:', error);
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
           setUseMicroservice(false);
-          throw new Error('PM schedule assignments feature temporarily unavailable');
         }
       }
-      
-      throw new Error('PM schedule assignments feature requires microservice');
+
+      // Fallback: Direct Supabase delete
+      const { error } = await supabase
+        .from("pm_schedule_assignments")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      return { pmScheduleId };
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["pm-schedule-assignments", variables.scheduleId] });
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["pm-schedule-assignments", data.pmScheduleId] });
       toast({
         title: "Assignment deleted",
-        description: "The person has been unassigned from the schedule.",
+        description: "Person has been removed from the PM schedule.",
       });
     },
     onError: (error: Error) => {
@@ -142,27 +176,52 @@ export const useDeletePMScheduleAssignment = () => {
 export const useBulkUpdatePMScheduleAssignments = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currentOrganization } = useAuth();
   const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
-    mutationFn: async ({ 
-      scheduleId, 
-      assignedPersonIds 
-    }: { 
-      scheduleId: string; 
-      assignedPersonIds: string[] 
+    mutationFn: async ({
+      scheduleId,
+      assignedPersonIds,
+    }: {
+      scheduleId: string;
+      assignedPersonIds: string[];
     }) => {
       if (useMicroservice) {
         try {
           return await pmSchedulesApi.assignments.bulkUpdate(scheduleId, assignedPersonIds);
         } catch (error) {
-          console.warn('PM Schedules microservice unavailable:', error);
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
           setUseMicroservice(false);
-          throw new Error('PM schedule assignments feature temporarily unavailable');
         }
       }
-      
-      throw new Error('PM schedule assignments feature requires microservice');
+
+      // Fallback: Direct Supabase bulk update
+      // 1. Delete all existing assignments for this schedule
+      const { error: deleteError } = await supabase
+        .from("pm_schedule_assignments")
+        .delete()
+        .eq("pm_schedule_id", scheduleId);
+
+      if (deleteError) throw deleteError;
+
+      // 2. Insert new assignments
+      if (assignedPersonIds.length > 0) {
+        const newAssignments = assignedPersonIds.map((personId, index) => ({
+          pm_schedule_id: scheduleId,
+          assigned_person_id: personId,
+          assignment_role: index === 0 ? "primary" : "assigned",
+          organization_id: currentOrganization?.id,
+        }));
+
+        const { error: insertError } = await supabase
+          .from("pm_schedule_assignments")
+          .insert(newAssignments);
+
+        if (insertError) throw insertError;
+      }
+
+      return { success: true };
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["pm-schedule-assignments", variables.scheduleId] });

@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { pmSchedulesApi } from "@/services/api-client";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
 /**
@@ -36,13 +38,20 @@ export const usePMScheduleHistory = (scheduleId?: string) => {
         try {
           return await pmSchedulesApi.history.getAll(scheduleId);
         } catch (error) {
-          console.warn('PM Schedules microservice unavailable, feature disabled:', error);
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
           setUseMicroservice(false);
-          return [];
         }
       }
 
-      return [];
+      // Fallback: Direct Supabase query
+      const { data, error } = await supabase
+        .from("pm_schedule_history")
+        .select("*")
+        .eq("pm_schedule_id", scheduleId)
+        .order("completed_date", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!scheduleId,
   });
@@ -54,6 +63,7 @@ export const usePMScheduleHistory = (scheduleId?: string) => {
 export const useCreatePMScheduleHistory = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currentOrganization } = useAuth();
   const [useMicroservice, setUseMicroservice] = useState(true);
 
   return useMutation({
@@ -62,13 +72,28 @@ export const useCreatePMScheduleHistory = () => {
         try {
           return await pmSchedulesApi.history.create(history.pm_schedule_id, history);
         } catch (error) {
-          console.warn('PM Schedules microservice unavailable:', error);
+          console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
           setUseMicroservice(false);
-          throw new Error('PM schedule history feature temporarily unavailable');
         }
       }
 
-      throw new Error('PM schedule history feature requires microservice');
+      // Fallback: Direct Supabase insert
+      const { data, error } = await supabase
+        .from("pm_schedule_history")
+        .insert({
+          pm_schedule_id: history.pm_schedule_id,
+          work_order_id: history.work_order_id,
+          completed_date: history.completed_date,
+          completed_by: history.completed_by,
+          notes: history.notes,
+          actual_duration_hours: history.actual_duration_hours,
+          organization_id: currentOrganization?.id || history.organization_id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["pm-schedule-history", variables.pm_schedule_id] });
