@@ -3766,48 +3766,6 @@ export type Database = {
         }
         Relationships: []
       }
-      job_plan_task_skills: {
-        Row: {
-          created_at: string | null
-          estimated_time_minutes: number | null
-          id: string | null
-          is_critical: boolean | null
-          job_plan_task_id: string | null
-          organization_id: string | null
-          proficiency_level_required:
-            | Database["public"]["Enums"]["proficiency_level"]
-            | null
-          skill_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          estimated_time_minutes?: number | null
-          id?: string | null
-          is_critical?: boolean | null
-          job_plan_task_id?: string | null
-          organization_id?: string | null
-          proficiency_level_required?:
-            | Database["public"]["Enums"]["proficiency_level"]
-            | null
-          skill_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          estimated_time_minutes?: number | null
-          id?: string | null
-          is_critical?: boolean | null
-          job_plan_task_id?: string | null
-          organization_id?: string | null
-          proficiency_level_required?:
-            | Database["public"]["Enums"]["proficiency_level"]
-            | null
-          skill_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       job_plan_tasks: {
         Row: {
           completion_criteria: string | null
