@@ -48,7 +48,7 @@ const SERVICE_REGISTRY = {
     healthEndpoint: "/health",
   },
   "pm-schedules": {
-    url: `${SUPABASE_URL}/functions/v1/pm-schedules-service`,
+    url: `${SUPABASE_URL}/functions/v1/work-order-service`,
     healthEndpoint: "/health",
   },
   "routes": {

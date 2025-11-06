@@ -581,6 +581,542 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ========================================================================
+    // PM SCHEDULES ROUTES
+    // ========================================================================
+    
+    // PM Schedules: GET /pm-schedules/stats
+    if (method === 'GET' && pathParts[0] === 'pm-schedules' && pathParts[1] === 'stats') {
+      const now = new Date().toISOString();
+      const startOfWeek = new Date();
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+
+      const [active, overdue, dueThisWeek, completedThisMonth] = await Promise.all([
+        supabase.schema('workorder_service').from('pm_schedules').select('id', { count: 'exact', head: true })
+          .eq('organization_id', organizationId).eq('is_active', true),
+        supabase.schema('workorder_service').from('pm_schedules').select('id', { count: 'exact', head: true })
+          .eq('organization_id', organizationId).eq('is_active', true).lt('next_due_date', now),
+        supabase.schema('workorder_service').from('pm_schedules').select('id', { count: 'exact', head: true })
+          .eq('organization_id', organizationId).eq('is_active', true)
+          .gte('next_due_date', startOfWeek.toISOString()).lte('next_due_date', now),
+        supabase.from('pm_schedule_history').select('id', { count: 'exact', head: true })
+          .eq('organization_id', organizationId).gte('completed_date', startOfMonth.toISOString().split('T')[0])
+      ]);
+
+      return new Response(JSON.stringify({
+        active: active.count || 0,
+        overdue: overdue.count || 0,
+        dueThisWeek: dueThisWeek.count || 0,
+        completedThisMonth: completedThisMonth.count || 0
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // PM Schedules: GET /pm-schedules/by-asset/:assetId
+    if (method === 'GET' && pathParts[0] === 'pm-schedules' && pathParts[1] === 'by-asset' && pathParts[2]) {
+      const assetId = pathParts[2];
+      const { data, error } = await supabase
+        .schema('workorder_service')
+        .from('pm_schedules')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .eq('asset_id', assetId);
+
+      if (error) throw error;
+
+      // Enrich with related data
+      const enriched = await Promise.all((data || []).map(async (schedule: any) => {
+        const [assetData, jobPlanData, personData] = await Promise.all([
+          schedule.asset_id ? supabase.from('assets').select('asset_number, name').eq('id', schedule.asset_id).single() : Promise.resolve({ data: null }),
+          schedule.job_plan_id ? supabase.from('job_plans').select('job_plan_number, title').eq('id', schedule.job_plan_id).single() : Promise.resolve({ data: null }),
+          schedule.assigned_to ? supabase.from('people').select('first_name, last_name').eq('id', schedule.assigned_to).single() : Promise.resolve({ data: null })
+        ]);
+
+        return {
+          ...schedule,
+          asset: assetData.data,
+          job_plan: jobPlanData.data,
+          assigned_person: personData.data
+        };
+      }));
+
+      return new Response(JSON.stringify(enriched), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // PM Schedules: POST /pm-schedules/:id/generate-work-order
+    if (method === 'POST' && pathParts[0] === 'pm-schedules' && pathParts[2] === 'generate-work-order') {
+      const scheduleId = pathParts[1];
+
+      const { data: schedule } = await supabase
+        .schema('workorder_service')
+        .from('pm_schedules')
+        .select('*')
+        .eq('id', scheduleId)
+        .eq('organization_id', organizationId)
+        .single();
+
+      if (!schedule) {
+        return new Response(JSON.stringify({ error: 'Schedule not found' }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Check for existing work order
+      const { data: existingWO } = await supabase
+        .from('work_orders')
+        .select('id, title')
+        .eq('pm_schedule_id', scheduleId)
+        .eq('scheduled_date', schedule.next_due_date)
+        .maybeSingle();
+
+      if (existingWO) {
+        return new Response(JSON.stringify({ 
+          error: 'Work order already exists for this schedule and date',
+          workOrderId: existingWO.id 
+        }), {
+          status: 409,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Create work order
+      const { data: workOrder, error: woError } = await supabase
+        .from('work_orders')
+        .insert({
+          title: schedule.title || schedule.schedule_number,
+          description: schedule.description || `Generated from PM schedule ${schedule.schedule_number}`,
+          asset_id: schedule.asset_id,
+          job_plan_id: schedule.job_plan_id,
+          priority: schedule.priority || 'medium',
+          status: 'scheduled',
+          maintenance_type: 'preventive',
+          work_order_type: 'pm',
+          estimated_duration_hours: schedule.estimated_duration_hours,
+          scheduled_date: schedule.next_due_date,
+          pm_schedule_id: scheduleId,
+          generation_type: 'manual',
+          organization_id: organizationId
+        })
+        .select()
+        .single();
+
+      if (woError) throw woError;
+
+      // Record in history
+      await supabase.from('pm_schedule_history').insert({
+        pm_schedule_id: scheduleId,
+        work_order_id: workOrder.id,
+        completed_date: new Date().toISOString().split('T')[0],
+        completed_by: userId,
+        organization_id: organizationId
+      });
+
+      // Update schedule next due date
+      const nextDueDate = calculateNextDueDate(new Date(), schedule.frequency_type, schedule.frequency_value);
+
+      await supabase.schema('workorder_service').from('pm_schedules')
+        .update({ 
+          next_due_date: nextDueDate.toISOString().split('T')[0],
+          last_completed_date: new Date().toISOString().split('T')[0]
+        })
+        .eq('id', scheduleId);
+
+      return new Response(JSON.stringify(workOrder), {
+        status: 201,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // PM Schedules: POST /pm-schedules/:id/pause
+    if (method === 'POST' && pathParts[0] === 'pm-schedules' && pathParts[2] === 'pause') {
+      const scheduleId = pathParts[1];
+      const body = await req.json();
+      const { is_active } = body;
+
+      const { data, error } = await supabase
+        .schema('workorder_service')
+        .from('pm_schedules')
+        .update({ is_active, updated_at: new Date().toISOString() })
+        .eq('id', scheduleId)
+        .eq('organization_id', organizationId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // PM Schedules Materials Routes
+    if (pathParts[0] === 'pm-schedules' && pathParts.includes('materials')) {
+      const materialsIdx = pathParts.indexOf('materials');
+      
+      // GET /pm-schedules/:id/materials
+      if (method === 'GET' && materialsIdx === 2) {
+        const scheduleId = pathParts[1];
+        const { data, error } = await supabase
+          .from('pm_schedule_materials')
+          .select('*')
+          .eq('pm_schedule_id', scheduleId)
+          .eq('organization_id', organizationId);
+
+        if (error) throw error;
+
+        // Enrich with BOM item details
+        const enriched = await Promise.all((data || []).map(async (material: any) => {
+          const { data: bomItem } = await supabase
+            .from('bom_items')
+            .select('item_name, item_number, unit, cost_per_unit')
+            .eq('id', material.bom_item_id)
+            .single();
+
+          return { ...material, bom_items: bomItem };
+        }));
+
+        return new Response(JSON.stringify(enriched), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // POST /pm-schedules/:id/materials
+      if (method === 'POST' && materialsIdx === 2) {
+        const scheduleId = pathParts[1];
+        const body = await req.json();
+
+        const { data, error } = await supabase
+          .from('pm_schedule_materials')
+          .insert({ ...body, pm_schedule_id: scheduleId, organization_id: organizationId })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data), {
+          status: 201,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // PATCH /pm-schedules/materials/:materialId
+      if (method === 'PATCH' && materialsIdx === 1 && pathParts[2]) {
+        const materialId = pathParts[2];
+        const body = await req.json();
+
+        const { data, error } = await supabase
+          .from('pm_schedule_materials')
+          .update(body)
+          .eq('id', materialId)
+          .eq('organization_id', organizationId)
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // DELETE /pm-schedules/materials/:materialId
+      if (method === 'DELETE' && materialsIdx === 1 && pathParts[2]) {
+        const materialId = pathParts[2];
+
+        const { error } = await supabase
+          .from('pm_schedule_materials')
+          .delete()
+          .eq('id', materialId)
+          .eq('organization_id', organizationId);
+
+        if (error) throw error;
+
+        return new Response(null, { status: 204, headers: corsHeaders });
+      }
+    }
+
+    // PM Schedules Assignments Routes
+    if (pathParts[0] === 'pm-schedules' && pathParts.includes('assignments')) {
+      const assignmentsIdx = pathParts.indexOf('assignments');
+
+      // GET /pm-schedules/:id/assignments
+      if (method === 'GET' && assignmentsIdx === 2) {
+        const scheduleId = pathParts[1];
+        const { data, error } = await supabase
+          .from('pm_schedule_assignments')
+          .select('*')
+          .eq('pm_schedule_id', scheduleId)
+          .eq('organization_id', organizationId);
+
+        if (error) throw error;
+
+        // Enrich with person details
+        const enriched = await Promise.all((data || []).map(async (assignment: any) => {
+          const { data: person } = await supabase
+            .from('people')
+            .select('first_name, last_name, email')
+            .eq('id', assignment.assigned_person_id)
+            .single();
+
+          return { ...assignment, person };
+        }));
+
+        return new Response(JSON.stringify(enriched), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // POST /pm-schedules/:id/assignments
+      if (method === 'POST' && assignmentsIdx === 2) {
+        const scheduleId = pathParts[1];
+        const body = await req.json();
+
+        const { data, error } = await supabase
+          .from('pm_schedule_assignments')
+          .insert({ ...body, pm_schedule_id: scheduleId, organization_id: organizationId, assigned_by: userId })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data), {
+          status: 201,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // PUT /pm-schedules/:id/assignments - bulk update
+      if (method === 'PUT' && assignmentsIdx === 2) {
+        const scheduleId = pathParts[1];
+        const body = await req.json();
+        const { assignedPersonIds } = body;
+
+        // Delete existing
+        await supabase
+          .from('pm_schedule_assignments')
+          .delete()
+          .eq('pm_schedule_id', scheduleId)
+          .eq('organization_id', organizationId);
+
+        // Insert new
+        if (assignedPersonIds && assignedPersonIds.length > 0) {
+          const assignments = assignedPersonIds.map((personId: string, idx: number) => ({
+            pm_schedule_id: scheduleId,
+            assigned_person_id: personId,
+            assignment_role: idx === 0 ? 'primary' : 'assigned',
+            organization_id: organizationId,
+            assigned_by: userId
+          }));
+
+          await supabase.from('pm_schedule_assignments').insert(assignments);
+        }
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // DELETE /pm-schedules/assignments/:assignmentId
+      if (method === 'DELETE' && assignmentsIdx === 1 && pathParts[2]) {
+        const assignmentId = pathParts[2];
+
+        const { error } = await supabase
+          .from('pm_schedule_assignments')
+          .delete()
+          .eq('id', assignmentId)
+          .eq('organization_id', organizationId);
+
+        if (error) throw error;
+
+        return new Response(null, { status: 204, headers: corsHeaders });
+      }
+    }
+
+    // PM Schedules History Routes
+    if (pathParts[0] === 'pm-schedules' && pathParts.includes('history')) {
+      const historyIdx = pathParts.indexOf('history');
+
+      // GET /pm-schedules/:id/history
+      if (method === 'GET' && historyIdx === 2) {
+        const scheduleId = pathParts[1];
+        const { data, error } = await supabase
+          .from('pm_schedule_history')
+          .select('*')
+          .eq('pm_schedule_id', scheduleId)
+          .eq('organization_id', organizationId)
+          .order('completed_date', { ascending: false });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data || []), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // POST /pm-schedules/:id/history
+      if (method === 'POST' && historyIdx === 2) {
+        const scheduleId = pathParts[1];
+        const body = await req.json();
+
+        const { data, error } = await supabase
+          .from('pm_schedule_history')
+          .insert({ ...body, pm_schedule_id: scheduleId, organization_id: organizationId })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data), {
+          status: 201,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // PM Schedules Main CRUD Routes
+    
+    // GET /pm-schedules - List all schedules
+    if (method === 'GET' && pathParts[0] === 'pm-schedules' && pathParts.length === 1) {
+      const { data, error } = await supabase
+        .schema('workorder_service')
+        .from('pm_schedules')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Enrich with related data
+      const enriched = await Promise.all((data || []).map(async (schedule: any) => {
+        const [assetData, jobPlanData, personData] = await Promise.all([
+          schedule.asset_id ? supabase.from('assets').select('asset_number, name').eq('id', schedule.asset_id).single() : Promise.resolve({ data: null }),
+          schedule.job_plan_id ? supabase.from('job_plans').select('job_plan_number, title').eq('id', schedule.job_plan_id).single() : Promise.resolve({ data: null }),
+          schedule.assigned_to ? supabase.from('people').select('first_name, last_name').eq('id', schedule.assigned_to).single() : Promise.resolve({ data: null })
+        ]);
+
+        return {
+          ...schedule,
+          asset: assetData.data,
+          job_plan: jobPlanData.data,
+          assigned_person: personData.data
+        };
+      }));
+
+      return new Response(JSON.stringify(enriched), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // GET /pm-schedules/:id - Get single schedule
+    if (method === 'GET' && pathParts[0] === 'pm-schedules' && pathParts.length === 2 && 
+        !['stats', 'by-asset'].includes(pathParts[1])) {
+      const scheduleId = pathParts[1];
+      const { data: schedule, error } = await supabase
+        .schema('workorder_service')
+        .from('pm_schedules')
+        .select('*')
+        .eq('id', scheduleId)
+        .eq('organization_id', organizationId)
+        .single();
+
+      if (error) throw error;
+
+      // Enrich
+      const [assetData, jobPlanData, personData, routeData] = await Promise.all([
+        schedule.asset_id ? supabase.from('assets').select('*').eq('id', schedule.asset_id).single() : Promise.resolve({ data: null }),
+        schedule.job_plan_id ? supabase.from('job_plans').select('*').eq('id', schedule.job_plan_id).single() : Promise.resolve({ data: null }),
+        schedule.assigned_to ? supabase.from('people').select('*').eq('id', schedule.assigned_to).single() : Promise.resolve({ data: null }),
+        supabase.from('route_pm_schedule_assignments').select('*, maintenance_routes(*)').eq('pm_schedule_id', scheduleId)
+      ]);
+
+      const enriched = {
+        ...schedule,
+        asset: assetData.data,
+        job_plan: jobPlanData.data,
+        assigned_person: personData.data,
+        route_assignments: routeData.data || []
+      };
+
+      return new Response(JSON.stringify(enriched), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // POST /pm-schedules - Create schedule
+    if (method === 'POST' && pathParts[0] === 'pm-schedules' && pathParts.length === 1) {
+      const body = await req.json();
+
+      // Generate schedule number
+      const { count } = await supabase.schema('workorder_service').from('pm_schedules')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', organizationId);
+
+      const scheduleNumber = `PM-${String((count || 0) + 1).padStart(6, '0')}`;
+
+      const { data, error } = await supabase
+        .schema('workorder_service')
+        .from('pm_schedules')
+        .insert({
+          ...body,
+          schedule_number: scheduleNumber,
+          organization_id: organizationId,
+          created_by: userId
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return new Response(JSON.stringify(data), {
+        status: 201,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // PATCH /pm-schedules/:id - Update schedule
+    if (method === 'PATCH' && pathParts[0] === 'pm-schedules' && pathParts.length === 2) {
+      const scheduleId = pathParts[1];
+      const body = await req.json();
+
+      const { data, error } = await supabase
+        .schema('workorder_service')
+        .from('pm_schedules')
+        .update({ ...body, updated_by: userId })
+        .eq('id', scheduleId)
+        .eq('organization_id', organizationId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // DELETE /pm-schedules/:id - Delete schedule
+    if (method === 'DELETE' && pathParts[0] === 'pm-schedules' && pathParts.length === 2) {
+      const scheduleId = pathParts[1];
+
+      const { error } = await supabase
+        .schema('workorder_service')
+        .from('pm_schedules')
+        .delete()
+        .eq('id', scheduleId)
+        .eq('organization_id', organizationId);
+
+      if (error) throw error;
+
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    // ========================================================================
+    // NOT FOUND
+    // ========================================================================
     return new Response(JSON.stringify({ error: 'Not found' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 404,
@@ -595,3 +1131,36 @@ Deno.serve(async (req) => {
     });
   }
 });
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Calculate next due date for PM schedule based on frequency
+ */
+function calculateNextDueDate(startDate: Date, frequencyType: string, frequencyValue: number): Date {
+  const date = new Date(startDate);
+  
+  switch (frequencyType.toLowerCase()) {
+    case 'daily':
+      date.setDate(date.getDate() + frequencyValue);
+      break;
+    case 'weekly':
+      date.setDate(date.getDate() + (frequencyValue * 7));
+      break;
+    case 'monthly':
+      date.setMonth(date.getMonth() + frequencyValue);
+      break;
+    case 'quarterly':
+      date.setMonth(date.getMonth() + (frequencyValue * 3));
+      break;
+    case 'yearly':
+      date.setFullYear(date.getFullYear() + frequencyValue);
+      break;
+    default:
+      date.setMonth(date.getMonth() + frequencyValue);
+  }
+  
+  return date;
+}
