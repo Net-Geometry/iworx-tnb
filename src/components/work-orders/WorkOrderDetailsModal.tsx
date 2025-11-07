@@ -305,10 +305,15 @@ export const WorkOrderDetailsModal = ({
 
           {/* Assignment & Cost */}
           <div className="grid grid-cols-2 gap-4">
-            {workOrder.assigned_technician && (
+            {(workOrder.assigned_technician || workOrder.technician) && (
               <div>
                 <h4 className="text-sm font-semibold text-muted-foreground mb-1">Assigned To</h4>
-                <p className="text-sm">{workOrder.assigned_technician}</p>
+                <p className="text-sm">
+                  {workOrder.technician 
+                    ? `${workOrder.technician.first_name} ${workOrder.technician.last_name}`
+                    : workOrder.assigned_technician
+                  }
+                </p>
               </div>
             )}
             {workOrder.estimated_cost && (

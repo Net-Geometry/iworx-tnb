@@ -88,7 +88,12 @@ export const WorkOrderTable = ({ workOrders, onView, onEdit, onDelete }: WorkOrd
                 <TableCell>{getPriorityBadge(workOrder.priority)}</TableCell>
                 <TableCell>{getStatusBadge(workOrder.status)}</TableCell>
                 <TableCell>{format(new Date(workOrder.scheduled_date), 'MMM dd, yyyy')}</TableCell>
-                <TableCell>{workOrder.assigned_technician || '-'}</TableCell>
+                <TableCell>
+                  {workOrder.technician 
+                    ? `${workOrder.technician.first_name} ${workOrder.technician.last_name}`
+                    : workOrder.assigned_technician || '-'
+                  }
+                </TableCell>
                 <TableCell>{workOrder.estimated_duration_hours ? `${workOrder.estimated_duration_hours}h` : '-'}</TableCell>
                 <TableCell>{workOrder.estimated_cost ? `$${workOrder.estimated_cost.toFixed(2)}` : '-'}</TableCell>
                 <TableCell>

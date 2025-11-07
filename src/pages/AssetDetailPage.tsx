@@ -431,9 +431,12 @@ const AssetDetailPage: React.FC = () => {
                             <span>Type: {order.maintenance_type}</span>
                             <span>Priority: {order.priority}</span>
                           </div>
-                          {order.assigned_technician && (
+                          {(order.technician || order.assigned_technician) && (
                             <div className="text-xs text-muted-foreground">
-                              Technician: {order.assigned_technician}
+                              Technician: {order.technician 
+                                ? `${order.technician.first_name} ${order.technician.last_name}`
+                                : order.assigned_technician
+                              }
                             </div>
                           )}
                           <div className="flex justify-between text-xs text-muted-foreground">
