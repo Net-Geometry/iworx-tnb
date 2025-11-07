@@ -606,7 +606,7 @@ const PersonDetailPage: React.FC = () => {
                         <div className="grid grid-cols-2 gap-3 text-sm">
                           <div className="space-y-1">
                             <span className="text-xs text-muted-foreground uppercase tracking-wider">Experience</span>
-                            <p className="text-foreground font-medium">{personSkill.years_experience || 0} years</p>
+                            <p className="text-foreground font-medium">{personSkill.years_of_experience || 0} years</p>
                           </div>
                           <div className="space-y-1">
                             <span className="text-xs text-muted-foreground uppercase tracking-wider">Certified</span>

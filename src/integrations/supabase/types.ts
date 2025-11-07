@@ -4404,7 +4404,7 @@ export type Database = {
             | null
           skill_id: string | null
           updated_at: string | null
-          years_experience: number | null
+          years_of_experience: number | null
         }
         Insert: {
           certification_date?: string | null
@@ -4420,7 +4420,7 @@ export type Database = {
             | null
           skill_id?: string | null
           updated_at?: string | null
-          years_experience?: number | null
+          years_of_experience?: number | null
         }
         Update: {
           certification_date?: string | null
@@ -4436,7 +4436,7 @@ export type Database = {
             | null
           skill_id?: string | null
           updated_at?: string | null
-          years_experience?: number | null
+          years_of_experience?: number | null
         }
         Relationships: []
       }

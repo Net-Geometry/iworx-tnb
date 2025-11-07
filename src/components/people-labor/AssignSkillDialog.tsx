@@ -27,7 +27,7 @@ export function AssignSkillDialog({ open, onOpenChange, personId, editingSkill }
   const [formData, setFormData] = useState({
     skill_id: editingSkill?.skill_id || "",
     proficiency_level: editingSkill?.proficiency_level || "beginner",
-    years_experience: editingSkill?.years_experience || 0,
+    years_of_experience: editingSkill?.years_of_experience || 0,
     certified: editingSkill?.certified || false,
     certification_date: editingSkill?.certification_date || "",
     certification_expiry: editingSkill?.certification_expiry || "",
@@ -77,7 +77,7 @@ export function AssignSkillDialog({ open, onOpenChange, personId, editingSkill }
     setFormData({
       skill_id: "",
       proficiency_level: "beginner",
-      years_experience: 0,
+      years_of_experience: 0,
       certified: false,
       certification_date: "",
       certification_expiry: "",
@@ -137,8 +137,8 @@ export function AssignSkillDialog({ open, onOpenChange, personId, editingSkill }
               id="years"
               type="number"
               min="0"
-              value={formData.years_experience}
-              onChange={(e) => setFormData({ ...formData, years_experience: parseInt(e.target.value) || 0 })}
+              value={formData.years_of_experience}
+              onChange={(e) => setFormData({ ...formData, years_of_experience: parseInt(e.target.value) || 0 })}
             />
           </div>
 

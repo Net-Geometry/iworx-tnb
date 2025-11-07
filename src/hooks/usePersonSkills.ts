@@ -8,7 +8,7 @@ export interface PersonSkill {
   person_id: string;
   skill_id: string;
   proficiency_level: 'beginner' | 'intermediate' | 'advanced' | 'expert';
-  years_experience?: number;
+  years_of_experience?: number;
   certified: boolean;
   certification_date?: string;
   certification_expiry?: string;
