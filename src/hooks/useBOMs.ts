@@ -345,13 +345,10 @@ export const useAssetBOMs = (assetId?: string) => {
       setLoading(true);
       setError(null);
       
-      let query = supabase
-        .from('asset_boms')
-        .select(`
-          *,
-          bom:bill_of_materials(*)
-        `)
-        .eq('asset_id', assetId);
+    let query = supabase
+      .from('asset_boms')
+      .select('*')
+      .eq('asset_id', assetId);
 
       // Filter by organization unless user has cross-project access
       if (!hasCrossProjectAccess && currentOrganization) {
