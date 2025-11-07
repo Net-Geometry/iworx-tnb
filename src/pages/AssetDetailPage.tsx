@@ -7,6 +7,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAssets } from '@/hooks/useAssets';
 import { useAssetMaintenance } from '@/hooks/useMaintenance';
 import { useAssetLocation } from '@/hooks/useAssetLocation';
+import { useAssetDocuments } from '@/hooks/useAssetDocuments';
 import { resolveIcon } from '@/lib/iconResolver';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,7 @@ const AssetDetailPage: React.FC = () => {
   const asset = assets.find(a => a.id === id);
   const { maintenanceHistory, upcomingWorkOrders, recentWorkOrders, loading: maintenanceLoading } = useAssetMaintenance(id || '');
   const { location: assetLocation, loading: locationLoading } = useAssetLocation(id || '');
+  const { documents, loading: documentsLoading, deleteAssetDocument } = useAssetDocuments(id);
 
   if (loading) {
     return (
@@ -480,15 +482,59 @@ const AssetDetailPage: React.FC = () => {
               <CardDescription>Manuals, warranties, certificates, and other documents</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">No documents uploaded</h3>
-                <p className="text-muted-foreground mb-4">Upload manuals, warranties, and other asset-related documents</p>
-                <Button>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload Documents
-                </Button>
-              </div>
+              {documentsLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              ) : documents.length > 0 ? (
+                <div className="space-y-3">
+                  {documents.map((doc) => (
+                    <div key={doc.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium text-foreground">{doc.file_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Uploaded {format(new Date(doc.created_at), 'MMM dd, yyyy')}
+                            {doc.file_type && ` • ${doc.file_type.toUpperCase()}`}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.open(doc.file_path, '_blank')}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if (confirm('Are you sure you want to delete this document?')) {
+                              deleteAssetDocument(doc.id, doc.file_path);
+                            }
+                          }}
+                        >
+                          <AlertTriangle className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-2">No documents uploaded</h3>
+                  <p className="text-muted-foreground mb-4">Upload manuals, warranties, and other asset-related documents when editing the asset</p>
+                  <Button onClick={() => navigate(`/assets/${id}/edit`)}>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Asset to Upload
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

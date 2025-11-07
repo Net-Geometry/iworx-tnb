@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,7 +12,9 @@ import { FileUpload } from './FileUpload';
 import { QRCodePreview } from './QRCodePreview';
 import { ParentAssetSelect } from './ParentAssetSelect';
 import { Model3DUpload } from './Model3DUpload';
-import { Globe, Lock } from 'lucide-react';
+import { useAssetDocuments } from '@/hooks/useAssetDocuments';
+import { Globe, Lock, FileText, X, Download } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface AssetFormContentProps {
   formData: {
@@ -64,6 +66,8 @@ const AssetFormContent: React.FC<AssetFormContentProps> = ({
   onSubmit,
   onClose
 }) => {
+  const { documents: existingDocuments, loading: docsLoading, deleteAssetDocument } = useAssetDocuments(assetId);
+
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
@@ -340,28 +344,93 @@ const AssetFormContent: React.FC<AssetFormContentProps> = ({
                 <CardTitle>Documents</CardTitle>
                 <CardDescription>Upload manuals, warranties, or other documents</CardDescription>
               </CardHeader>
-              <CardContent>
-                <FileUpload
-                  bucket="asset-documents"
-                  accept=".pdf,.doc,.docx,.txt"
-                  maxSize={10 * 1024 * 1024} // 10MB
-                  currentFile=""
-                  label="Asset Documents"
-                  onFileUploaded={(url, fileName) => {
-                    onUploadedDocumentsChange([...uploadedDocuments, { name: fileName, url }]);
-                  }}
-                  onFileRemoved={() => {
-                    // Handle document removal if needed
-                  }}
-                />
+              <CardContent className="space-y-4">
+                {/* Existing documents (when editing) */}
+                {assetId && existingDocuments.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Existing Documents:</Label>
+                    <div className="space-y-2">
+                      {existingDocuments.map((doc) => (
+                        <div key={doc.id} className="flex items-center justify-between p-3 border border-border rounded-lg bg-muted/30">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-foreground truncate">{doc.file_name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(doc.created_at), 'MMM dd, yyyy')}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(doc.file_path, '_blank')}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (confirm('Delete this document?')) {
+                                  deleteAssetDocument(doc.id, doc.file_path);
+                                }
+                              }}
+                            >
+                              <X className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* New document upload */}
+                <div className="space-y-2">
+                  <Label>Upload New Documents:</Label>
+                  <FileUpload
+                    bucket="asset-documents"
+                    accept=".pdf,.doc,.docx,.txt"
+                    maxSize={10 * 1024 * 1024} // 10MB
+                    currentFile=""
+                    label="Asset Documents"
+                    onFileUploaded={(url, fileName) => {
+                      onUploadedDocumentsChange([...uploadedDocuments, { name: fileName, url }]);
+                    }}
+                    onFileRemoved={() => {
+                      // Handle document removal if needed
+                    }}
+                  />
+                </div>
+
+                {/* Newly uploaded documents (pending save) */}
                 {uploadedDocuments.length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    <Label>Uploaded Documents:</Label>
-                    {uploadedDocuments.map((doc, index) => (
-                      <div key={index} className="text-sm text-muted-foreground">
-                        • {doc.name}
-                      </div>
-                    ))}
+                  <div className="space-y-2">
+                    <Label className="text-primary">Newly Uploaded (will be saved on submit):</Label>
+                    <div className="space-y-2">
+                      {uploadedDocuments.map((doc, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border border-primary/50 rounded-lg bg-primary/5">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-primary" />
+                            <span className="text-sm text-foreground">{doc.name}</span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              onUploadedDocumentsChange(uploadedDocuments.filter((_, i) => i !== index));
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </CardContent>

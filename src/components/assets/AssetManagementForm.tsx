@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAssets, Asset } from '@/hooks/useAssets';
 import { useHierarchyNodes } from '@/hooks/useHierarchyData';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import AssetFormContent from './AssetFormContent';
 
 interface AssetManagementFormProps {
@@ -21,6 +22,7 @@ interface AssetManagementFormProps {
 const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onClose, mode = 'modal' }) => {
   const { assets, addAsset, updateAsset } = useAssets();
   const { nodes } = useHierarchyNodes();
+  const { currentOrganization } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -187,6 +189,8 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
         } : null
       };
 
+      let savedAssetId = assetId;
+
       if (assetId) {
         // Update existing asset
         // If QR code data doesn't start with http, regenerate with public URL
@@ -197,7 +201,25 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
       } else {
         // Create new asset - the addAsset hook will handle QR code URL generation
         const newAsset = await addAsset(assetData);
-        // Note: QR code URL will be updated via edge function after creation
+        savedAssetId = newAsset?.id;
+      }
+
+      // Save uploaded documents to database
+      if (uploadedDocuments.length > 0 && savedAssetId && currentOrganization) {
+        const documentPromises = uploadedDocuments.map(async (doc) => {
+          const fileExtension = doc.name.split('.').pop()?.toLowerCase() || '';
+          
+          return supabase.from('asset_documents').insert({
+            asset_id: savedAssetId,
+            organization_id: currentOrganization.id,
+            file_name: doc.name,
+            file_path: doc.url,
+            file_type: fileExtension,
+            file_size: null,
+          });
+        });
+        
+        await Promise.all(documentPromises);
       }
       
       onClose();
@@ -206,7 +228,7 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
     } finally {
       setLoading(false);
     }
-  }, [formData, assetId, existingAsset?.health_score, updateAsset, addAsset, onClose]);
+  }, [formData, assetId, existingAsset?.health_score, updateAsset, addAsset, uploadedDocuments, currentOrganization, onClose]);
 
   if (mode === 'page') {
     return (
