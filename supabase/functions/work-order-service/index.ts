@@ -986,21 +986,45 @@ Deno.serve(async (req) => {
 
       if (error) throw error;
 
-      // Enrich with related data
-      const enriched = await Promise.all((data || []).map(async (schedule: any) => {
-        const [assetData, jobPlanData, personData] = await Promise.all([
-          schedule.asset_id ? supabase.from('assets').select('asset_number, name').eq('id', schedule.asset_id).single() : Promise.resolve({ data: null }),
-          schedule.job_plan_id ? supabase.from('job_plans').select('job_plan_number, title').eq('id', schedule.job_plan_id).single() : Promise.resolve({ data: null }),
-          schedule.assigned_to ? supabase.from('people').select('first_name, last_name').eq('id', schedule.assigned_to).single() : Promise.resolve({ data: null })
-        ]);
+      console.log('[PM Schedules] Fetched schedules:', data?.length);
 
-        return {
-          ...schedule,
-          asset: assetData.data,
-          job_plan: jobPlanData.data,
-          assigned_person: personData.data
-        };
-      }));
+      // Batch fetch related data to avoid N+1 queries
+      const assetIds = [...new Set(data?.filter(s => s.asset_id).map(s => s.asset_id) || [])];
+      const jobPlanIds = [...new Set(data?.filter(s => s.job_plan_id).map(s => s.job_plan_id) || [])];
+      const personIds = [...new Set(data?.filter(s => s.assigned_to).map(s => s.assigned_to) || [])];
+
+      console.log('[PM Schedules] Asset IDs to fetch:', assetIds.length);
+      console.log('[PM Schedules] Job Plan IDs to fetch:', jobPlanIds.length);
+      console.log('[PM Schedules] Person IDs to fetch:', personIds.length);
+
+      const [assetsData, jobPlansData, peopleData] = await Promise.all([
+        assetIds.length > 0 
+          ? supabase.from('assets').select('id, asset_number, name').in('id', assetIds).then(r => {
+              console.log('[PM Schedules] Fetched assets:', r.data?.length, 'Error:', r.error);
+              return r.data || [];
+            })
+          : Promise.resolve([]),
+        jobPlanIds.length > 0 
+          ? supabase.from('job_plans').select('id, job_plan_number, title').in('id', jobPlanIds).then(r => {
+              console.log('[PM Schedules] Fetched job plans:', r.data?.length, 'Error:', r.error);
+              return r.data || [];
+            })
+          : Promise.resolve([]),
+        personIds.length > 0 
+          ? supabase.from('people').select('id, first_name, last_name').in('id', personIds).then(r => {
+              console.log('[PM Schedules] Fetched people:', r.data?.length, 'Error:', r.error);
+              return r.data || [];
+            })
+          : Promise.resolve([]),
+      ]);
+
+      // Client-side join with fetched data
+      const enriched = data?.map((schedule: any) => ({
+        ...schedule,
+        asset: assetsData.find(a => a.id === schedule.asset_id) || null,
+        job_plan: jobPlansData.find(j => j.id === schedule.job_plan_id) || null,
+        assigned_person: peopleData.find(p => p.id === schedule.assigned_to) || null
+      })) || [];
 
       return new Response(JSON.stringify(enriched), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
