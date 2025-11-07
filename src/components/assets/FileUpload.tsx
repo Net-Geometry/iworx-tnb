@@ -3,6 +3,7 @@ import { Upload, X, File, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FileUploadProps {
   onFileUploaded: (url: string, fileName: string) => void;
@@ -23,6 +24,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   currentFile,
   label
 }) => {
+  const { currentOrganization } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
@@ -32,12 +34,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       return;
     }
 
+    if (!currentOrganization?.id) {
+      toast.error('Organization context required for upload');
+      return;
+    }
+
     setUploading(true);
     
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const filePath = `${currentOrganization.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from(bucket)
@@ -57,7 +64,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     } finally {
       setUploading(false);
     }
-  }, [bucket, maxSize, onFileUploaded]);
+  }, [bucket, maxSize, onFileUploaded, currentOrganization]);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
