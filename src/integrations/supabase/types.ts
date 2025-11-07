@@ -4396,6 +4396,7 @@ export type Database = {
           certified: boolean | null
           created_at: string | null
           id: string | null
+          is_active: boolean | null
           notes: string | null
           organization_id: string | null
           person_id: string | null
@@ -4412,6 +4413,7 @@ export type Database = {
           certified?: boolean | null
           created_at?: string | null
           id?: string | null
+          is_active?: boolean | null
           notes?: string | null
           organization_id?: string | null
           person_id?: string | null
@@ -4428,6 +4430,7 @@ export type Database = {
           certified?: boolean | null
           created_at?: string | null
           id?: string | null
+          is_active?: boolean | null
           notes?: string | null
           organization_id?: string | null
           person_id?: string | null
