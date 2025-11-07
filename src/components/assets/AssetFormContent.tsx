@@ -344,55 +344,8 @@ const AssetFormContent: React.FC<AssetFormContentProps> = ({
                 <CardTitle>Documents</CardTitle>
                 <CardDescription>Upload manuals, warranties, or other documents</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Existing documents (when editing) */}
-                {assetId && existingDocuments.length > 0 && (
-                  <div className="space-y-2">
-                    <Label>Existing Documents:</Label>
-                    <div className="space-y-2">
-                      {existingDocuments.map((doc) => (
-                        <div key={doc.id} className="flex items-center justify-between p-3 border border-border rounded-lg bg-muted/30">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-foreground truncate">{doc.file_name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {format(new Date(doc.created_at), 'MMM dd, yyyy')}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => window.open(doc.file_path, '_blank')}
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                if (confirm('Delete this document?')) {
-                                  deleteAssetDocument(doc.id, doc.file_path);
-                                }
-                              }}
-                            >
-                              <X className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* New document upload */}
-                <div className="space-y-2">
-                  <Label>Upload New Documents:</Label>
-                  <FileUpload
+              <CardContent>
+                <FileUpload
                     bucket="asset-documents"
                     accept=".pdf,.doc,.docx,.txt"
                     maxSize={10 * 1024 * 1024} // 10MB

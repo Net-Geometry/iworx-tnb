@@ -2,6 +2,7 @@ import { AssetBOMTab } from '@/components/bom/AssetBOMTab';
 import { AssetMeterGroupsTab } from '@/components/assets/AssetMeterGroupsTab';
 import { AssetSkillRequirementsTab } from '@/components/assets/AssetSkillRequirementsTab';
 import { AssetIoTDevicesTab } from '@/components/assets/AssetIoTDevicesTab';
+import { DocumentUploadSection } from '@/components/assets/DocumentUploadSection';
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAssets } from '@/hooks/useAssets';
@@ -481,7 +482,13 @@ const AssetDetailPage: React.FC = () => {
               </CardTitle>
               <CardDescription>Manuals, warranties, certificates, and other documents</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
+              {/* Upload Section */}
+              <DocumentUploadSection assetId={id!} />
+
+              {/* Documents List */}
+              <Separator />
+              
               {documentsLoading ? (
                 <div className="space-y-3">
                   <Skeleton className="h-16 w-full" />
@@ -527,12 +534,8 @@ const AssetDetailPage: React.FC = () => {
               ) : (
                 <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
                   <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-2">No documents uploaded</h3>
-                  <p className="text-muted-foreground mb-4">Upload manuals, warranties, and other asset-related documents when editing the asset</p>
-                  <Button onClick={() => navigate(`/assets/${id}/edit`)}>
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit Asset to Upload
-                  </Button>
+                  <h3 className="text-lg font-medium text-foreground mb-2">No documents yet</h3>
+                  <p className="text-muted-foreground">Upload your first document using the form above</p>
                 </div>
               )}
             </CardContent>
