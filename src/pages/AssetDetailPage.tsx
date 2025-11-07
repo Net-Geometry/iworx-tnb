@@ -147,10 +147,6 @@ const AssetDetailPage: React.FC = () => {
                   <div className="text-center space-y-2">
                     <Camera className="h-8 w-8 text-muted-foreground mx-auto" />
                     <p className="text-sm text-muted-foreground">No image</p>
-                    <Button variant="outline" size="sm">
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload
-                    </Button>
                   </div>
                 )}
               </div>
