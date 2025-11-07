@@ -346,46 +346,16 @@ const AssetFormContent: React.FC<AssetFormContentProps> = ({
               </CardHeader>
               <CardContent>
                 <FileUpload
-                    bucket="asset-documents"
-                    accept=".pdf,.doc,.docx,.txt"
-                    maxSize={10 * 1024 * 1024} // 10MB
-                    currentFile=""
-                    label="Asset Documents"
-                    onFileUploaded={(url, fileName) => {
-                      onUploadedDocumentsChange([...uploadedDocuments, { name: fileName, url }]);
-                    }}
-                    onFileRemoved={() => {
-                      // Handle document removal if needed
-                    }}
-                  />
-                </div>
-
-                {/* Newly uploaded documents (pending save) */}
-                {uploadedDocuments.length > 0 && (
-                  <div className="space-y-2">
-                    <Label className="text-primary">Newly Uploaded (will be saved on submit):</Label>
-                    <div className="space-y-2">
-                      {uploadedDocuments.map((doc, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 border border-primary/50 rounded-lg bg-primary/5">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-primary" />
-                            <span className="text-sm text-foreground">{doc.name}</span>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              onUploadedDocumentsChange(uploadedDocuments.filter((_, i) => i !== index));
-                            }}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  bucket="asset-documents"
+                  accept=".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv"
+                  maxSize={10 * 1024 * 1024} // 10MB
+                  currentFile=""
+                  label="Asset Documents"
+                  onFileUploaded={(url, fileName) => {
+                    onUploadedDocumentsChange([...uploadedDocuments, { name: fileName, url }]);
+                  }}
+                  onFileRemoved={() => {}}
+                />
               </CardContent>
             </Card>
 

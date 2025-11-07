@@ -43,10 +43,10 @@ export const DocumentUploadSection: React.FC<DocumentUploadSectionProps> = ({ as
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2 mb-2">
-        <Upload className="h-4 w-4 text-muted-foreground" />
-        <h4 className="text-sm font-medium text-foreground">Upload Documents</h4>
+    <div className="space-y-4 p-4 border-2 border-dashed border-border rounded-lg bg-muted/20">
+      <div className="flex items-center gap-2">
+        <Upload className="h-5 w-5 text-primary" />
+        <h4 className="text-base font-semibold text-foreground">Upload New Document</h4>
       </div>
       <FileUpload
         bucket="asset-documents"
@@ -58,7 +58,7 @@ export const DocumentUploadSection: React.FC<DocumentUploadSectionProps> = ({ as
         onFileRemoved={() => {}}
       />
       {uploading && (
-        <p className="text-xs text-muted-foreground">Saving document...</p>
+        <p className="text-sm text-muted-foreground animate-pulse">Saving document...</p>
       )}
     </div>
   );
