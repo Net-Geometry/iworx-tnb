@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, X, Save } from "lucide-react";
 import { useCreateJobPlan, useUpdateJobPlan, type JobPlanWithDetails, type CreateJobPlanData } from "@/hooks/useJobPlans";
 import { InteractiveTaskList } from "@/components/job-plans/InteractiveTaskList";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Form validation schema
 const formSchema = z.object({
@@ -91,6 +92,7 @@ interface JobPlanFormContentProps {
  * Handles form state, validation, and submission.
  */
 export const JobPlanFormContent = ({ jobPlan, mode, onSuccess }: JobPlanFormContentProps) => {
+  const { currentOrganization } = useAuth();
   const [currentTab, setCurrentTab] = useState("basic");
   const [tasks, setTasks] = useState<NewTask[]>(jobPlan?.tasks?.map(t => ({
     task_sequence: t.task_sequence,
@@ -144,11 +146,22 @@ export const JobPlanFormContent = ({ jobPlan, mode, onSuccess }: JobPlanFormCont
     },
   });
 
+  // Sync assetTypes state with form field
+  useEffect(() => {
+    form.setValue('applicable_asset_types', assetTypes);
+  }, [assetTypes, form]);
+
   // Asset type management
   const addAssetType = () => {
+    console.log("Add asset type clicked", { newAssetType, assetTypes });
     if (newAssetType.trim() && !assetTypes.includes(newAssetType.trim())) {
       setAssetTypes([...assetTypes, newAssetType.trim()]);
       setNewAssetType("");
+    } else {
+      console.warn("Asset type not added:", { 
+        isEmpty: !newAssetType.trim(), 
+        isDuplicate: assetTypes.includes(newAssetType.trim()) 
+      });
     }
   };
 
@@ -198,6 +211,12 @@ export const JobPlanFormContent = ({ jobPlan, mode, onSuccess }: JobPlanFormCont
   // Form submission handler
   const onSubmit = async (data: FormData) => {
     try {
+      // Validate organization context
+      if (!currentOrganization?.id) {
+        console.error("No organization selected");
+        return;
+      }
+
       const jobPlanData: CreateJobPlanData = {
         job_plan_number: data.job_plan_number,
         title: data.title,

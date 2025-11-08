@@ -230,12 +230,19 @@ export const useCreateJobPlan = () => {
 
   return useMutation({
     mutationFn: async (jobPlanData: CreateJobPlanData) => {
+      if (!currentOrganization?.id) {
+        throw new Error("No organization selected");
+      }
+
       const { tasks, parts, tools, documents, ...planData } = jobPlanData;
 
-      // Create the job plan first (organization_id handled by RLS)
+      // Create the job plan first with organization_id
       const { data: jobPlan, error: planError } = await supabase
         .from("job_plans")
-        .insert(planData as any)
+        .insert({
+          ...planData,
+          organization_id: currentOrganization.id,
+        } as any)
         .select()
         .single();
 
