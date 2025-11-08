@@ -173,8 +173,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // PUT /work-orders/:id - Update work order
-    if (method === 'PUT' && pathParts.length === 1) {
+    // PATCH /work-orders/:id - Update work order
+    if (method === 'PATCH' && pathParts.length === 1) {
       const workOrderId = pathParts[0];
       const updates = await req.json();
 
