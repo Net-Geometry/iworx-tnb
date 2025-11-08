@@ -215,7 +215,6 @@ export const WorkOrderForm = ({ workOrder, onSubmit, onCancel }: WorkOrderFormPr
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
                     {technicians.map((tech) => (
                       <SelectItem key={tech.id} value={tech.id}>
                         {tech.first_name} {tech.last_name} {tech.employee_number ? `(${tech.employee_number})` : ''}
