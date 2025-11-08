@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { WorkOrder } from "@/hooks/useWorkOrders";
 import { useAssets } from "@/hooks/useAssets";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTechnicians } from "@/hooks/useTechnicians";
 
 const workOrderSchema = z.object({
   asset_id: z.string().min(1, "Asset is required"),
@@ -18,7 +19,7 @@ const workOrderSchema = z.object({
   priority: z.enum(["low", "medium", "high", "critical"]),
   scheduled_date: z.string().min(1, "Scheduled date is required"),
   estimated_duration_hours: z.coerce.number().optional(),
-  assigned_technician: z.string().optional(),
+  assigned_technician: z.string().uuid("Must select a valid technician").optional(),
   estimated_cost: z.coerce.number().optional(),
   notes: z.string().optional()
 });
@@ -34,6 +35,7 @@ interface WorkOrderFormProps {
 export const WorkOrderForm = ({ workOrder, onSubmit, onCancel }: WorkOrderFormProps) => {
   const { assets } = useAssets();
   const { currentOrganization } = useAuth();
+  const { technicians, isLoading: techsLoading } = useTechnicians();
 
   const form = useForm<WorkOrderFormValues>({
     resolver: zodResolver(workOrderSchema),
@@ -202,9 +204,25 @@ export const WorkOrderForm = ({ workOrder, onSubmit, onCancel }: WorkOrderFormPr
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Assigned Technician</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Technician name" />
-                </FormControl>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                  disabled={techsLoading}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={techsLoading ? "Loading technicians..." : "Select a technician"} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="">Unassigned</SelectItem>
+                    {technicians.map((tech) => (
+                      <SelectItem key={tech.id} value={tech.id}>
+                        {tech.first_name} {tech.last_name} {tech.employee_number ? `(${tech.employee_number})` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
