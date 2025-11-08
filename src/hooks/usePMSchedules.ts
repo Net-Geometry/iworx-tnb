@@ -99,23 +99,35 @@ export const usePMSchedules = () => {
   return useQuery({
     queryKey: ["pm_schedules", currentOrganization?.id],
     queryFn: async () => {
+      let data: any[];
+      
       if (useMicroservice) {
         try {
-          return await pmSchedulesApi.getAll();
+          data = await pmSchedulesApi.getAll();
         } catch (error) {
           console.warn('PM Schedules microservice unavailable, falling back to direct query:', error);
           setUseMicroservice(false);
-          // Fall through to direct Supabase query
+          
+          // Fallback to direct Supabase query
+          const { data: scheduleData, error: dbError } = await supabase
+            .from("pm_schedules")
+            .select("*")
+            .eq("organization_id", currentOrganization?.id)
+            .order("next_due_date", { ascending: true, nullsFirst: false });
+
+          if (dbError) throw dbError;
+          data = scheduleData;
         }
+      } else {
+        const { data: scheduleData, error } = await supabase
+          .from("pm_schedules")
+          .select("*")
+          .eq("organization_id", currentOrganization?.id)
+          .order("next_due_date", { ascending: true, nullsFirst: false });
+
+        if (error) throw error;
+        data = scheduleData;
       }
-
-      const { data, error } = await supabase
-        .from("pm_schedules")
-        .select("*")
-        .eq("organization_id", currentOrganization?.id)
-        .order("next_due_date", { ascending: true, nullsFirst: false });
-
-      if (error) throw error;
       
       // ✅ OPTIMIZED: Batch fetch all related data with .in() to eliminate N+1 queries
       const assetIds = [...new Set(data.filter(s => s.asset_id).map(s => s.asset_id))];

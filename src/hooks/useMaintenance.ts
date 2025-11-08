@@ -35,6 +35,11 @@ export interface WorkOrder {
   organization_id: string;
   created_at: string;
   updated_at: string;
+  technician?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+  } | null;
 }
 
 export const useAssetMaintenance = (assetId: string) => {
@@ -102,8 +107,34 @@ export const useAssetMaintenance = (assetId: string) => {
         priority: order.priority as WorkOrder['priority'],
         status: order.status as WorkOrder['status']
       }));
+
+      // Fetch technician data for work orders
+      const technicianIds = [...new Set(typedData
+        .map(wo => wo.assigned_technician)
+        .filter(Boolean))] as string[];
+
+      let techniciansMap: Record<string, { id: string; first_name: string; last_name: string }> = {};
+
+      if (technicianIds.length > 0) {
+        const { data: techniciansData } = await supabase
+          .from('people')
+          .select('id, first_name, last_name')
+          .in('id', technicianIds);
+
+        if (techniciansData) {
+          techniciansMap = Object.fromEntries(
+            techniciansData.map(tech => [tech.id, tech])
+          );
+        }
+      }
+
+      // Attach technician data to work orders
+      const workOrdersWithTechnicians = typedData.map(wo => ({
+        ...wo,
+        technician: wo.assigned_technician ? techniciansMap[wo.assigned_technician] || null : null
+      }));
       
-      setUpcomingWorkOrders(typedData);
+      setUpcomingWorkOrders(workOrdersWithTechnicians);
     } catch (error: any) {
       console.error('Error fetching work orders:', error);
       setError(error.message);
@@ -135,8 +166,34 @@ export const useAssetMaintenance = (assetId: string) => {
         priority: order.priority as WorkOrder['priority'],
         status: order.status as WorkOrder['status']
       }));
+
+      // Fetch technician data for work orders
+      const technicianIds = [...new Set(typedData
+        .map(wo => wo.assigned_technician)
+        .filter(Boolean))] as string[];
+
+      let techniciansMap: Record<string, { id: string; first_name: string; last_name: string }> = {};
+
+      if (technicianIds.length > 0) {
+        const { data: techniciansData } = await supabase
+          .from('people')
+          .select('id, first_name, last_name')
+          .in('id', technicianIds);
+
+        if (techniciansData) {
+          techniciansMap = Object.fromEntries(
+            techniciansData.map(tech => [tech.id, tech])
+          );
+        }
+      }
+
+      // Attach technician data to work orders
+      const workOrdersWithTechnicians = typedData.map(wo => ({
+        ...wo,
+        technician: wo.assigned_technician ? techniciansMap[wo.assigned_technician] || null : null
+      }));
       
-      setRecentWorkOrders(typedData);
+      setRecentWorkOrders(workOrdersWithTechnicians);
     } catch (error: any) {
       console.error('Error fetching recent work orders:', error);
       setError(error.message);

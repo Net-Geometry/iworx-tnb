@@ -19,7 +19,7 @@ const workOrderSchema = z.object({
   priority: z.enum(["low", "medium", "high", "critical"]),
   scheduled_date: z.string().min(1, "Scheduled date is required"),
   estimated_duration_hours: z.coerce.number().optional(),
-  assigned_technician: z.string().uuid("Must select a valid technician").optional(),
+  assigned_technician: z.string().nullable().optional(),
   estimated_cost: z.coerce.number().optional(),
   notes: z.string().optional()
 });
@@ -205,8 +205,8 @@ export const WorkOrderForm = ({ workOrder, onSubmit, onCancel }: WorkOrderFormPr
               <FormItem>
                 <FormLabel>Assigned Technician</FormLabel>
                 <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
+                  onValueChange={(value) => field.onChange(value === "none" ? null : value)} 
+                  value={field.value || "none"}
                   disabled={techsLoading}
                 >
                   <FormControl>
@@ -215,6 +215,9 @@ export const WorkOrderForm = ({ workOrder, onSubmit, onCancel }: WorkOrderFormPr
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    <SelectItem value="none">
+                      <span className="text-muted-foreground">None</span>
+                    </SelectItem>
                     {technicians.map((tech) => (
                       <SelectItem key={tech.id} value={tech.id}>
                         {tech.first_name} {tech.last_name} {tech.employee_number ? `(${tech.employee_number})` : ''}

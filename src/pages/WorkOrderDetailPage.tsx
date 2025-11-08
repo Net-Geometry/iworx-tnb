@@ -445,7 +445,12 @@ const WorkOrderDetailPage: React.FC = () => {
                   <User className="h-3 w-3" />
                   Assigned To
                 </label>
-                <p className="text-sm text-foreground mt-1">{workOrder.assigned_technician || 'Unassigned'}</p>
+                <p className="text-sm text-foreground mt-1">
+                  {workOrder.technician 
+                    ? `${workOrder.technician.first_name} ${workOrder.technician.last_name}`
+                    : workOrder.assigned_technician || 'Unassigned'
+                  }
+                </p>
               </div>
               
               <div>

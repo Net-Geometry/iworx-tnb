@@ -161,7 +161,12 @@ export function WorkOrderCalendarView({
     return asset?.name || "Unknown Asset";
   };
 
-  const getTechnicianName = (technicianId?: string) => {
+  const getTechnicianName = (technicianId?: string, workOrder?: WorkOrder) => {
+    // If workOrder has joined technician data, use that
+    if (workOrder?.technician) {
+      return `${workOrder.technician.first_name} ${workOrder.technician.last_name}`;
+    }
+    
     if (!technicianId) return "Unassigned";
     const person = people.find(p => p.id === technicianId);
     return person ? `${person.first_name} ${person.last_name}` : "Unknown";
@@ -278,7 +283,7 @@ export function WorkOrderCalendarView({
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Assigned:</span>
                           <span className="font-medium truncate max-w-[150px]">
-                            {getTechnicianName(workOrder.assigned_technician)}
+                            {getTechnicianName(workOrder.assigned_technician, workOrder)}
                           </span>
                         </div>
                         {workOrder.estimated_duration_hours && (
