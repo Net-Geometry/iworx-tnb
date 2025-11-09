@@ -52,7 +52,6 @@ import { AdminGuard } from "./components/auth/AdminGuard";
 import SystemSettingsPage from "@/pages/admin/SystemSettingsPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import UserRegistrationPage from "@/pages/admin/UserRegistrationPage";
-import BulkUserCreationPage from "@/pages/admin/BulkUserCreationPage";
 import UserManagementPage from "@/pages/admin/UserManagementPage";
 import UserRolesPage from "@/pages/admin/UserRolesPage";
 import RoleManagementPage from "@/pages/admin/RoleManagementPage";
@@ -576,13 +575,6 @@ const App = () => (
               <AdminGuard>
                 <Layout>
                   <UserRegistrationPage />
-                </Layout>
-              </AdminGuard>
-            } />
-            <Route path="/admin/users/bulk-create" element={
-              <AdminGuard>
-                <Layout>
-                  <BulkUserCreationPage />
                 </Layout>
               </AdminGuard>
             } />
