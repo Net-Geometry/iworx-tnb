@@ -11,15 +11,27 @@ import { Skeleton } from "@/components/ui/skeleton";
 const JobPlansPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [jobTypeFilter, setJobTypeFilter] = useState<string>("all");
   
   const { data: jobPlans, isLoading } = useJobPlans();
   const { data: stats } = useJobPlanStats();
 
-  const filteredJobPlans = jobPlans?.filter(plan =>
-    plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    plan.job_plan_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    plan.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredJobPlans = jobPlans?.filter(plan => {
+    // Search filter
+    const matchesSearch = 
+      plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      plan.job_plan_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      plan.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Status filter
+    const matchesStatus = statusFilter === "all" || plan.status === statusFilter;
+    
+    // Job type filter
+    const matchesJobType = jobTypeFilter === "all" || plan.job_type === jobTypeFilter;
+    
+    return matchesSearch && matchesStatus && matchesJobType;
+  }) || [];
 
   return (
     <div className="space-y-8">
@@ -90,10 +102,33 @@ const JobPlansPage = () => {
             className="pl-10"
           />
         </div>
-        <Button variant="outline" className="gap-2">
-          <Filter className="w-4 h-4" />
-          Filters
-        </Button>
+        
+        {/* Status Filter */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-2 rounded-md border border-border bg-background text-foreground"
+        >
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="draft">Draft</option>
+          <option value="under_review">Under Review</option>
+          <option value="archived">Archived</option>
+        </select>
+        
+        {/* Job Type Filter */}
+        <select
+          value={jobTypeFilter}
+          onChange={(e) => setJobTypeFilter(e.target.value)}
+          className="px-4 py-2 rounded-md border border-border bg-background text-foreground"
+        >
+          <option value="all">All Types</option>
+          <option value="preventive">Preventive</option>
+          <option value="corrective">Corrective</option>
+          <option value="predictive">Predictive</option>
+          <option value="emergency">Emergency</option>
+          <option value="shutdown">Shutdown</option>
+        </select>
       </div>
 
       {/* Job Plans Grid */}

@@ -142,6 +142,15 @@ export const useJobPlans = () => {
         // Try microservice first
         console.log('[Job Plans Hook] Attempting to fetch from microservice');
         const data = await jobPlansApi.getAll();
+        console.log('[Job Plans Hook] Raw data from microservice:', data);
+        console.log('[Job Plans Hook] First item sample:', data?.[0]);
+        
+        // VALIDATION: Check if we got work orders instead of job plans
+        if (data && data.length > 0 && data[0].work_order_number) {
+          console.error('[Job Plans Hook] ERROR: Received work orders instead of job plans!', data[0]);
+          throw new Error('API returned work orders instead of job plans');
+        }
+        
         console.log('[Job Plans Hook] Successfully fetched from microservice:', data?.length || 0, 'job plans');
         return data as JobPlanWithDetails[];
       } catch (microserviceError) {

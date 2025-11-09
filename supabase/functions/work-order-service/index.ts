@@ -234,7 +234,9 @@ Deno.serve(async (req) => {
 
     // GET /job-plans - List all job plans
     if (method === 'GET' && pathParts[0] === 'job-plans' && pathParts.length === 1) {
-      let query = supabase.from('job_plans').select('*');
+      console.log('[Work Order Service] Fetching job plans for organization:', organizationId);
+      
+      let query = supabase.from('workorder_service.job_plans').select('*');
 
       if (!hasCrossProjectAccess && organizationId) {
         query = query.eq('organization_id', organizationId);
@@ -242,7 +244,13 @@ Deno.serve(async (req) => {
 
       const { data, error } = await query.order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[Work Order Service] Error fetching job plans:', error);
+        throw error;
+      }
+
+      console.log('[Work Order Service] Successfully fetched job plans:', data?.length || 0);
+      console.log('[Work Order Service] Sample job plan:', data?.[0]?.job_plan_number);
 
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -252,7 +260,7 @@ Deno.serve(async (req) => {
 
     // GET /job-plans/stats - Get job plan statistics
     if (method === 'GET' && pathParts[0] === 'job-plans' && pathParts[1] === 'stats' && pathParts.length === 2) {
-      let query = supabase.from('job_plans').select('*');
+      let query = supabase.from('workorder_service.job_plans').select('*');
 
       if (!hasCrossProjectAccess && organizationId) {
         query = query.eq('organization_id', organizationId);
@@ -288,12 +296,12 @@ Deno.serve(async (req) => {
       const jobPlanId = pathParts[1];
 
       let query = supabase
-        .from('job_plans')
+        .from('workorder_service.job_plans')
         .select(`
           *,
-          tasks:job_plan_tasks(*),
-          parts:job_plan_parts(*),
-          tools:job_plan_tools(*)
+          tasks:workorder_service.job_plan_tasks(*),
+          parts:workorder_service.job_plan_parts(*),
+          tools:workorder_service.job_plan_tools(*)
         `)
         .eq('id', jobPlanId);
 
@@ -320,7 +328,7 @@ Deno.serve(async (req) => {
       }
 
       const { data, error } = await supabase
-        .from('job_plans')
+        .from('workorder_service.job_plans')
         .insert([jobPlan])
         .select()
         .single();
@@ -341,7 +349,7 @@ Deno.serve(async (req) => {
       const updates = await req.json();
 
       let query = supabase
-        .from('job_plans')
+        .from('workorder_service.job_plans')
         .update(updates)
         .eq('id', jobPlanId);
 
