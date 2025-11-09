@@ -213,7 +213,7 @@ async function handleGetRoutes(
 ) {
   try {
     let query = supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("*")
       .order("created_at", { ascending: false });
 
@@ -230,7 +230,7 @@ async function handleGetRoutes(
     const enrichedRoutes = await Promise.all(
       routes.map(async (route) => {
         const { count } = await supabase
-          .from("workorder_service.route_assets")
+          .from("route_assets")
           .select("*", { count: "exact", head: true })
           .eq("route_id", route.id);
 
@@ -272,7 +272,7 @@ async function handleGetRouteStats(
 ) {
   try {
     let routeQuery = supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("id, status");
 
     if (!hasCrossProjectAccess) {
@@ -287,7 +287,7 @@ async function handleGetRouteStats(
 
     // Get total assets across all routes
     let assetsQuery = supabase
-      .from("workorder_service.route_assets")
+      .from("route_assets")
       .select("id", { count: "exact", head: true });
 
     if (!hasCrossProjectAccess) {
@@ -299,7 +299,7 @@ async function handleGetRouteStats(
 
     // Get routes with PM assignments
     let pmQuery = supabase
-      .from("workorder_service.pm_schedules")
+      .from("pm_schedules")
       .select("route_id")
       .not("route_id", "is", null);
 
@@ -346,7 +346,7 @@ async function handleGetRoute(
 ) {
   try {
     let query = supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("*")
       .eq("id", routeId)
       .single();
@@ -373,7 +373,7 @@ async function handleGetRoute(
 
     // Enrich with asset count
     const { count } = await supabase
-      .from("workorder_service.route_assets")
+      .from("route_assets")
       .select("*", { count: "exact", head: true })
       .eq("route_id", routeId);
 
@@ -417,7 +417,7 @@ async function handleCreateRoute(
     };
 
     const { data: route, error } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .insert(routeData)
       .select()
       .single();
@@ -466,7 +466,7 @@ async function handleUpdateRoute(
   try {
     // Verify route exists and user has access
     const { data: existingRoute, error: fetchError } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("*")
       .eq("id", routeId)
       .single();
@@ -498,7 +498,7 @@ async function handleUpdateRoute(
     delete updateData.created_at;
 
     const { data: route, error } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .update(updateData)
       .eq("id", routeId)
       .select()
@@ -547,7 +547,7 @@ async function handleDeleteRoute(
   try {
     // Verify route exists and user has access
     const { data: existingRoute, error: fetchError } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("*")
       .eq("id", routeId)
       .single();
@@ -568,19 +568,19 @@ async function handleDeleteRoute(
 
     // Unassign all PM schedules first
     await supabase
-      .from("workorder_service.pm_schedules")
+      .from("pm_schedules")
       .update({ route_id: null })
       .eq("route_id", routeId);
 
     // Delete route assets
     await supabase
-      .from("workorder_service.route_assets")
+      .from("route_assets")
       .delete()
       .eq("route_id", routeId);
 
     // Delete route
     const { error } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .delete()
       .eq("id", routeId);
 
@@ -625,7 +625,7 @@ async function handleGetRouteAssets(
   try {
     // Verify route access
     const { data: route, error: routeError } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("organization_id")
       .eq("id", routeId)
       .single();
@@ -646,7 +646,7 @@ async function handleGetRouteAssets(
 
     // Get route assets
     const { data: routeAssets, error } = await supabase
-      .from("workorder_service.route_assets")
+      .from("route_assets")
       .select("*")
       .eq("route_id", routeId)
       .order("sequence_order", { ascending: true });
@@ -704,7 +704,7 @@ async function handleAddAssetToRoute(
   try {
     // Verify route access
     const { data: route, error: routeError } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("organization_id")
       .eq("id", routeId)
       .single();
@@ -725,7 +725,7 @@ async function handleAddAssetToRoute(
 
     // Get next sequence order
     const { data: existingAssets } = await supabase
-      .from("workorder_service.route_assets")
+      .from("route_assets")
       .select("sequence_order")
       .eq("route_id", routeId)
       .order("sequence_order", { ascending: false })
@@ -748,7 +748,7 @@ async function handleAddAssetToRoute(
     };
 
     const { data: routeAsset, error } = await supabase
-      .from("workorder_service.route_assets")
+      .from("route_assets")
       .insert(routeAssetData)
       .select()
       .single();
@@ -802,7 +802,7 @@ async function handleReorderAssets(
   try {
     // Verify route access
     const { data: route, error: routeError } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("organization_id")
       .eq("id", routeId)
       .single();
@@ -827,7 +827,7 @@ async function handleReorderAssets(
     const updates = await Promise.all(
       assets.map(async (asset: any) => {
         const { data, error } = await supabase
-          .from("workorder_service.route_assets")
+          .from("route_assets")
           .update({
             sequence_order: asset.sequence_order,
             updated_at: new Date().toISOString(),
@@ -888,7 +888,7 @@ async function handleUpdateRouteAsset(
   try {
     // Verify route access
     const { data: route, error: routeError } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("organization_id")
       .eq("id", routeId)
       .single();
@@ -919,7 +919,7 @@ async function handleUpdateRouteAsset(
     delete updateData.organization_id;
 
     const { data: routeAsset, error } = await supabase
-      .from("workorder_service.route_assets")
+      .from("route_assets")
       .update(updateData)
       .eq("id", assetId)
       .eq("route_id", routeId)
@@ -962,7 +962,7 @@ async function handleRemoveAssetFromRoute(
   try {
     // Verify route access
     const { data: route, error: routeError } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("organization_id")
       .eq("id", routeId)
       .single();
@@ -983,7 +983,7 @@ async function handleRemoveAssetFromRoute(
 
     // Get route asset details before deletion
     const { data: routeAsset } = await supabase
-      .from("workorder_service.route_assets")
+      .from("route_assets")
       .select("*")
       .eq("id", assetId)
       .eq("route_id", routeId)
@@ -991,7 +991,7 @@ async function handleRemoveAssetFromRoute(
 
     // Delete route asset
     const { error } = await supabase
-      .from("workorder_service.route_assets")
+      .from("route_assets")
       .delete()
       .eq("id", assetId)
       .eq("route_id", routeId);
@@ -1043,7 +1043,7 @@ async function handleGetRouteAssignments(
   try {
     // Verify route access
     const { data: route, error: routeError } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("organization_id")
       .eq("id", routeId)
       .single();
@@ -1064,7 +1064,7 @@ async function handleGetRouteAssignments(
 
     // Get PM schedules assigned to this route
     const { data: pmSchedules, error } = await supabase
-      .from("workorder_service.pm_schedules")
+      .from("pm_schedules")
       .select(`
         *,
         asset:asset_id (
@@ -1121,7 +1121,7 @@ async function handleAssignPMSchedule(
   try {
     // Verify route access
     const { data: route, error: routeError } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("organization_id")
       .eq("id", routeId)
       .single();
@@ -1144,7 +1144,7 @@ async function handleAssignPMSchedule(
 
     // Update PM schedule with route_id
     const { data: pmSchedule, error } = await supabase
-      .from("workorder_service.pm_schedules")
+      .from("pm_schedules")
       .update({ route_id: routeId })
       .eq("id", schedule_id)
       .select()
@@ -1198,7 +1198,7 @@ async function handleBulkAssignPMSchedules(
   try {
     // Verify route access
     const { data: route, error: routeError } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("organization_id")
       .eq("id", routeId)
       .single();
@@ -1221,7 +1221,7 @@ async function handleBulkAssignPMSchedules(
 
     // Update all PM schedules with route_id
     const { data: pmSchedules, error } = await supabase
-      .from("workorder_service.pm_schedules")
+      .from("pm_schedules")
       .update({ route_id: routeId })
       .in("id", schedule_ids)
       .select();
@@ -1278,7 +1278,7 @@ async function handleUnassignPMSchedule(
   try {
     // Verify route access
     const { data: route, error: routeError } = await supabase
-      .from("workorder_service.maintenance_routes")
+      .from("maintenance_routes")
       .select("organization_id")
       .eq("id", routeId)
       .single();
@@ -1299,7 +1299,7 @@ async function handleUnassignPMSchedule(
 
     // Clear route_id from PM schedule
     const { data: pmSchedule, error } = await supabase
-      .from("workorder_service.pm_schedules")
+      .from("pm_schedules")
       .update({ route_id: null })
       .eq("id", scheduleId)
       .eq("route_id", routeId)
