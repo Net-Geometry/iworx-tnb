@@ -18,10 +18,16 @@ const JobPlansPage = () => {
   const { data: stats } = useJobPlanStats();
 
   const filteredJobPlans = jobPlans?.filter(plan => {
-    // Search filter
+    // Safety check: ensure this is actually a job plan, not a work order
+    if (!plan.job_plan_number) {
+      console.warn('[JobPlansPage] Invalid data structure, missing job_plan_number:', plan);
+      return false;
+    }
+    
+    // Search filter with safe property access
     const matchesSearch = 
-      plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      plan.job_plan_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      plan.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      plan.job_plan_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       plan.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
     // Status filter

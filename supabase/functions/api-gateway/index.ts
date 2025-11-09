@@ -115,8 +115,15 @@ async function routeRequest(req: Request): Promise<Response> {
   }
 
   // Forward request to microservice
-  const remainingPath = path.replace(`/api/${serviceName}`, "") || "/";
+  // For services that share a backend (like job-plans using work-order-service),
+  // we need to preserve the service identifier in the path
+  const shouldPreserveServiceName = serviceName === 'job-plans' || serviceName === 'pm-schedules';
+  const remainingPath = shouldPreserveServiceName 
+    ? `/${serviceName}${path.replace(`/api/${serviceName}`, "") || ""}`
+    : path.replace(`/api/${serviceName}`, "") || "/";
   const serviceUrl = `${service.url}${remainingPath}${url.search}`;
+  
+  console.log(`[API Gateway] Forwarding to ${serviceName}: ${serviceUrl}`);
   
   try {
     const serviceResponse = await fetch(serviceUrl, {
