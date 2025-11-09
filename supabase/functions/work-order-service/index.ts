@@ -129,7 +129,11 @@ Deno.serve(async (req) => {
     }
 
     // GET /work-orders/:id - Get single work order
-    if (method === 'GET' && pathParts.length === 1) {
+    // Exclude special routes that should be handled by their specific handlers
+    if (method === 'GET' && pathParts.length === 1 && 
+        pathParts[0] !== 'job-plans' && 
+        pathParts[0] !== 'stats' && 
+        pathParts[0] !== 'prioritized') {
       const workOrderId = pathParts[0];
 
       let query = supabase.from('work_orders').select('*').eq('id', workOrderId);
