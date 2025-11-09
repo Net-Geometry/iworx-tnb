@@ -132,6 +132,7 @@ Deno.serve(async (req) => {
     // Exclude special routes that should be handled by their specific handlers
     if (method === 'GET' && pathParts.length === 1 && 
         pathParts[0] !== 'job-plans' && 
+        pathParts[0] !== 'pm-schedules' && 
         pathParts[0] !== 'stats' && 
         pathParts[0] !== 'prioritized') {
       const workOrderId = pathParts[0];
