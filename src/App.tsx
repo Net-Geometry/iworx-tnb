@@ -571,17 +571,17 @@ const App = () => (
                 </Layout>
               </AdminGuard>
             } />
-            <Route path="/admin/users/register" element={
-              <AdminGuard>
-                <Layout>
-                  <UserRegistrationPage />
-                </Layout>
-              </AdminGuard>
-            } />
-            <Route path="/admin/user-management" element={
+            <Route path="/admin/users" element={
               <AdminGuard>
                 <Layout>
                   <UserManagementPage />
+                </Layout>
+              </AdminGuard>
+            } />
+            <Route path="/admin/users/new" element={
+              <AdminGuard>
+                <Layout>
+                  <UserRegistrationPage />
                 </Layout>
               </AdminGuard>
             } />

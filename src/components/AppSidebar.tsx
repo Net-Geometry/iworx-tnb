@@ -209,8 +209,7 @@ const peopleAndLaborModules = [
 // System Administration modules
 const systemAdminModules = [
   { title: "System Settings", url: "/admin/settings", icon: Settings },
-  { title: "User Registration", url: "/admin/users/register", icon: UserPlus },
-  { title: "User Management", url: "/admin/user-management", icon: Users },
+  { title: "User Management", url: "/admin/users", icon: Users },
   { title: "Role Management", url: "/admin/roles", icon: Shield },
   { title: "Workflow Templates", url: "/admin/workflow-templates", icon: Workflow },
   { title: "Verticals", url: "/admin/organizations", icon: Building },

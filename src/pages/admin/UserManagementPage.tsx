@@ -47,7 +47,7 @@ export default function UserManagementPage() {
             <p className="text-muted-foreground">Manage system users and their role assignments</p>
           </div>
         </div>
-        <Button onClick={() => navigate("/admin/user-registration")} className="gap-2">
+        <Button onClick={() => navigate("/admin/users/new")} className="gap-2">
           <UserPlus className="h-4 w-4" />
           Create User
         </Button>

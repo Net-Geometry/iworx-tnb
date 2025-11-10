@@ -137,7 +137,7 @@ export default function UserRolesPage() {
     <div className="container mx-auto p-6 max-w-4xl">
       <Button
         variant="ghost"
-        onClick={() => navigate("/admin/user-management")}
+        onClick={() => navigate("/admin/users")}
         className="mb-4 gap-2"
       >
         <ArrowLeft className="h-4 w-4" />
