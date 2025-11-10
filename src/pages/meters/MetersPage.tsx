@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MeterForm } from '@/components/meters/MeterForm';
 
 /**
@@ -31,6 +32,8 @@ export default function MetersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMeter, setSelectedMeter] = useState<Meter | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Filter meters based on search
   const filteredMeters = meters.filter(meter =>
@@ -38,6 +41,18 @@ export default function MetersPage() {
     meter.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     meter.manufacturer?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredMeters.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedMeters = filteredMeters.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
 
   const getMeterTypeColor = (type: string) => {
     const colors = {
@@ -92,7 +107,7 @@ export default function MetersPage() {
               <Input
                 placeholder="Search by meter number, description, or manufacturer..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
               />
             </div>
             <Button variant="outline">
@@ -125,14 +140,14 @@ export default function MetersPage() {
                     Loading meters...
                   </TableCell>
                 </TableRow>
-              ) : filteredMeters.length === 0 ? (
+              ) : paginatedMeters.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center">
                     No meters found
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredMeters.map((meter) => (
+                paginatedMeters.map((meter) => (
                   <TableRow key={meter.id}>
                     <TableCell className="font-medium">
                       {meter.meter_number}
@@ -174,6 +189,83 @@ export default function MetersPage() {
               )}
             </TableBody>
           </Table>
+
+          {/* Pagination Controls */}
+          {filteredMeters.length > 0 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border/50">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Rows per page:</span>
+                  <Select value={pageSize.toString()} onValueChange={(value) => {
+                    setPageSize(Number(value));
+                    setCurrentPage(1);
+                  }}>
+                    <SelectTrigger className="w-20 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  Showing {startIndex + 1}-{Math.min(endIndex, filteredMeters.length)} of {filteredMeters.length}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        className="w-8 h-8 p-0"
+                        onClick={() => setCurrentPage(pageNum)}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
 
         {/* Meter Form Dialog */}

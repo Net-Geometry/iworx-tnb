@@ -7,11 +7,12 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Radio, Plus, Download } from "lucide-react";
+import { Radio, Plus, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useIoTDevices, useDeleteIoTDevice } from "@/hooks/useIoTDevices";
 import { useIoTDeviceTypes } from "@/hooks/useIoTDeviceTypes";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,6 +43,8 @@ export default function IoTDevicesPage() {
   const [editingDevice, setEditingDevice] = useState<any>(null);
   const [mappingDevice, setMappingDevice] = useState<any>(null);
   const [deletingDevice, setDeletingDevice] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const deleteDevice = useDeleteIoTDevice();
 
@@ -74,6 +77,28 @@ export default function IoTDevicesPage() {
     
     return matchesSearch && matchesStatus && matchesType;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredDevices.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedDevices = filteredDevices.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleDeviceTypeFilterChange = (value: string) => {
+    setDeviceTypeFilter(value);
+    setCurrentPage(1);
+  };
 
   const handleDelete = async () => {
     if (!deletingDevice) return;
@@ -156,10 +181,10 @@ export default function IoTDevicesPage() {
             <Input
               placeholder="Search by name or DevEUI..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="md:col-span-2"
             />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
               <SelectTrigger>
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
@@ -170,7 +195,7 @@ export default function IoTDevicesPage() {
                 <SelectItem value="error">Error</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={deviceTypeFilter} onValueChange={setDeviceTypeFilter}>
+            <Select value={deviceTypeFilter} onValueChange={handleDeviceTypeFilterChange}>
               <SelectTrigger>
                 <SelectValue placeholder="All Types" />
               </SelectTrigger>
@@ -197,13 +222,90 @@ export default function IoTDevicesPage() {
         </CardHeader>
         <CardContent>
           <IoTDeviceTable 
-            devices={filteredDevices} 
+            devices={paginatedDevices} 
             isLoading={isLoading}
             onEdit={(device) => setEditingDevice(device)}
             onViewDetails={(device) => navigate(`/iot-devices/${device.id}`)}
             onConfigureMapping={(device) => setMappingDevice(device)}
             onDelete={(device) => setDeletingDevice(device)}
           />
+
+          {/* Pagination Controls */}
+          {filteredDevices.length > 0 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border/50 mt-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Rows per page:</span>
+                  <Select value={pageSize.toString()} onValueChange={(value) => {
+                    setPageSize(Number(value));
+                    setCurrentPage(1);
+                  }}>
+                    <SelectTrigger className="w-20 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  Showing {startIndex + 1}-{Math.min(endIndex, filteredDevices.length)} of {filteredDevices.length}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        className="w-8 h-8 p-0"
+                        onClick={() => setCurrentPage(pageNum)}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
