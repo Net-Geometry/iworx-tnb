@@ -305,13 +305,13 @@ async function handlePrecautions(
 
     // Apply category filter
     const category = url.searchParams.get('category');
-    if (category) {
+    if (category && category !== 'all') {
       query = query.eq('category', category);
     }
 
     // Apply severity filter
     const severity = url.searchParams.get('severity');
-    if (severity) {
+    if (severity && severity !== 'all') {
       query = query.eq('severity_level', severity);
     }
 
