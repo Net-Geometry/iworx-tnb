@@ -62,16 +62,21 @@ const HierarchyOverviewPage = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Asset Hierarchy Management</h1>
-          <p className="text-muted-foreground mt-1">
-            Configure and manage your organization's asset hierarchy structure
-          </p>
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
+            <Network className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Asset Hierarchy Management</h1>
+            <p className="text-muted-foreground">
+              Configure and manage your organization's asset hierarchy structure
+            </p>
+          </div>
         </div>
-        <Button asChild variant="outline">
+        <Button asChild variant="outline" size="sm">
           <Link to="/assets">
             <ArrowRight className="h-4 w-4 mr-2" />
             Back to Assets
@@ -82,68 +87,71 @@ const HierarchyOverviewPage = () => {
       {/* Stats */}
       <HierarchyStats stats={stats} />
 
-      {/* Navigation Cards */}
-      <div className="grid gap-6 md:grid-cols-3">
-        {navigationCards.map((card) => (
-          <Card key={card.href} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <card.icon className={`h-8 w-8 ${card.color}`} />
-                <Button asChild variant="ghost" size="sm">
-                  <Link to={card.href}>
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
+      {/* Content Area */}
+      <div className="space-y-6">
+        {/* Navigation Cards */}
+        <div className="grid gap-6 md:grid-cols-3">
+          {navigationCards.map((card) => (
+            <Card key={card.href} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <card.icon className={`h-8 w-8 ${card.color}`} />
+                  <Button asChild variant="ghost" size="sm">
+                    <Link to={card.href}>
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+                <CardTitle className="mt-4">{card.title}</CardTitle>
+                <CardDescription>{card.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full">
+                  <Link to={card.href}>Open</Link>
                 </Button>
-              </div>
-              <CardTitle className="mt-4">{card.title}</CardTitle>
-              <CardDescription>{card.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full">
-                <Link to={card.href}>Open</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Quick Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-2">
+            <Button asChild variant="outline" className="justify-start">
+              <Link to="/assets/hierarchy/levels">
+                <Layers className="h-4 w-4 mr-2" />
+                Add New Level
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-start">
+              <Link to="/assets/hierarchy/nodes">
+                <Network className="h-4 w-4 mr-2" />
+                Add New Node
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity (Placeholder) */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Changes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>• Level "Location" was created</p>
+              <p>• 3 nodes moved to different parents</p>
+              <p>• Hierarchy structure validated successfully</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Quick Actions
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <Button asChild variant="outline" className="justify-start">
-            <Link to="/assets/hierarchy/levels">
-              <Layers className="h-4 w-4 mr-2" />
-              Add New Level
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-start">
-            <Link to="/assets/hierarchy/nodes">
-              <Network className="h-4 w-4 mr-2" />
-              Add New Node
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Recent Activity (Placeholder) */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Changes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <p>• Level "Location" was created</p>
-            <p>• 3 nodes moved to different parents</p>
-            <p>• Hierarchy structure validated successfully</p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
