@@ -5140,6 +5140,9 @@ export type Database = {
         Row: {
           actual_finish_date: string | null
           actual_start_date: string | null
+          ai_priority_factors: Json | null
+          ai_priority_score: number | null
+          anomaly_detection_id: string | null
           asset_id: string | null
           assigned_technician: string | null
           created_at: string | null
@@ -5152,9 +5155,11 @@ export type Database = {
           job_plan_id: string | null
           location_node_id: string | null
           maintenance_type: string | null
+          ml_recommended: boolean | null
           notes: string | null
           organization_id: string | null
           pm_schedule_id: string | null
+          predicted_failure_risk: number | null
           priority: string | null
           scheduled_date: string | null
           status: string | null
@@ -5167,6 +5172,9 @@ export type Database = {
         Insert: {
           actual_finish_date?: string | null
           actual_start_date?: string | null
+          ai_priority_factors?: Json | null
+          ai_priority_score?: number | null
+          anomaly_detection_id?: string | null
           asset_id?: string | null
           assigned_technician?: string | null
           created_at?: string | null
@@ -5179,9 +5187,11 @@ export type Database = {
           job_plan_id?: string | null
           location_node_id?: string | null
           maintenance_type?: string | null
+          ml_recommended?: boolean | null
           notes?: string | null
           organization_id?: string | null
           pm_schedule_id?: string | null
+          predicted_failure_risk?: number | null
           priority?: string | null
           scheduled_date?: string | null
           status?: string | null
@@ -5196,6 +5206,9 @@ export type Database = {
         Update: {
           actual_finish_date?: string | null
           actual_start_date?: string | null
+          ai_priority_factors?: Json | null
+          ai_priority_score?: number | null
+          anomaly_detection_id?: string | null
           asset_id?: string | null
           assigned_technician?: string | null
           created_at?: string | null
@@ -5208,9 +5221,11 @@ export type Database = {
           job_plan_id?: string | null
           location_node_id?: string | null
           maintenance_type?: string | null
+          ml_recommended?: boolean | null
           notes?: string | null
           organization_id?: string | null
           pm_schedule_id?: string | null
+          predicted_failure_risk?: number | null
           priority?: string | null
           scheduled_date?: string | null
           status?: string | null
