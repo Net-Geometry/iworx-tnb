@@ -16,11 +16,17 @@ import { AssetTable } from "@/components/assets/AssetTable";
 import { AssetDetailsPanel } from "@/components/assets/AssetDetailsPanel";
 import { FilterBar } from "@/components/assets/FilterBar";
 import { AssetHierarchy } from "@/components/assets/AssetHierarchy";
+import { useAssets } from "@/hooks/useAssets";
 
 const AssetsPage = () => {
   const navigate = useNavigate();
   const [selectedAsset, setSelectedAsset] = useState<any>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [filters, setFilters] = useState<any>(null);
+  const { assets } = useAssets();
+
+  // Calculate critical assets count
+  const criticalAssetsCount = assets.filter(asset => asset.criticality === 'critical').length;
 
   return (
     <div className="space-y-6">
@@ -89,14 +95,16 @@ const AssetsPage = () => {
             {/* Main Content - Full Width */}
             <div className="flex-1 space-y-6">
               {/* Filter Bar */}
-              <FilterBar onFiltersChange={(filters) => console.log('Filters:', filters)} />
+              <FilterBar onFiltersChange={setFilters} />
 
               {/* View Toggle & Asset List */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-foreground">1,247 assets</span>
-                    <span className="text-xs text-muted-foreground">• 23 critical</span>
+                    <span className="text-sm font-medium text-foreground">{assets.length} assets</span>
+                    {criticalAssetsCount > 0 && (
+                      <span className="text-xs text-muted-foreground">• {criticalAssetsCount} critical</span>
+                    )}
                   </div>
                   
                   <div className="flex items-center gap-2">
@@ -119,7 +127,7 @@ const AssetsPage = () => {
 
                 {/* Asset Table/Grid */}
                 <div className="bg-card rounded-lg border border-border/50">
-                  <AssetTable onAssetSelect={setSelectedAsset} />
+                  <AssetTable onAssetSelect={setSelectedAsset} filters={filters} />
                 </div>
               </div>
             </div>

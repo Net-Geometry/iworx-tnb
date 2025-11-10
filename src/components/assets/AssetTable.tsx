@@ -26,18 +26,65 @@ import AssetManagementForm from "./AssetManagementForm";
 
 interface AssetTableProps {
   onAssetSelect?: (asset: Asset) => void;
+  filters?: {
+    search: string;
+    status: string[];
+    criticality: string[];
+    type: string[];
+    location: string;
+  } | null;
 }
 
-export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect }) => {
+export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect, filters }) => {
   const { assets, loading, error, deleteAsset } = useAssets();
   const navigate = useNavigate();
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [showAssetForm, setShowAssetForm] = useState(false);
   const [editingAsset, setEditingAsset] = useState<string | undefined>();
 
+  // Apply filters to assets
+  const filteredAssets = React.useMemo(() => {
+    if (!filters) return assets;
+
+    return assets.filter(asset => {
+      // Search filter
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const matchesSearch = 
+          asset.name.toLowerCase().includes(searchLower) ||
+          asset.asset_number?.toLowerCase().includes(searchLower) ||
+          asset.location?.toLowerCase().includes(searchLower) ||
+          asset.type?.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+
+      // Status filter
+      if (filters.status.length > 0) {
+        if (!filters.status.includes(asset.status)) return false;
+      }
+
+      // Criticality filter
+      if (filters.criticality.length > 0) {
+        if (!filters.criticality.includes(asset.criticality)) return false;
+      }
+
+      // Type filter
+      if (filters.type.length > 0) {
+        if (!asset.type || !filters.type.includes(asset.type)) return false;
+      }
+
+      // Location filter
+      if (filters.location) {
+        if (!asset.location || !asset.location.toLowerCase().includes(filters.location.toLowerCase())) return false;
+      }
+
+      return true;
+    });
+  }, [assets, filters]);
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedAssets(assets.map(asset => asset.id));
+      setSelectedAssets(filteredAssets.map(asset => asset.id));
     } else {
       setSelectedAssets([]);
     }
@@ -87,10 +134,6 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect }) => {
 
   return (
     <div className="space-y-4">
-      <div className="text-sm text-muted-foreground">
-        {assets.length} assets found
-      </div>
-
       {selectedAssets.length > 0 && (
         <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg border border-border/50">
           <span className="text-sm text-muted-foreground">
@@ -114,7 +157,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect }) => {
             <TableRow className="border-border/50">
               <TableHead className="w-12">
                 <Checkbox
-                  checked={selectedAssets.length === assets.length && assets.length > 0}
+                  checked={selectedAssets.length === filteredAssets.length && filteredAssets.length > 0}
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
@@ -130,14 +173,14 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {assets.length === 0 ? (
+            {filteredAssets.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
-                  No assets found. Click "Add Asset" to create your first asset.
+                  {assets.length === 0 ? "No assets found. Click 'Add Asset' to create your first asset." : "No assets match the current filters."}
                 </TableCell>
               </TableRow>
             ) : (
-              assets.map((asset) => (
+              filteredAssets.map((asset) => (
                 <TableRow 
                   key={asset.id}
                   className="border-border/50 hover:bg-muted/30 cursor-pointer"
