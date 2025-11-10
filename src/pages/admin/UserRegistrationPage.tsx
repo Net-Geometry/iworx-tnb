@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { UserPlus, Mail, Lock, User, Building2 } from "lucide-react";
+import { UserPlus, Mail, Lock, User, Building2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useRoles } from "@/hooks/useRoles";
 import { useOrganizations } from "@/hooks/useOrganizations";
 
 export default function UserRegistrationPage() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { roles, isLoading: rolesLoading } = useRoles();
   const { organizations } = useOrganizations();
@@ -126,6 +128,9 @@ export default function UserRegistrationPage() {
   return (
     <div className="container mx-auto p-6 max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/admin/users")}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
         <UserPlus className="h-8 w-8 text-primary" />
         <div>
           <h1 className="text-3xl font-bold">User Registration</h1>
