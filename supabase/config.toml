@@ -1,1 +1,4 @@
 project_id = "hpxbcaynhelqktyeoqal"
+
+[functions.iot-webhook-test]
+verify_jwt = false

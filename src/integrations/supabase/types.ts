@@ -1065,6 +1065,36 @@ export type Database = {
           },
         ]
       }
+      iot_webhook_test_data: {
+        Row: {
+          created_at: string | null
+          device_identifier: string | null
+          id: string
+          notes: string | null
+          processed: boolean | null
+          raw_payload: Json
+          received_at: string
+        }
+        Insert: {
+          created_at?: string | null
+          device_identifier?: string | null
+          id?: string
+          notes?: string | null
+          processed?: boolean | null
+          raw_payload: Json
+          received_at?: string
+        }
+        Update: {
+          created_at?: string | null
+          device_identifier?: string | null
+          id?: string
+          notes?: string | null
+          processed?: boolean | null
+          raw_payload?: Json
+          received_at?: string
+        }
+        Relationships: []
+      }
       loto_procedures: {
         Row: {
           approval_required: boolean | null
