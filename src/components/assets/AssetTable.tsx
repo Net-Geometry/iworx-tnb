@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { MoreHorizontal, Eye, Edit, Archive, Copy, FileText, Plus } from "lucide-react";
+import { MoreHorizontal, Eye, Edit, Archive, Copy, FileText, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -18,6 +18,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { StatusBadge } from "./StatusBadge";
 import { HealthIndicator } from "./HealthIndicator";
 import { CriticalityBadge } from "./CriticalityBadge";
@@ -33,14 +40,17 @@ interface AssetTableProps {
     type: string[];
     location: string;
   } | null;
+  viewMode?: "list" | "grid";
 }
 
-export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect, filters }) => {
+export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect, filters, viewMode = "list" }) => {
   const { assets, loading, error, deleteAsset } = useAssets();
   const navigate = useNavigate();
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [showAssetForm, setShowAssetForm] = useState(false);
   const [editingAsset, setEditingAsset] = useState<string | undefined>();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Apply filters to assets
   const filteredAssets = React.useMemo(() => {
@@ -82,9 +92,20 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect, filters }
     });
   }, [assets, filters]);
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredAssets.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedAssets = filteredAssets.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedAssets(filteredAssets.map(asset => asset.id));
+      setSelectedAssets(paginatedAssets.map(asset => asset.id));
     } else {
       setSelectedAssets([]);
     }
@@ -132,6 +153,69 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect, filters }
     return <div className="p-8 text-center text-red-500">Error loading assets: {error}</div>;
   }
 
+  // Grid View Component
+  const GridView = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
+      {paginatedAssets.length === 0 ? (
+        <div className="col-span-full text-center py-8 text-muted-foreground">
+          {assets.length === 0 ? "No assets found. Click 'Add Asset' to create your first asset." : "No assets match the current filters."}
+        </div>
+      ) : (
+        paginatedAssets.map((asset) => (
+          <div
+            key={asset.id}
+            className="bg-card border border-border/50 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer group"
+            onClick={() => navigate(`/assets/${asset.id}`)}
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-lg bg-gradient-primary flex items-center justify-center">
+                  <span className="text-sm font-medium text-primary-foreground">
+                    {(asset.type || 'AS').slice(0, 2).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-medium text-foreground text-sm">{asset.name}</h3>
+                  {asset.asset_number && (
+                    <p className="text-xs text-muted-foreground">{asset.asset_number}</p>
+                  )}
+                </div>
+              </div>
+              <Checkbox
+                checked={selectedAssets.includes(asset.id)}
+                onCheckedChange={(checked) => handleSelectAsset(asset.id, checked as boolean)}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Status</span>
+                <StatusBadge status={asset.status} />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Health</span>
+                <HealthIndicator score={asset.health_score} className="w-16" />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Criticality</span>
+                <CriticalityBadge criticality={asset.criticality} />
+              </div>
+              
+              <div className="pt-2 border-t border-border/50">
+                <p className="text-xs text-muted-foreground truncate" title={asset.location}>
+                  📍 {asset.location}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       {selectedAssets.length > 0 && (
@@ -151,13 +235,16 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect, filters }
         </div>
       )}
 
-      <div className="rounded-lg border border-border/50 bg-card">
+      {viewMode === "grid" ? (
+        <GridView />
+      ) : (
+        <div className="rounded-lg border border-border/50 bg-card">
         <Table>
           <TableHeader>
             <TableRow className="border-border/50">
               <TableHead className="w-12">
                 <Checkbox
-                  checked={selectedAssets.length === filteredAssets.length && filteredAssets.length > 0}
+                  checked={selectedAssets.length === paginatedAssets.length && paginatedAssets.length > 0}
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
@@ -173,14 +260,14 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect, filters }
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAssets.length === 0 ? (
+            {paginatedAssets.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                   {assets.length === 0 ? "No assets found. Click 'Add Asset' to create your first asset." : "No assets match the current filters."}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredAssets.map((asset) => (
+              paginatedAssets.map((asset) => (
                 <TableRow 
                   key={asset.id}
                   className="border-border/50 hover:bg-muted/30 cursor-pointer"
@@ -279,7 +366,85 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect, filters }
             )}
           </TableBody>
         </Table>
-      </div>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {filteredAssets.length > 0 && (
+        <div className="flex items-center justify-between px-4 py-3 border-t border-border/50">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Rows per page:</span>
+              <Select value={pageSize.toString()} onValueChange={(value) => {
+                setPageSize(Number(value));
+                setCurrentPage(1);
+              }}>
+                <SelectTrigger className="w-20 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="25">25</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <span className="text-sm text-muted-foreground">
+              Showing {startIndex + 1}-{Math.min(endIndex, filteredAssets.length)} of {filteredAssets.length}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    className="w-8 h-8 p-0"
+                    onClick={() => setCurrentPage(pageNum)}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {showAssetForm && (
         <AssetManagementForm

@@ -127,7 +127,7 @@ const AssetsPage = () => {
 
                 {/* Asset Table/Grid */}
                 <div className="bg-card rounded-lg border border-border/50">
-                  <AssetTable onAssetSelect={setSelectedAsset} filters={filters} />
+                  <AssetTable onAssetSelect={setSelectedAsset} filters={filters} viewMode={viewMode} />
                 </div>
               </div>
             </div>
