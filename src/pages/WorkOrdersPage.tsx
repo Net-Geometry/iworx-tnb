@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Wrench, Plus, Search } from "lucide-react";
+import { Wrench, Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -32,6 +32,10 @@ const WorkOrdersPage = () => {
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   // Filter work orders based on search and filters
   const filteredWorkOrders = workOrders.filter((wo) => {
     const matchesSearch = wo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -42,6 +46,33 @@ const WorkOrdersPage = () => {
     
     return matchesSearch && matchesStatus && matchesPriority && matchesType;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredWorkOrders.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedWorkOrders = filteredWorkOrders.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handlePriorityFilterChange = (value: string) => {
+    setPriorityFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleTypeFilterChange = (value: string) => {
+    setTypeFilter(value);
+    setCurrentPage(1);
+  };
 
   const handleCreateWorkOrder = async (values: any) => {
     await createWorkOrder(values);
@@ -99,12 +130,12 @@ const WorkOrdersPage = () => {
             <Input
               placeholder="Search work orders..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10"
             />
           </div>
           
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
             <SelectTrigger>
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
@@ -117,7 +148,7 @@ const WorkOrdersPage = () => {
             </SelectContent>
           </Select>
 
-          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+          <Select value={priorityFilter} onValueChange={handlePriorityFilterChange}>
             <SelectTrigger>
               <SelectValue placeholder="All Priorities" />
             </SelectTrigger>
@@ -130,7 +161,7 @@ const WorkOrdersPage = () => {
             </SelectContent>
           </Select>
 
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <Select value={typeFilter} onValueChange={handleTypeFilterChange}>
             <SelectTrigger>
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
@@ -155,11 +186,88 @@ const WorkOrdersPage = () => {
         <TabsContent value="list" className="mt-6">
           <div className="bg-gradient-card rounded-xl p-6 shadow-card border border-border/50">
                 <WorkOrderTable
-                  workOrders={filteredWorkOrders}
+                  workOrders={paginatedWorkOrders}
                   onView={() => {}} // No longer used, navigation happens in table
                   onEdit={handleEditWorkOrder}
                   onDelete={handleDeleteWorkOrder}
                 />
+
+                {/* Pagination Controls */}
+                {filteredWorkOrders.length > 0 && (
+                  <div className="flex items-center justify-between px-4 py-3 border-t border-border/50 mt-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Rows per page:</span>
+                        <Select value={pageSize.toString()} onValueChange={(value) => {
+                          setPageSize(Number(value));
+                          setCurrentPage(1);
+                        }}>
+                          <SelectTrigger className="w-20 h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="25">25</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                            <SelectItem value="100">100</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        Showing {startIndex + 1}-{Math.min(endIndex, filteredWorkOrders.length)} of {filteredWorkOrders.length}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+                          
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={currentPage === pageNum ? "default" : "outline"}
+                              size="sm"
+                              className="w-8 h-8 p-0"
+                              onClick={() => setCurrentPage(pageNum)}
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
           </div>
         </TabsContent>
 
