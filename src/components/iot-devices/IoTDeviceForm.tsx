@@ -265,22 +265,22 @@ export function IoTDeviceForm({ isOpen, onClose, onSuccess }: IoTDeviceFormProps
                     <p className="text-sm text-muted-foreground">
                       Configure your device to send data to:
                     </p>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 text-xs bg-background px-3 py-2 rounded border break-all">
-                        https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/iot-webhook-test
-                      </code>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => {
-                          navigator.clipboard.writeText("https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/iot-webhook-test");
-                          toast.success("Webhook URL copied");
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 text-xs bg-background px-3 py-2 rounded border break-all">
+                          https://hpxbcaynhelqktyeoqal.supabase.co/functions/v1/iot-webhook-test
+                        </code>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            navigator.clipboard.writeText("https://hpxbcaynhelqktyeoqal.supabase.co/functions/v1/iot-webhook-test");
+                            toast.success("Webhook URL copied");
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
                     <p className="text-xs text-muted-foreground">
                       Use the DevEUI above as device identifier.
                     </p>

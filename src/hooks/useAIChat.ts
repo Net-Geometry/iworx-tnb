@@ -45,7 +45,7 @@ export const useAIChat = () => {
     abortControllerRef.current = new AbortController();
 
     try {
-      const CHAT_URL = `https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/predictive-maintenance-ai`;
+      const CHAT_URL = `https://hpxbcaynhelqktyeoqal.supabase.co/functions/v1/predictive-maintenance-ai`;
 
       const { data: { session } } = await import('@/integrations/supabase/client').then(m => m.supabase.auth.getSession());
       

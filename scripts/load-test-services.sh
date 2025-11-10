@@ -12,8 +12,8 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 # Configuration
-PROJECT_ID="jsqzkaarpfowgmijcwaw"
-ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzcXprYWFycGZvd2dtaWpjd2F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMTE2NjEsImV4cCI6MjA3NDY4NzY2MX0.Wmx2DQY5sNMlzMqnkTAftfdkIUFkm_w577fy-4nPXWY"
+PROJECT_ID="hpxbcaynhelqktyeoqal"
+ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhweGJjYXluaGVscWt0eWVvcWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0MzQxMzEsImV4cCI6MjA3NjAxMDEzMX0.fKYvL4U0tp2M216dOAPSRyLp-AqdiFyrY6gTDkV0K2M"
 BASE_URL="https://${PROJECT_ID}.supabase.co/functions/v1"
 ORG_ID="d2b00bd4-7266-4942-b4c8-a5cfcb448daf"
 

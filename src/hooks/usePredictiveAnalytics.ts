@@ -32,12 +32,12 @@ export const usePredictiveAnalytics = () => {
       }
 
       // Route through API Gateway which handles authentication and forwards to work-order-service
-      const functionUrl = `https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/api-gateway/api/work-orders/prioritized`;
+      const functionUrl = `https://hpxbcaynhelqktyeoqal.supabase.co/functions/v1/api-gateway/api/work-orders/prioritized`;
       const response = await fetch(functionUrl, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzcXprYWFycGZvd2dtaWpjd2F3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxMTE2NjEsImV4cCI6MjA3NDY4NzY2MX0.Wmx2DQY5sNMlzMqnkTAftfdkIUFkm_w577fy-4nPXWY',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhweGJjYXluaGVscWt0eWVvcWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0MzQxMzEsImV4cCI6MjA3NjAxMDEzMX0.fKYvL4U0tp2M216dOAPSRyLp-AqdiFyrY6gTDkV0K2M',
           'Content-Type': 'application/json',
         },
       });

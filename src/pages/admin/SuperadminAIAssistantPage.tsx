@@ -100,7 +100,7 @@ export default function SuperadminAIAssistantPage() {
       }));
 
       const response = await fetch(
-        `https://jsqzkaarpfowgmijcwaw.supabase.co/functions/v1/superadmin-ai-chat`,
+        `https://hpxbcaynhelqktyeoqal.supabase.co/functions/v1/superadmin-ai-chat`,
         {
           method: 'POST',
           headers: {
