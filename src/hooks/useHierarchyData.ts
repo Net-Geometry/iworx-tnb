@@ -81,15 +81,19 @@ export function useHierarchyLevels() {
 
   const addLevel = async (levelData: Omit<HierarchyLevel, 'id' | 'organization_id'>) => {
     try {
-      const dataWithOrg = {
+      // Convert empty string UUID fields to null
+      const cleanedData = {
         ...levelData,
+        parent_level_id: levelData.parent_level_id && levelData.parent_level_id !== '' 
+          ? levelData.parent_level_id 
+          : null,
         organization_id: currentOrganization?.id
       };
 
       // Use public view for write operations
       const { data, error } = await supabase
         .from('hierarchy_levels')
-        .insert([dataWithOrg])
+        .insert([cleanedData])
         .select()
         .single();
 
@@ -103,10 +107,22 @@ export function useHierarchyLevels() {
 
   const updateLevel = async (id: string, updates: Partial<HierarchyLevel>) => {
     try {
+      // Convert empty string UUID fields to null (defensive check in case form sends empty string)
+      const cleanedUpdates: any = { ...updates };
+      
+      // Handle parent_level_id - ensure it's either a valid UUID or null, never an empty string
+      if ('parent_level_id' in cleanedUpdates) {
+        if (cleanedUpdates.parent_level_id === '' || cleanedUpdates.parent_level_id === 'none') {
+          cleanedUpdates.parent_level_id = null;
+        }
+        // null is valid and should be kept as is
+        // valid UUID strings are also kept as is
+      }
+
       // Use public view for write operations
       const { data, error } = await supabase
         .from('hierarchy_levels')
-        .update(updates)
+        .update(cleanedUpdates)
         .eq('id', id)
         .select()
         .single();
