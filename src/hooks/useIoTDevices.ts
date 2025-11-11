@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { IoTDevice } from "@/types/iot";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UseIoTDevicesFilters {
   asset_id?: string;
@@ -10,6 +11,8 @@ interface UseIoTDevicesFilters {
 }
 
 export const useIoTDevices = (organizationId?: string, filters?: UseIoTDevicesFilters) => {
+  const { user } = useAuth();
+  
   return useQuery({
     queryKey: ['iot-devices', organizationId, filters],
     queryFn: async () => {
@@ -29,6 +32,8 @@ export const useIoTDevices = (organizationId?: string, filters?: UseIoTDevicesFi
           'Authorization': `Bearer ${session.access_token}`,
           'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhweGJjYXluaGVscWt0eWVvcWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0MzQxMzEsImV4cCI6MjA3NjAxMDEzMX0.fKYvL4U0tp2M216dOAPSRyLp-AqdiFyrY6gTDkV0K2M',
           'Content-Type': 'application/json',
+          'x-organization-id': organizationId || '',
+          'x-user-id': user?.id || '',
         },
       });
 
@@ -45,6 +50,7 @@ export const useIoTDevices = (organizationId?: string, filters?: UseIoTDevicesFi
 
 export const useCreateIoTDevice = () => {
   const queryClient = useQueryClient();
+  const { user, currentOrganization } = useAuth();
 
   return useMutation({
     mutationFn: async (deviceData: Partial<IoTDevice>) => {
@@ -59,6 +65,8 @@ export const useCreateIoTDevice = () => {
           'Authorization': `Bearer ${session.access_token}`,
           'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhweGJjYXluaGVscWt0eWVvcWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0MzQxMzEsImV4cCI6MjA3NjAxMDEzMX0.fKYvL4U0tp2M216dOAPSRyLp-AqdiFyrY6gTDkV0K2M',
           'Content-Type': 'application/json',
+          'x-organization-id': currentOrganization?.id || '',
+          'x-user-id': user?.id || '',
         },
         body: JSON.stringify(deviceData),
       });
@@ -82,6 +90,7 @@ export const useCreateIoTDevice = () => {
 
 export const useUpdateIoTDevice = () => {
   const queryClient = useQueryClient();
+  const { user, currentOrganization } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id, ...deviceData }: Partial<IoTDevice> & { id: string }) => {
@@ -96,6 +105,8 @@ export const useUpdateIoTDevice = () => {
           'Authorization': `Bearer ${session.access_token}`,
           'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhweGJjYXluaGVscWt0eWVvcWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0MzQxMzEsImV4cCI6MjA3NjAxMDEzMX0.fKYvL4U0tp2M216dOAPSRyLp-AqdiFyrY6gTDkV0K2M',
           'Content-Type': 'application/json',
+          'x-organization-id': currentOrganization?.id || '',
+          'x-user-id': user?.id || '',
         },
         body: JSON.stringify(deviceData),
       });
@@ -120,6 +131,7 @@ export const useUpdateIoTDevice = () => {
 
 export const useDeleteIoTDevice = () => {
   const queryClient = useQueryClient();
+  const { user, currentOrganization } = useAuth();
 
   return useMutation({
     mutationFn: async (deviceId: string) => {
@@ -134,6 +146,8 @@ export const useDeleteIoTDevice = () => {
           'Authorization': `Bearer ${session.access_token}`,
           'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhweGJjYXluaGVscWt0eWVvcWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0MzQxMzEsImV4cCI6MjA3NjAxMDEzMX0.fKYvL4U0tp2M216dOAPSRyLp-AqdiFyrY6gTDkV0K2M',
           'Content-Type': 'application/json',
+          'x-organization-id': currentOrganization?.id || '',
+          'x-user-id': user?.id || '',
         },
       });
 
