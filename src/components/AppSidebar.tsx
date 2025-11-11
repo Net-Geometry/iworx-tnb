@@ -140,21 +140,21 @@ const workMaintenanceModules = [
 
 // Analytics & Intelligence modules
   const analyticsModules = [
-    {
-      title: "Advanced Analytics & AI",
-      url: "/analytics",
-      icon: Brain,
-    },
+    // {
+    //   title: "Advanced Analytics & AI",
+    //   url: "/analytics",
+    //   icon: Brain,
+    // },
     {
       title: "Digital Twin Visualization",
       url: "/digital-twin",
       icon: Layers,
     },
-    {
-      title: "Reporting & BI",
-      url: "/reports",
-      icon: BarChart3,
-    },
+    // {
+    //   title: "Reporting & BI",
+    //   url: "/reports",
+    //   icon: BarChart3,
+    // },
     {
       title: "Spatial Intelligence",
       url: "/spatial",
@@ -178,24 +178,24 @@ const integrationMobilityModules = [
 
 // Safety & HSE sub-modules
 const safetySubModules = [
-  { title: "Safety Overview", url: "/safety", icon: Shield },
+  // { title: "Safety Overview", url: "/safety", icon: Shield },
   { title: "Incident Management", url: "/safety/incidents", icon: AlertTriangle },
   { title: "Hazard & Risk Register", url: "/safety/hazards", icon: AlertCircle },
-  { title: "LOTO Procedures", url: "/safety/loto", icon: Lock },
+  // { title: "LOTO Procedures", url: "/safety/loto", icon: Lock },
   { title: "Precaution Library", url: "/safety/precautions", icon: BookOpen },
-  { title: "CAPA Management", url: "/safety/capa", icon: CheckCircle },
-  { title: "Safety Reports", url: "/safety/reports", icon: FileBarChart2 },
+  // { title: "CAPA Management", url: "/safety/capa", icon: CheckCircle },
+  // { title: "Safety Reports", url: "/safety/reports", icon: FileBarChart2 },
 ];
 
 const inventorySubModules = [
   { title: "Inventory Overview", url: "/inventory", icon: PackageSearch },
   { title: "Items & Stock", url: "/inventory/items", icon: Package },
   { title: "Locations", url: "/inventory/locations", icon: MapPin },
-  { title: "Reorder Management", url: "/inventory/reorder", icon: RotateCcw },
-  { title: "Transfers & Loans", url: "/inventory/transfers", icon: ArrowRightLeft },
-  { title: "Purchase Orders", url: "/inventory/purchase-orders", icon: ShoppingCart },
+  // { title: "Reorder Management", url: "/inventory/reorder", icon: RotateCcw },
+  // { title: "Transfers & Loans", url: "/inventory/transfers", icon: ArrowRightLeft },
+  // { title: "Purchase Orders", url: "/inventory/purchase-orders", icon: ShoppingCart },
   { title: "Suppliers", url: "/inventory/suppliers", icon: Building },
-  { title: "Reports", url: "/inventory/reports", icon: FileBarChart },
+  // { title: "Reports", url: "/inventory/reports", icon: FileBarChart },
 ];
 
 // People & Labor modules
@@ -461,7 +461,7 @@ export function AppSidebar() {
         </Collapsible>
 
         {/* Integration & Mobility */}
-        <Collapsible defaultOpen={isIntegrationMobilityExpanded} className="group/collapsible">
+        {/* <Collapsible defaultOpen={isIntegrationMobilityExpanded} className="group/collapsible">
           <SidebarGroup>
             <SidebarGroupLabel asChild>
               <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md">
@@ -493,7 +493,7 @@ export function AppSidebar() {
               </SidebarGroupContent>
             </CollapsibleContent>
           </SidebarGroup>
-        </Collapsible>
+        </Collapsible> */}
 
         {/* People & Labor */}
         <Collapsible defaultOpen={isPeopleAndLaborExpanded} className="group/collapsible">
