@@ -1,9 +1,63 @@
-import { Shield, Plus, AlertCircle } from "lucide-react";
+import { useState } from "react";
+import { Shield, Plus, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useHazards, useCreateHazard } from "@/hooks/useSafetyHazards";
+import { HazardForm } from "@/components/safety/HazardForm";
+import { isWithinInterval, addDays } from "date-fns";
 
 const SafetyHazardsPage = () => {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const { data: hazards, isLoading } = useHazards();
+  const createHazard = useCreateHazard();
+
+  // Calculate KPIs from real data
+  const totalHazards = hazards?.length || 0;
+  const veryHighRisk = hazards?.filter(h => h.risk_level === 'very_high').length || 0;
+  const highRisk = hazards?.filter(h => h.risk_level === 'high').length || 0;
+  const mediumRisk = hazards?.filter(h => h.risk_level === 'medium').length || 0;
+  
+  const dueForReview = hazards?.filter(h => {
+    if (!h.review_date) return false;
+    const reviewDate = new Date(h.review_date);
+    const today = new Date();
+    const thirtyDaysFromNow = addDays(today, 30);
+    return isWithinInterval(reviewDate, { start: today, end: thirtyDaysFromNow });
+  }).length || 0;
+
+  // Get high priority hazards (very high and high risk, open status)
+  const highPriorityHazards = hazards
+    ?.filter(h => (h.risk_level === 'very_high' || h.risk_level === 'high') && h.status === 'open')
+    .slice(0, 3) || [];
+
+  const handleCreateHazard = async (data: any) => {
+    await createHazard.mutateAsync(data);
+  };
+
+  const getRiskBadgeVariant = (riskLevel: string) => {
+    switch (riskLevel) {
+      case 'very_high': return 'destructive';
+      case 'high': return 'destructive';
+      case 'medium': return 'secondary';
+      default: return 'outline';
+    }
+  };
+
+  const getRiskLabel = (riskLevel: string) => {
+    return riskLevel.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -16,7 +70,7 @@ const SafetyHazardsPage = () => {
             <p className="text-muted-foreground">Identify and assess workplace hazards</p>
           </div>
         </div>
-        <Button>
+        <Button onClick={() => setDialogOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Add Hazard
         </Button>
@@ -28,7 +82,7 @@ const SafetyHazardsPage = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Hazards</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">156</div>
+            <div className="text-2xl font-bold">{totalHazards}</div>
             <p className="text-xs text-muted-foreground">Across all locations</p>
           </CardContent>
         </Card>
@@ -38,7 +92,7 @@ const SafetyHazardsPage = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Very High Risk</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">3</div>
+            <div className="text-2xl font-bold text-destructive">{veryHighRisk}</div>
             <p className="text-xs text-muted-foreground">Immediate attention</p>
           </CardContent>
         </Card>
@@ -48,7 +102,7 @@ const SafetyHazardsPage = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">High Risk</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-warning">12</div>
+            <div className="text-2xl font-bold text-warning">{highRisk}</div>
             <p className="text-xs text-muted-foreground">Needs mitigation</p>
           </CardContent>
         </Card>
@@ -58,7 +112,7 @@ const SafetyHazardsPage = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Medium Risk</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-accent">28</div>
+            <div className="text-2xl font-bold text-accent">{mediumRisk}</div>
             <p className="text-xs text-muted-foreground">Monitor closely</p>
           </CardContent>
         </Card>
@@ -68,7 +122,7 @@ const SafetyHazardsPage = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Due for Review</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">7</div>
+            <div className="text-2xl font-bold">{dueForReview}</div>
             <p className="text-xs text-muted-foreground">Within 30 days</p>
           </CardContent>
         </Card>
@@ -108,32 +162,37 @@ const SafetyHazardsPage = () => {
             <CardTitle>High Priority Hazards</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 border border-border rounded-lg">
-                <div>
-                  <p className="font-medium">Chemical Storage Area</p>
-                  <p className="text-sm text-muted-foreground">Inadequate ventilation system</p>
-                </div>
-                <Badge variant="destructive">Very High</Badge>
+            {highPriorityHazards.length > 0 ? (
+              <div className="space-y-4">
+                {highPriorityHazards.map((hazard) => (
+                  <div key={hazard.id} className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent/50 transition-colors">
+                    <div className="flex-1">
+                      <p className="font-medium">{hazard.title}</p>
+                      <p className="text-sm text-muted-foreground">{hazard.location}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{hazard.hazard_number}</p>
+                    </div>
+                    <Badge variant={getRiskBadgeVariant(hazard.risk_level)}>
+                      {getRiskLabel(hazard.risk_level)}
+                    </Badge>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-center justify-between p-3 border border-border rounded-lg">
-                <div>
-                  <p className="font-medium">Loading Dock</p>
-                  <p className="text-sm text-muted-foreground">Forklift pedestrian conflict</p>
-                </div>
-                <Badge variant="destructive">High</Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 border border-border rounded-lg">
-                <div>
-                  <p className="font-medium">Machine Shop</p>
-                  <p className="text-sm text-muted-foreground">Missing safety guards</p>
-                </div>
-                <Badge variant="secondary">High</Badge>
-              </div>
-            </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-8">
+                No high priority hazards found
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Hazard Form Dialog */}
+      <HazardForm
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSubmit={handleCreateHazard}
+        mode="create"
+      />
     </div>
   );
 };

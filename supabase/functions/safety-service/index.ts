@@ -70,6 +70,11 @@ serve(async (req) => {
       return await handleCAPA(req, supabase, pathParts, organizationId, hasCrossProjectAccess, userId);
     }
 
+    // Route: /safety/hazards/*
+    if (pathParts[0] === 'hazards') {
+      return await handleHazards(req, supabase, pathParts, organizationId, hasCrossProjectAccess, userId);
+    }
+
     return new Response(
       JSON.stringify({ error: 'Not found' }),
       { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -559,6 +564,185 @@ async function handleCAPA(
       .eq('id', capaId);
 
     if (error) throw error;
+
+    return new Response(
+      JSON.stringify({ success: true }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({ error: 'Method not allowed' }),
+    { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
+// Hazards Handler
+async function handleHazards(
+  req: Request,
+  supabase: any,
+  pathParts: string[],
+  organizationId: string | null,
+  hasCrossProjectAccess: boolean,
+  userId: string | null
+) {
+  const method = req.method;
+  const url = new URL(req.url);
+
+  // GET /hazards - List all hazards with optional filters
+  if (method === 'GET' && pathParts.length === 1) {
+    let query = supabase
+      .from('safety_hazards')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    // Apply organization filter
+    if (!hasCrossProjectAccess && organizationId) {
+      query = query.eq('organization_id', organizationId);
+    }
+
+    // Apply search filter
+    const search = url.searchParams.get('search');
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,hazard_number.ilike.%${search}%,description.ilike.%${search}%,location.ilike.%${search}%`);
+    }
+
+    // Apply category filter
+    const category = url.searchParams.get('category');
+    if (category && category !== 'all') {
+      query = query.eq('category', category);
+    }
+
+    // Apply risk level filter
+    const riskLevel = url.searchParams.get('risk_level');
+    if (riskLevel && riskLevel !== 'all') {
+      query = query.eq('risk_level', riskLevel);
+    }
+
+    // Apply status filter
+    const status = url.searchParams.get('status');
+    if (status && status !== 'all') {
+      query = query.eq('status', status);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    console.log(`📋 Fetched ${data.length} hazards`);
+
+    return new Response(
+      JSON.stringify(data),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // GET /hazards/:id - Get single hazard
+  if (method === 'GET' && pathParts.length === 2) {
+    const hazardId = pathParts[1];
+    
+    const { data, error } = await supabase
+      .from('safety_hazards')
+      .select('*')
+      .eq('id', hazardId)
+      .single();
+
+    if (error) throw error;
+
+    return new Response(
+      JSON.stringify(data),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // POST /hazards - Create new hazard
+  if (method === 'POST' && pathParts.length === 1) {
+    const body = await req.json();
+    
+    console.log('📝 Creating hazard:', {
+      hazard_number: body.hazard_number,
+      title: body.title,
+      category: body.category,
+      timestamp: new Date().toISOString()
+    });
+
+    // Auto-generate hazard_number if not provided
+    let hazardNumber = body.hazard_number;
+    if (!hazardNumber) {
+      const year = new Date().getFullYear();
+      const { count } = await supabase
+        .from('safety_hazards')
+        .select('*', { count: 'exact', head: true })
+        .like('hazard_number', `HAZ-${year}-%`);
+      
+      const nextNum = (count || 0) + 1;
+      hazardNumber = `HAZ-${year}-${String(nextNum).padStart(4, '0')}`;
+      console.log(`🔢 Auto-generated hazard number: ${hazardNumber}`);
+    }
+    
+    const { data, error } = await supabase
+      .from('safety_hazards')
+      .insert({
+        ...body,
+        hazard_number: hazardNumber,
+        organization_id: organizationId,
+        identified_by: userId
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    console.log('✅ Hazard created successfully:', data.id);
+
+    return new Response(
+      JSON.stringify(data),
+      { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // PATCH /hazards/:id - Update hazard
+  if (method === 'PATCH' && pathParts.length === 2) {
+    const hazardId = pathParts[1];
+    const body = await req.json();
+    
+    console.log('📝 Updating hazard:', {
+      hazard_id: hazardId,
+      fields: Object.keys(body),
+      timestamp: new Date().toISOString()
+    });
+    
+    const { data, error } = await supabase
+      .from('safety_hazards')
+      .update(body)
+      .eq('id', hazardId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    console.log('✅ Hazard updated successfully:', hazardId);
+
+    return new Response(
+      JSON.stringify(data),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // DELETE /hazards/:id - Delete hazard
+  if (method === 'DELETE' && pathParts.length === 2) {
+    const hazardId = pathParts[1];
+    
+    console.log('🗑️ Deleting hazard:', hazardId);
+    
+    const { error } = await supabase
+      .from('safety_hazards')
+      .delete()
+      .eq('id', hazardId);
+
+    if (error) throw error;
+
+    console.log('✅ Hazard deleted successfully:', hazardId);
 
     return new Response(
       JSON.stringify({ success: true }),
