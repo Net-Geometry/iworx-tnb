@@ -120,7 +120,14 @@ export const useUpdateIoTDevice = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['iot-devices'] });
-      queryClient.invalidateQueries({ queryKey: ['iot-device'] });
+      queryClient.invalidateQueries({ 
+        queryKey: ['iot-device'],
+        exact: false // Match all queries starting with 'iot-device'
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ['iot-device-health'],
+        exact: false
+      });
       toast.success('Device updated successfully');
     },
     onError: (error: Error) => {
