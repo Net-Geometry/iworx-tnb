@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+// Use the same Supabase URL as configured in the client
+const SUPABASE_URL = "https://hpxbcaynhelqktyeoqal.supabase.co";
 
 /**
  * Hook to fetch all safety hazards with optional filters
@@ -22,17 +23,6 @@ export function useHazards(filters?: {
       if (filters?.risk_level) params.append('risk_level', filters.risk_level);
       if (filters?.status) params.append('status', filters.status);
 
-      const { data, error } = await supabase.functions.invoke('safety-service', {
-        body: {},
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (error) throw error;
-      
-      // Make direct call to edge function with query params
       const response = await fetch(
         `${SUPABASE_URL}/functions/v1/safety-service/hazards?${params.toString()}`,
         {
