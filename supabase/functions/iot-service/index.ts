@@ -58,7 +58,8 @@ serve(async (req) => {
         .from("iot_devices")
         .select(`
           *,
-          device_type:iot_device_types(*)
+          device_type:iot_device_types(*),
+          asset:assets(id, name, asset_number)
         `)
         .order("created_at", { ascending: false });
 
