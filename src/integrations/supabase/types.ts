@@ -6245,7 +6245,11 @@ export type Database = {
       incident_severity: "low" | "medium" | "high" | "critical"
       incident_status: "reported" | "investigating" | "resolved" | "closed"
       iot_device_status: "active" | "inactive" | "error"
-      iot_network_provider: "ttn" | "chirpstack" | "aws_iot_core"
+      iot_network_provider:
+        | "ttn"
+        | "chirpstack"
+        | "aws_iot_core"
+        | "direct_webhook"
       job_plan_status: "draft" | "active" | "under_review" | "archived"
       job_type:
         | "preventive"
@@ -6432,7 +6436,12 @@ export const Constants = {
       incident_severity: ["low", "medium", "high", "critical"],
       incident_status: ["reported", "investigating", "resolved", "closed"],
       iot_device_status: ["active", "inactive", "error"],
-      iot_network_provider: ["ttn", "chirpstack", "aws_iot_core"],
+      iot_network_provider: [
+        "ttn",
+        "chirpstack",
+        "aws_iot_core",
+        "direct_webhook",
+      ],
       job_plan_status: ["draft", "active", "under_review", "archived"],
       job_type: [
         "preventive",
