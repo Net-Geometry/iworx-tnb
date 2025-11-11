@@ -59,9 +59,12 @@ export default function IoTDevicesPage() {
     const minutesSince = (Date.now() - new Date(d.last_seen_at).getTime()) / 60000;
     return minutesSince < 60;
   }).length;
+  const neverSeenDevices = devices.filter(d => {
+    return d.status === 'active' && !d.last_seen_at;
+  }).length;
   const offlineDevices = devices.filter(d => {
     if (d.status !== 'active') return false;
-    if (!d.last_seen_at) return true;
+    if (!d.last_seen_at) return false; // Never seen counted separately
     const minutesSince = (Date.now() - new Date(d.last_seen_at).getTime()) / 60000;
     return minutesSince > 1440; // 24 hours
   }).length;
@@ -137,7 +140,7 @@ export default function IoTDevicesPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Total Devices</CardDescription>
@@ -146,22 +149,33 @@ export default function IoTDevicesPage() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Active Devices</CardDescription>
+            <CardDescription>Online</CardDescription>
             <CardTitle className="text-3xl flex items-center gap-2">
               {activeDevices}
-              <Badge variant="default" className="bg-accent-success text-accent-success-foreground">
-                Online
+              <Badge variant="default" className="bg-accent-success text-accent-success-foreground text-xs">
+                Connected
               </Badge>
             </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Offline Devices</CardDescription>
+            <CardDescription>Pending</CardDescription>
+            <CardTitle className="text-3xl flex items-center gap-2">
+              {neverSeenDevices}
+              <Badge variant="destructive" className="text-xs">
+                Awaiting
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardDescription>Offline</CardDescription>
             <CardTitle className="text-3xl flex items-center gap-2">
               {offlineDevices}
-              <Badge variant="destructive">
-                Offline
+              <Badge variant="destructive" className="text-xs">
+                24h+
               </Badge>
             </CardTitle>
           </CardHeader>

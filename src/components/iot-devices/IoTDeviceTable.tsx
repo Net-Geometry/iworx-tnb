@@ -38,30 +38,53 @@ interface IoTDeviceTableProps {
 }
 
 function IoTDeviceStatusBadge({ device }: { device: IoTDevice }) {
+  // Get administrative status
+  const adminStatus = device.status === 'inactive' ? 'Inactive' : 
+                      device.status === 'error' ? 'Error' : 'Active';
+  
+  // Get connectivity status
+  let connectivityStatus: string;
+  let badgeVariant: 'default' | 'secondary' | 'destructive' | undefined;
+  let badgeClassName = '';
+
   if (device.status === 'inactive') {
-    return <Badge variant="secondary">Inactive</Badge>;
-  }
-  
-  if (device.status === 'error') {
-    return <Badge variant="destructive">Error</Badge>;
+    // Inactive devices don't check connectivity
+    connectivityStatus = '';
+    badgeVariant = 'secondary';
+  } else if (device.status === 'error') {
+    // Error devices
+    connectivityStatus = '';
+    badgeVariant = 'destructive';
+  } else {
+    // Active device - check last seen
+    if (!device.last_seen_at) {
+      connectivityStatus = 'Pending';
+      badgeVariant = 'destructive';
+    } else {
+      const minutesSinceLastSeen = (Date.now() - new Date(device.last_seen_at).getTime()) / 60000;
+
+      if (minutesSinceLastSeen > 1440) { // 24 hours
+        connectivityStatus = 'Offline';
+        badgeVariant = 'destructive';
+      } else if (minutesSinceLastSeen > 60) { // 1 hour
+        connectivityStatus = 'Stale';
+        badgeClassName = 'bg-warning text-warning-foreground';
+      } else {
+        connectivityStatus = 'Online';
+        badgeClassName = 'bg-accent-success text-accent-success-foreground';
+      }
+    }
   }
 
-  // Active device - check last seen
-  if (!device.last_seen_at) {
-    return <Badge variant="destructive">Never Seen</Badge>;
-  }
+  const displayText = connectivityStatus 
+    ? `${adminStatus} • ${connectivityStatus}` 
+    : adminStatus;
 
-  const minutesSinceLastSeen = (Date.now() - new Date(device.last_seen_at).getTime()) / 60000;
-
-  if (minutesSinceLastSeen > 1440) { // 24 hours
-    return <Badge variant="destructive">Offline</Badge>;
-  }
-  
-  if (minutesSinceLastSeen > 60) { // 1 hour
-    return <Badge className="bg-warning text-warning-foreground">Stale</Badge>;
-  }
-
-  return <Badge className="bg-accent-success text-accent-success-foreground">Online</Badge>;
+  return (
+    <Badge variant={badgeVariant} className={badgeClassName}>
+      {displayText}
+    </Badge>
+  );
 }
 
 function formatDevEUI(devEui: string): string {
