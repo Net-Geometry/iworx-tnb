@@ -24,7 +24,7 @@ export function useHazards(filters?: {
       if (filters?.status) params.append('status', filters.status);
 
       const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/safety-service/hazards?${params.toString()}`,
+        `${SUPABASE_URL}/functions/v1/api-gateway/api/safety/hazards?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
@@ -53,7 +53,7 @@ export function useHazard(id: string | undefined) {
       if (!id) throw new Error('Hazard ID is required');
 
       const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/safety-service/hazards/${id}`,
+        `${SUPABASE_URL}/functions/v1/api-gateway/api/safety/hazards/${id}`,
         {
           headers: {
             Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
@@ -82,7 +82,7 @@ export function useCreateHazard() {
   return useMutation({
     mutationFn: async (hazardData: any) => {
       const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/safety-service/hazards`,
+        `${SUPABASE_URL}/functions/v1/api-gateway/api/safety/hazards`,
         {
           method: 'POST',
           headers: {
@@ -120,7 +120,7 @@ export function useUpdateHazard() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/safety-service/hazards/${id}`,
+        `${SUPABASE_URL}/functions/v1/api-gateway/api/safety/hazards/${id}`,
         {
           method: 'PATCH',
           headers: {
@@ -159,7 +159,7 @@ export function useDeleteHazard() {
   return useMutation({
     mutationFn: async (id: string) => {
       const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/safety-service/hazards/${id}`,
+        `${SUPABASE_URL}/functions/v1/api-gateway/api/safety/hazards/${id}`,
         {
           method: 'DELETE',
           headers: {
