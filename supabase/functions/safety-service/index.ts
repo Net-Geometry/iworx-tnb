@@ -685,8 +685,7 @@ async function handleHazards(
       .insert({
         ...body,
         hazard_number: hazardNumber,
-        organization_id: organizationId,
-        identified_by: userId
+        organization_id: organizationId
       })
       .select()
       .single();
