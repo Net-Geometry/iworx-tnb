@@ -28,7 +28,7 @@ import { MeterForm } from '@/components/meters/MeterForm';
  * Displays all meters with filtering and CRUD operations
  */
 export default function MetersPage() {
-  const { meters, loading } = useMeters();
+  const { meters, loading, refetch } = useMeters();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMeter, setSelectedMeter] = useState<Meter | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -286,6 +286,7 @@ export default function MetersPage() {
             onClose={() => {
               setIsFormOpen(false);
               setSelectedMeter(null);
+              refetch(); // Refresh the list after form closes
             }}
           />
         </DialogContent>

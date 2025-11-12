@@ -33,12 +33,27 @@ export function MeterForm({ meter, onClose }: MeterFormProps) {
   const { addMeter, updateMeter } = useMeters();
   const [loading, setLoading] = useState(false);
   const [units, setUnits] = useState<Unit[]>([]);
-  const { register, handleSubmit, setValue, watch } = useForm();
+  const { register, handleSubmit, setValue, watch } = useForm<any>({
+    defaultValues: {
+      meter_type: meter?.meter_type || '',
+      status: meter?.status || 'active',
+      phase_type: meter?.phase_type || '',
+      unit_id: meter?.unit_id || null,
+    }
+  });
 
   const meterType = watch('meter_type');
   const status = watch('status');
   const phaseType = watch('phase_type');
   const unitId = watch('unit_id');
+
+  // Register Select fields with react-hook-form
+  useEffect(() => {
+    register('meter_type', { required: true });
+    register('status', { required: true });
+    register('phase_type');
+    register('unit_id');
+  }, [register]);
 
   // Fetch units
   useEffect(() => {
