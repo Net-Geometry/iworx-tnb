@@ -117,7 +117,7 @@ async function routeRequest(req: Request): Promise<Response> {
   // Forward request to microservice
   // For services that share a backend (like job-plans using work-order-service),
   // we need to preserve the service identifier in the path
-  const shouldPreserveServiceName = serviceName === 'job-plans' || serviceName === 'pm-schedules';
+  const shouldPreserveServiceName = serviceName === 'job-plans' || serviceName === 'pm-schedules' || serviceName === 'meters';
   const remainingPath = shouldPreserveServiceName 
     ? `/${serviceName}${path.replace(`/api/${serviceName}`, "") || ""}`
     : path.replace(`/api/${serviceName}`, "") || "/";
