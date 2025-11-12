@@ -13,9 +13,10 @@ interface ModuleCardProps {
   }[];
   status: "active" | "warning" | "critical";
   gradient: string;
+  onClick?: () => void;
 }
 
-const ModuleCard = ({ title, description, icon: Icon, stats, status, gradient }: ModuleCardProps) => {
+const ModuleCard = ({ title, description, icon: Icon, stats, status, gradient, onClick }: ModuleCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -30,7 +31,7 @@ const ModuleCard = ({ title, description, icon: Icon, stats, status, gradient }:
   };
 
   return (
-    <Card className="group hover:shadow-hover transition-all duration-300 cursor-pointer bg-gradient-card border border-border/50">
+    <Card className="group hover:shadow-hover transition-all duration-300 cursor-pointer bg-gradient-card border border-border/50" onClick={onClick}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className={`w-12 h-12 rounded-xl ${gradient} flex items-center justify-center mb-3`}>

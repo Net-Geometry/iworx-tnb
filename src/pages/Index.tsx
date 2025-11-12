@@ -2,6 +2,7 @@ import ModuleCard from "@/components/ModuleCard";
 import KPIMetrics from "@/components/KPIMetrics";
 import QuickActions from "@/components/QuickActions";
 import heroImage from "@/assets/iworx-hero.jpg";
+import { useNavigate } from "react-router-dom";
 import {
   Settings,
   Wrench,
@@ -16,11 +17,13 @@ import {
 } from "lucide-react";
 
 const Index = () => {
+  const navigate = useNavigate();
   const modules = [
     {
       title: "Core Asset Management",
       description: "Asset creation, hierarchy management, health monitoring, criticality assessment, and BOM management with lifecycle tracking.",
       icon: Settings,
+      path: "/assets",
       stats: [
         { label: "Total Assets", value: "12,847", trend: "up" as const },
         { label: "Critical Assets", value: "342", trend: "stable" as const }
@@ -32,6 +35,7 @@ const Index = () => {
       title: "Work & Maintenance Operations",
       description: "Work orders, job plans, preventive maintenance schedules, and maintenance routes with comprehensive execution tracking.",
       icon: Wrench,
+      path: "/work-orders",
       stats: [
         { label: "Open Orders", value: "156", trend: "down" as const },
         { label: "Scheduled PMs", value: "89", trend: "up" as const }
@@ -43,6 +47,7 @@ const Index = () => {
       title: "Inventory & Procurement",
       description: "Comprehensive inventory tracking, reorder management, transfers, purchase orders, and procurement workflows.",
       icon: Package,
+      path: "/inventory",
       stats: [
         { label: "Stock Items", value: "4,521", trend: "stable" as const },
         { label: "Low Stock", value: "12", trend: "down" as const }
@@ -54,6 +59,7 @@ const Index = () => {
       title: "Safety & Compliance",
       description: "Safety incident management, hazard management, LOTO procedures, and CAPA creation with comprehensive tracking.",
       icon: Shield,
+      path: "/safety",
       stats: [
         { label: "Incidents YTD", value: "3", trend: "down" as const },
         { label: "Safety Score", value: "98.7%", trend: "up" as const }
@@ -65,6 +71,7 @@ const Index = () => {
       title: "People & Labor",
       description: "People management, team organization, skills tracking, and labor planning with comprehensive workforce analytics.",
       icon: Shield,
+      path: "/people-labor",
       stats: [
         { label: "Active Staff", value: "487", trend: "up" as const },
         { label: "Teams", value: "23", trend: "stable" as const }
@@ -76,6 +83,7 @@ const Index = () => {
       title: "Analytics & Intelligence",
       description: "Predictive maintenance engine, ML feature store, AI-powered asset health computation, reporting, and spatial intelligence.",
       icon: Brain,
+      path: "/analytics",
       stats: [
         { label: "AI Models", value: "8", trend: "up" as const },
         { label: "Predictions", value: "1,247", trend: "up" as const }
@@ -87,6 +95,7 @@ const Index = () => {
       title: "Integration & Mobility",
       description: "Integration hub with connector management, mobile operations, IoT data ingestion, and field execution capabilities.",
       icon: Link,
+      path: "/integrations",
       stats: [
         { label: "Active Integrations", value: "14", trend: "up" as const },
         { label: "Mobile Users", value: "127", trend: "up" as const }
@@ -98,6 +107,7 @@ const Index = () => {
       title: "System Administration",
       description: "User management, role-based access control, vertical configuration, and reference data management.",
       icon: Settings,
+      path: "/admin/settings",
       stats: [
         { label: "Active Users", value: "234", trend: "up" as const },
         { label: "Roles", value: "12", trend: "stable" as const }
@@ -156,7 +166,7 @@ const Index = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {modules.map((module, index) => (
-              <ModuleCard key={index} {...module} />
+              <ModuleCard key={index} {...module} onClick={() => navigate(module.path)} />
             ))}
           </div>
         </div>
