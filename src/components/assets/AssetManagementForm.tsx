@@ -15,17 +15,19 @@ import AssetFormContent from './AssetFormContent';
 
 interface AssetManagementFormProps {
   assetId?: string;
+  initialData?: Partial<Asset>;
   onClose: () => void;
   mode?: 'modal' | 'page';
 }
 
-const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onClose, mode = 'modal' }) => {
+const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, initialData, onClose, mode = 'modal' }) => {
   const { assets, addAsset, updateAsset } = useAssets();
   const { nodes } = useHierarchyNodes();
   const { currentOrganization } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(!!initialData);
 
-  const [formData, setFormData] = useState({
+  const getDefaultFormData = () => ({
     name: '',
     asset_number: '',
     type: '',
@@ -37,7 +39,6 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
     model: '',
     serial_number: '',
     purchase_date: '',
-    // New comprehensive fields
     category: '',
     subcategory: '',
     parent_asset_id: '',
@@ -45,7 +46,6 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
     warranty_expiry_date: '',
     asset_image_url: '',
     qr_code_data: '',
-    // 3D Model fields
     model_3d_url: '',
     model_3d_scale_x: '1',
     model_3d_scale_y: '1',
@@ -53,8 +53,43 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
     model_3d_rotation_x: '0',
     model_3d_rotation_y: '0',
     model_3d_rotation_z: '0',
-    // Public access control
     allow_public_access: true,
+  });
+
+  const [formData, setFormData] = useState(() => {
+    if (initialData) {
+      const scale = initialData.model_3d_scale || { x: 1, y: 1, z: 1 };
+      const rotation = initialData.model_3d_rotation || { x: 0, y: 0, z: 0 };
+      return {
+        name: initialData.name || '',
+        asset_number: initialData.asset_number || '',
+        type: initialData.type || '',
+        description: initialData.description || '',
+        hierarchy_node_id: initialData.hierarchy_node_id || '',
+        status: initialData.status || ('operational' as Asset['status']),
+        criticality: initialData.criticality || ('medium' as Asset['criticality']),
+        manufacturer: initialData.manufacturer || '',
+        model: initialData.model || '',
+        serial_number: initialData.serial_number || '',
+        purchase_date: initialData.purchase_date || '',
+        category: initialData.category || '',
+        subcategory: initialData.subcategory || '',
+        parent_asset_id: initialData.parent_asset_id || '',
+        purchase_cost: initialData.purchase_cost?.toString() || '',
+        warranty_expiry_date: initialData.warranty_expiry_date || '',
+        asset_image_url: initialData.asset_image_url || '',
+        qr_code_data: initialData.qr_code_data || '',
+        model_3d_url: initialData.model_3d_url || '',
+        model_3d_scale_x: (scale?.x ?? 1).toString(),
+        model_3d_scale_y: (scale?.y ?? 1).toString(),
+        model_3d_scale_z: (scale?.z ?? 1).toString(),
+        model_3d_rotation_x: (rotation?.x ?? 0).toString(),
+        model_3d_rotation_y: (rotation?.y ?? 0).toString(),
+        model_3d_rotation_z: (rotation?.z ?? 0).toString(),
+        allow_public_access: (initialData as any).allow_public_access !== false,
+      };
+    }
+    return getDefaultFormData();
   });
 
   const [uploadedDocuments, setUploadedDocuments] = useState<Array<{name: string, url: string}>>([]);
@@ -80,6 +115,12 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
   const existingAsset = useMemo(() => assets.find(asset => asset.id === assetId), [assets, assetId]);
 
   useEffect(() => {
+    // Don't load from database if we have initialData (duplication mode)
+    if (initialData) {
+      setIsLoading(false);
+      return;
+    }
+
     if (existingAsset && assetId) {
       const scale = existingAsset.model_3d_scale || { x: 1, y: 1, z: 1 };
       const rotation = existingAsset.model_3d_rotation || { x: 0, y: 0, z: 0 };
@@ -112,8 +153,9 @@ const AssetManagementForm: React.FC<AssetManagementFormProps> = ({ assetId, onCl
         model_3d_rotation_z: (rotation?.z ?? 0).toString(),
         allow_public_access: (existingAsset as any).allow_public_access !== false,
       });
+      setIsLoading(false);
     }
-  }, [existingAsset, assetId]);
+  }, [existingAsset, assetId, initialData]);
 
   // Generate QR code data with public URL when asset is created
   useEffect(() => {

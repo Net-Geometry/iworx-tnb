@@ -49,6 +49,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect, filters, 
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [showAssetForm, setShowAssetForm] = useState(false);
   const [editingAsset, setEditingAsset] = useState<string | undefined>();
+  const [duplicatingAsset, setDuplicatingAsset] = useState<Partial<Asset> | undefined>();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -123,6 +124,21 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect, filters, 
     if (confirm('Are you sure you want to delete this asset?')) {
       await deleteAsset(assetId);
     }
+  };
+
+  const handleDuplicateAsset = (asset: Asset) => {
+    // Create a copy with modified name and cleared unique fields
+    const duplicatedAsset: Partial<Asset> = {
+      ...asset,
+      name: `Copy of ${asset.name}`,
+      asset_number: undefined,
+      id: undefined,
+      created_at: undefined,
+      updated_at: undefined,
+      qr_code_data: undefined,
+    };
+    setDuplicatingAsset(duplicatedAsset);
+    setShowAssetForm(true);
   };
 
   const formatDate = (dateString: string | undefined) => {
@@ -342,7 +358,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect, filters, 
                           <Edit className="mr-2 h-4 w-4" />
                           Edit Asset
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDuplicateAsset(asset)}>
                           <Copy className="mr-2 h-4 w-4" />
                           Duplicate
                         </DropdownMenuItem>
@@ -449,9 +465,11 @@ export const AssetTable: React.FC<AssetTableProps> = ({ onAssetSelect, filters, 
       {showAssetForm && (
         <AssetManagementForm
           assetId={editingAsset}
+          initialData={duplicatingAsset}
           onClose={() => {
             setShowAssetForm(false);
             setEditingAsset(undefined);
+            setDuplicatingAsset(undefined);
           }}
         />
       )}
