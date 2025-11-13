@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthGuard } from "@/components/auth/AuthGuard";
@@ -541,6 +541,13 @@ const App = () => (
                 </Layout>
               </AuthGuard>
             } />
+            <Route path="/people-labor/crafts" element={
+              <AuthGuard>
+                <Layout>
+                  <CraftsManagementPage />
+                </Layout>
+              </AuthGuard>
+            } />
 
             {/* Demo Routes - Easy to Remove */}
               <Route path="/demo/help-system" element={
@@ -642,13 +649,6 @@ const App = () => (
                 </Layout>
               </AdminGuard>
             } />
-            <Route path="/admin/reference-data/crafts" element={
-              <AdminGuard>
-                <Layout>
-                  <CraftsManagementPage />
-                </Layout>
-              </AdminGuard>
-            } />
             <Route path="/admin/reference-data/skills" element={
               <AdminGuard>
                 <Layout>
@@ -667,14 +667,6 @@ const App = () => (
               <AdminGuard>
                 <Layout>
                   <SensorPositionConfigPage />
-                </Layout>
-              </AdminGuard>
-            } />
-            {/* Legacy route - redirect to new location */}
-            <Route path="/admin/crafts" element={
-              <AdminGuard>
-                <Layout>
-                  <CraftsManagementPage />
                 </Layout>
               </AdminGuard>
             } />

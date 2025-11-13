@@ -204,6 +204,7 @@ const peopleAndLaborModules = [
   { title: "People Management", url: "/people-labor/people", icon: UserCheck },
   { title: "Teams & Groups", url: "/people-labor/teams", icon: UsersRound },
   { title: "Skills Library", url: "/people-labor/skills", icon: GraduationCap },
+  { title: "Crafts Management", url: "/people-labor/crafts", icon: Hammer },
 ];
 
 // System Administration modules
