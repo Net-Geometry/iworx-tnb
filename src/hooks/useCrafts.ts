@@ -12,6 +12,7 @@ export interface Craft {
   description: string | null;
   skill_level: string | null;
   vendor_id: string | null;
+  rate: number | null;
   is_active: boolean | null;
   created_at: string;
   updated_at: string;

@@ -65,6 +65,7 @@ const CraftsManagementPage = () => {
     description: "",
     skill_level: "",
     vendor_id: "",
+    rate: "",
   });
 
   // Filter crafts based on search term
@@ -84,6 +85,7 @@ const CraftsManagementPage = () => {
       description: craft.description || "",
       skill_level: craft.skill_level || "",
       vendor_id: craft.vendor_id || "",
+      rate: craft.rate?.toString() || "",
     });
     setIsDialogOpen(true);
   };
@@ -96,6 +98,8 @@ const CraftsManagementPage = () => {
     }
 
     try {
+      const rateValue = formData.rate ? parseFloat(formData.rate) : null;
+      
       if (editingCraft) {
         await updateCraft.mutateAsync({
           id: editingCraft.id,
@@ -103,6 +107,7 @@ const CraftsManagementPage = () => {
           contract: formData.contract || null,
           skill_level: formData.skill_level || null,
           vendor_id: formData.vendor_id || null,
+          rate: rateValue,
         });
       } else {
         await createCraft.mutateAsync({
@@ -111,13 +116,14 @@ const CraftsManagementPage = () => {
           description: formData.description || null,
           skill_level: formData.skill_level || null,
           vendor_id: formData.vendor_id || null,
+          rate: rateValue,
           organization_id: currentOrganization?.id || "",
           is_active: true,
         });
       }
       setIsDialogOpen(false);
       setEditingCraft(null);
-      setFormData({ name: "", contract: "", description: "", skill_level: "", vendor_id: "" });
+      setFormData({ name: "", contract: "", description: "", skill_level: "", vendor_id: "", rate: "" });
     } catch (error) {
       console.error("Error saving craft:", error);
     }
@@ -144,18 +150,18 @@ const CraftsManagementPage = () => {
       <div>
         <Button
           variant="ghost"
-          onClick={() => navigate("/admin/reference-data")}
+          onClick={() => navigate("/people-labor")}
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Reference Data
+          Back to People & Labor
         </Button>
         
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold">Crafts Management</h1>
             <p className="text-muted-foreground mt-2">
-              Manage craft types, skill levels, vendors, and contracts for labor management
+              Manage craft types, skill levels, rates, vendors, and contracts for labor management
             </p>
           </div>
           <Button onClick={() => setIsDialogOpen(true)}>
@@ -192,6 +198,7 @@ const CraftsManagementPage = () => {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Skill Level</TableHead>
+                <TableHead>Rate (RM/hr)</TableHead>
                 <TableHead>Vendor</TableHead>
                 <TableHead>Contract</TableHead>
                 <TableHead>Description</TableHead>
@@ -205,6 +212,7 @@ const CraftsManagementPage = () => {
                   <TableRow key={craft.id}>
                     <TableCell className="font-medium">{craft.name}</TableCell>
                     <TableCell>{craft.skill_level || "-"}</TableCell>
+                    <TableCell>{craft.rate ? `RM ${craft.rate.toFixed(2)}` : "-"}</TableCell>
                     <TableCell>{vendor?.name || "-"}</TableCell>
                     <TableCell>{craft.contract || "-"}</TableCell>
                     <TableCell className="max-w-xs truncate">{craft.description || "-"}</TableCell>
@@ -269,22 +277,16 @@ const CraftsManagementPage = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="vendor">Vendor (Optional)</Label>
-                <Select
-                  value={formData.vendor_id || undefined}
-                  onValueChange={(value) => setFormData({ ...formData, vendor_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select vendor (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {suppliers?.map((supplier) => (
-                      <SelectItem key={supplier.id} value={supplier.id}>
-                        {supplier.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="rate">Hourly Rate (RM)</Label>
+                <Input
+                  id="rate"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="e.g., 45.50"
+                  value={formData.rate}
+                  onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
+                />
               </div>
 
               <div className="space-y-2">
@@ -296,6 +298,25 @@ const CraftsManagementPage = () => {
                   onChange={(e) => setFormData({ ...formData, contract: e.target.value })}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="vendor">Vendor (Optional)</Label>
+              <Select
+                value={formData.vendor_id || undefined}
+                onValueChange={(value) => setFormData({ ...formData, vendor_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select vendor (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers?.map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

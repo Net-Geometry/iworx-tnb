@@ -2,7 +2,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Database, Users, Wrench, MapPin } from "lucide-react";
-import { useCrafts } from "@/hooks/useCrafts";
 import { useSkills } from "@/hooks/useSkills";
 import { useBusinessAreas } from "@/hooks/useBusinessAreas";
 
@@ -12,7 +11,6 @@ import { useBusinessAreas } from "@/hooks/useBusinessAreas";
  */
 const ReferenceDataPage = () => {
   const navigate = useNavigate();
-  const { crafts = [] } = useCrafts();
   const { skills = [] } = useSkills();
   const { data: businessAreas = [] } = useBusinessAreas();
 
@@ -20,16 +18,9 @@ const ReferenceDataPage = () => {
   const referenceCategories = [
     {
       title: "People & Labor Data",
-      description: "Manage skills, crafts, and labor-related reference data",
+      description: "Manage skills and labor-related reference data",
       icon: Users,
       items: [
-        {
-          name: "Crafts",
-          description: "Manage craft types and specializations",
-          count: crafts.length,
-          route: "/admin/reference-data/crafts",
-          color: "text-blue-600",
-        },
         {
           name: "Skills",
           description: "Manage skill library and certifications",
