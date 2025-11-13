@@ -1,17 +1,74 @@
 import { useState } from "react";
-import { Plus, Eye, Trash2, Star, FileSpreadsheet } from "lucide-react";
+import { Plus, Eye, Trash2, Star, FileSpreadsheet, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAssetBOMs, useBOMs } from "@/hooks/useBOMs";
+import { useAssetBOMs, useBOMs, useBOMItems } from "@/hooks/useBOMs";
 import { useNavigate } from "react-router-dom";
 
 interface AssetBOMTabProps {
   assetId: string;
 }
+
+interface MaterialPreviewProps {
+  bomId: string;
+}
+
+const MaterialPreview = ({ bomId }: MaterialPreviewProps) => {
+  const { items, loading } = useBOMItems(bomId);
+  
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="text-sm text-muted-foreground italic">
+        No materials in this BOM
+      </div>
+    );
+  }
+
+  const displayItems = items.slice(0, 3);
+  const remainingCount = items.length - 3;
+
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+        <Package className="w-4 h-4" />
+        <span>Materials ({items.length})</span>
+      </div>
+      <div className="space-y-2">
+        {displayItems.map((item) => (
+          <div key={item.id} className="flex items-center justify-between text-sm bg-muted/50 rounded-md px-3 py-2">
+            <div className="flex-1">
+              <span className="font-medium text-foreground">{item.item_name}</span>
+              {item.item_number && (
+                <span className="text-muted-foreground ml-2">({item.item_number})</span>
+              )}
+            </div>
+            <div className="text-muted-foreground">
+              Qty: {item.quantity} {item.unit}
+            </div>
+          </div>
+        ))}
+        {remainingCount > 0 && (
+          <div className="text-sm text-muted-foreground pl-3">
+            + {remainingCount} more {remainingCount === 1 ? 'item' : 'items'}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const AssetBOMTab = ({ assetId }: AssetBOMTabProps) => {
   const { assetBOMs, loading: assetBOMsLoading, assignBOMToAsset, unassignBOMFromAsset } = useAssetBOMs(assetId);
@@ -216,10 +273,12 @@ export const AssetBOMTab = ({ assetId }: AssetBOMTabProps) => {
                     </div>
                     
                     {assetBOM.bom?.description && (
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground mb-2">
                         {assetBOM.bom.description}
                       </p>
                     )}
+                    
+                    {assetBOM.bom_id && <MaterialPreview bomId={assetBOM.bom_id} />}
                   </div>
                   
                   <div className="flex items-center gap-2">
