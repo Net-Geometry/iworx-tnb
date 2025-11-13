@@ -178,7 +178,7 @@ export const useRemoveBusinessArea = () => {
 };
 
 /**
- * Hook for setting a business area as primary
+ * Hook for setting or unsetting a business area as primary
  */
 export const useSetPrimaryBusinessArea = () => {
   const queryClient = useQueryClient();
@@ -186,31 +186,42 @@ export const useSetPrimaryBusinessArea = () => {
   const { currentOrganization } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, person_id }: { id: string; person_id: string }) => {
+    mutationFn: async ({ id, person_id, isPrimary }: { id: string; person_id: string; isPrimary: boolean }) => {
       if (!currentOrganization) throw new Error("No organization selected");
 
-      // Unset all primary flags for this person
-      await supabase
-        .from("person_business_areas")
-        .update({ is_primary: false })
-        .eq("person_id", person_id)
-        .eq("organization_id", currentOrganization.id);
+      if (isPrimary) {
+        // Setting as primary - unset all other primary flags first
+        await supabase
+          .from("person_business_areas")
+          .update({ is_primary: false })
+          .eq("person_id", person_id)
+          .eq("organization_id", currentOrganization.id);
 
-      // Set this one as primary
-      const { error } = await supabase
-        .from("person_business_areas")
-        .update({ is_primary: true })
-        .eq("id", id);
+        // Set this one as primary
+        const { error } = await supabase
+          .from("person_business_areas")
+          .update({ is_primary: true })
+          .eq("id", id);
 
-      if (error) throw error;
-      return { id, person_id };
+        if (error) throw error;
+      } else {
+        // Unsetting primary - just set this one to false
+        const { error } = await supabase
+          .from("person_business_areas")
+          .update({ is_primary: false })
+          .eq("id", id);
+
+        if (error) throw error;
+      }
+
+      return { id, person_id, isPrimary };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["person-business-areas", data.person_id] });
       queryClient.invalidateQueries({ queryKey: ["person", data.person_id] });
       toast({
         title: "Success",
-        description: "Primary business area updated",
+        description: data.isPrimary ? "Set as primary business area" : "Unset as primary business area",
       });
     },
     onError: (error: Error) => {
