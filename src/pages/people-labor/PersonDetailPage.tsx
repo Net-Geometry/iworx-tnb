@@ -127,11 +127,12 @@ const PersonDetailPage: React.FC = () => {
     }
   };
 
-  const handleSetPrimaryBusinessArea = async (businessAreaId: string) => {
+  const handleSetPrimaryBusinessArea = async (businessAreaId: string, isPrimary: boolean) => {
     if (id) {
       await setPrimaryBusinessArea.mutateAsync({ 
         id: businessAreaId, 
-        person_id: id 
+        person_id: id,
+        isPrimary: !isPrimary // Toggle the primary status
       });
     }
   };
@@ -322,6 +323,10 @@ const PersonDetailPage: React.FC = () => {
                   <Wrench className="w-4 h-4 text-accent" />
                   <span className="text-sm font-medium">{personCrafts.length} Crafts</span>
                 </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-background/80 backdrop-blur-sm rounded-lg border border-border">
+                  <MapPin className="w-4 h-4 text-green-600" />
+                  <span className="text-sm font-medium">{personBusinessAreas?.length || 0} Business Areas</span>
+                </div>
               </div>
             </div>
 
@@ -384,7 +389,7 @@ const PersonDetailPage: React.FC = () => {
 
                   <div className="group">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Business Areas</label>
-                    <div className="mt-1.5 space-y-2">
+                    <div className="mt-1.5">
                       {personBusinessAreas && personBusinessAreas.length > 0 ? (
                         <div className="flex flex-wrap gap-2">
                           {personBusinessAreas.map((ba) => (
@@ -404,15 +409,6 @@ const PersonDetailPage: React.FC = () => {
                       ) : (
                         <p className="text-sm text-muted-foreground">No business areas assigned</p>
                       )}
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setBusinessAreaDialogOpen(true)}
-                        className="mt-1"
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        Assign Business Area
-                      </Button>
                     </div>
                   </div>
                 </div>
@@ -476,7 +472,7 @@ const PersonDetailPage: React.FC = () => {
 
       {/* Enhanced Tabs with Icons */}
       <Tabs defaultValue="notes" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-5 h-auto p-1">
           <TabsTrigger value="notes" className="flex items-center gap-2 py-3">
             <FileText className="h-4 w-4" />
             <span className="hidden sm:inline">Notes</span>
@@ -490,6 +486,13 @@ const PersonDetailPage: React.FC = () => {
             <Wrench className="h-4 w-4" />
             <span className="hidden sm:inline">Crafts</span>
             <Badge variant="secondary" className="ml-1 text-xs">{personCrafts.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="business-areas" className="flex items-center gap-2 py-3">
+            <MapPin className="h-4 w-4" />
+            <span className="hidden sm:inline">Business Areas</span>
+            {personBusinessAreas && personBusinessAreas.length > 0 && (
+              <Badge variant="secondary" className="ml-1 text-xs">{personBusinessAreas.length}</Badge>
+            )}
           </TabsTrigger>
           <TabsTrigger value="locations" className="flex items-center gap-2 py-3">
             <MapPin className="h-4 w-4" />
@@ -761,6 +764,106 @@ const PersonDetailPage: React.FC = () => {
                   <Wrench className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
                   <p className="text-muted-foreground text-lg font-medium">No craft assignments yet</p>
                   <p className="text-muted-foreground text-sm mt-1">Craft assignments will appear here once assigned</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Business Areas Tab */}
+        <TabsContent value="business-areas" className="space-y-4">
+          <Card>
+            <CardHeader className="bg-gradient-to-r from-green-500/5 to-transparent">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-green-600" />
+                    Business Area Assignments
+                  </CardTitle>
+                  <CardDescription>Manage assigned business areas and set primary location</CardDescription>
+                </div>
+                <Button onClick={() => setBusinessAreaDialogOpen(true)} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Assign Business Area
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {businessAreasLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Skeleton className="h-32 w-full" />
+                  <Skeleton className="h-32 w-full" />
+                </div>
+              ) : personBusinessAreas && personBusinessAreas.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {personBusinessAreas.map((ba) => (
+                    <div 
+                      key={ba.id} 
+                      className="group relative border border-border rounded-xl p-5 bg-gradient-to-br from-card to-green-500/5 hover:shadow-md transition-all duration-200 hover:border-green-500/50"
+                    >
+                      {/* Business Area Header */}
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-foreground text-lg">
+                              {ba.business_area?.business_area || 'Unknown'}
+                            </h4>
+                            {ba.is_primary && (
+                              <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+                                <Star className="h-3 w-3 fill-yellow-500 mr-1" />
+                                Primary
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {ba.business_area?.region || 'No region'} • {ba.business_area?.station || 'No station'}
+                          </p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleSetPrimaryBusinessArea(ba.id, ba.is_primary)}
+                            title={ba.is_primary ? "Unset as primary" : "Set as primary"}
+                          >
+                            <Star className={`h-4 w-4 ${ba.is_primary ? 'fill-yellow-500 text-yellow-500' : ''}`} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                            onClick={() => setDeletingBusinessArea(ba)}
+                            title="Remove business area"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <Separator className="my-3" />
+
+                      {/* Business Area Details */}
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Region:</span>
+                          <span className="text-foreground font-medium">{ba.business_area?.region || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Station:</span>
+                          <span className="text-foreground font-medium">{ba.business_area?.station || 'N/A'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <MapPin className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                  <p className="text-muted-foreground text-lg font-medium">No business areas assigned yet</p>
+                  <p className="text-muted-foreground text-sm mt-1">Business areas will appear here once assigned</p>
                 </div>
               )}
             </CardContent>
